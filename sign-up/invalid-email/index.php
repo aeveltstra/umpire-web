@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 session_start();
-$last_email_tainted = $_SESSION['email_tainted'];
-$last_reason = $_SESSION['reason_tainted'];
+$last_email_tainted = $_SESSION['add_email_tainted'];
+$last_reason_tainted = $_SESSION['add_reason_tainted'];
 ?>
 <!DOCTYPE html>
 <html lang="en" charset="utf-8">
@@ -16,11 +16,9 @@ $last_reason = $_SESSION['reason_tainted'];
 <form method=post action="../request.php">
 <fieldset><legend>You want an account to gain special access to Umpire.</legend>
 <p><label for=email>E-mail:</label></p>
-<p><input type=email name=email id=email
-value="<?=htmlspecialchars($last_email)?>" size=50/></p>
+<p><input type=email name=email id=email value="<?=htmlspecialchars($last_email_tainted)?>" size=50/></p>
 <p><label for=reason>Reason for wanting access:</label></p>
-<p><textarea name=reason id=reason width=60
-height=5><?=htmlspecialchars($last_reason)?></textarea></p>
+<p><textarea name=reason id=reason width=60 height=5><?=htmlspecialchars($last_reason_tainted)?></textarea></p>
 <p><label><input type=submit value="Request Access"/></label></p>
 </fieldset>
 </form>
