@@ -1,0 +1,29 @@
+<html lang="en">
+<head>
+<title>Sign in - Umpire</title>
+<meta name=description value="Tell us how to recognize you"/>
+</head>
+<body>
+<h1>Sign in - Umpire</h1>
+<h2>Let us recognize you</h2>
+<form method=post action="authorize.php">
+<fieldset><legend>You already have an account and need to log in to gain
+special access to Umpire.</legend>
+<p><label><input type=text name=key id=key value="" size=30/> User Name</label></p>
+<p><label><input type=password name=secret id=secret value="" size=30/>
+Password</label></p>
+<p><label><input type=submit value="Sign in"/></label></p>
+</fieldset>
+</form>
+<form method=get action="forgot-password">
+<fieldset><legend>Forgot your password?</legend>
+<p><label><input type=submit value="Yes, I forgot!"/></label></p>
+</fieldset>
+</form>
+<form method=get action="sign-up">
+<fieldset><legend>Don't have an account yet?</legend>
+<p><label><input type=submit value="Sign up"/></label></p>
+</fieldset>
+</form>
+</body>
+</html>
