@@ -15,20 +15,17 @@
  * by display sequence.
  * Like so:
  * [
- *     ('id' => 'aliases', 'data_type' => 'shorttext'),
- *     ('id' => 'birth year', 'data_type' => 'integer')
+ *     ['id' => 'aliases', 'data_type' => 'shorttext'],
+ *     ['id' => 'birth year', 'data_type' => 'integer']
  * ]
  */
 function read_form_fields() {
-    $mock = array(
-        array('$id' => 'aliases', 'data_type' => 'shorttext', '$caption' => 'Other known names'),
-        array('$id' => 'birth year', 'data_type' => 'integer', '$caption' => 'Born in which year?'),
-        array('$id' => 'last seen on date', 'data_type' => 'date', '$caption' => 'Last Seen Date', '$hint' => 'To your best knowledge, at what date was this person seen last?')
-        array('$id' => 'last seen date accuracy', 'data_type' => 'percent',
-        '$caption' => 'Accuracy of the Last Seen Date', '$hint' => 'On a
-        scale of 0 to 100%, how accurate is the date at which this person
-        was last seen?')
-    );
+    $mock = [
+        ['$id' => 'aliases', 'data_type' => 'shorttext', '$caption' => 'Other known names', '$hint' => 'Nick names, government names, pen names, etc.'],
+        ['$id' => 'birth year', 'data_type' => 'integer', '$caption' => 'Born in which year?', '$hint' => 'Include the century.'],
+        ['$id' => 'last seen on date', 'data_type' => 'date', '$caption' => 'Last Seen Date', '$hint' => 'To your best knowledge, at what date was this person seen last?'],
+        ['$id' => 'last seen date accuracy', 'data_type' => 'percent', '$caption' => 'Accuracy of the Last Seen Date', '$hint' => 'On a scale of 0 to 100%, how accurate is the date at which this person was last seen?']
+    ];
     return $mock;
 }
 
@@ -42,7 +39,8 @@ function show_entry_fields() {
         'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number size=8 name="$id" id="$id"/></p></fieldset>',
         'enum' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
         'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
-        'longtext' => '<fieldset><legend>$id</legend><p><label for="$id">$desc</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>'
+        'longtext' => '<fieldset><legend>$id</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>',
+        'percent' => '<fieldset><legend>$id</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
     );
     $form_fields = read_form_fields();
     foreach($form_fields as $field) {
