@@ -8,9 +8,6 @@ declare(strict_types=1);
  */
 $email_tainted = $_POST['email'];
 $reason_tainted = $_POST['reason'];
-session_start();
-$_SESSION['add_email_tainted'] = $email_tainted;
-$_SESSION['add_reason_tainted'] = $reason_tainted;
 
 $is_valid = filter_var(
     $email_tainted, 
@@ -18,11 +15,15 @@ $is_valid = filter_var(
     FILTER_FLAG_EMAIL_UNICODE
 );
 
+session_start();
 if ($is_valid) {
-    
-    header('Location: ./received');
+    $_SESSION['add_email_valid'] = $email_tainted;
+    $_SESSION['add_reason_tainted'] = $reason_tainted;
+    header('Location: ./valid-email');
     die();
 } else {
+    $_SESSION['add_email_tainted'] = '';
+    $_SESSION['add_reason_tainted'] = '';
     header('Location: ./invalid-email');
     die();
 }
