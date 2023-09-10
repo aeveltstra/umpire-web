@@ -4,7 +4,7 @@ session_start();
 $last_email_tainted = $_SESSION['reset_email_tainted'];
 ?>
 <!DOCTYPE html>
-<html lang="en" charset="utf-8">
+<html lang=en charset="utf-8">
 <head>
 <title>Error: invalid e-mail - Forgot Password - Umpire</title>
 <meta name=description value="That does not look like a valid e-mail address."/>
@@ -12,7 +12,7 @@ $last_email_tainted = $_SESSION['reset_email_tainted'];
 <body>
 <h1>Error: invalid e-mail - Forgot Password - Umpire</h1>
 <h2>That did not look like a valid e-mail address. Try again.</h2>
-<form method=post action="../request-reset.php">
+<form method=post action="../check">
 <fieldset><legend>Please let me set new credentials.</legend>
 <p><label for=email>E-mail:</label></p>
 <p><input type=email name=email id=email value="<?=htmlspecialchars($last_email_tainted)?>" size=50/></p>
