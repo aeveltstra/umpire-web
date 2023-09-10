@@ -20,12 +20,15 @@
  * ]
  */
 function read_form_fields() {
-    $mock = [
-        ['$id' => 'aliases', '$data_type' => 'shorttext', '$desc' => 'Other
-        known names'],
-        ['$id' => 'birth year', '$data_type' => 'integer', '$desc' => 'Born
-        in which year?']
-    ];
+    $mock = array(
+        array('$id' => 'aliases', 'data_type' => 'shorttext', '$caption' => 'Other known names'),
+        array('$id' => 'birth year', 'data_type' => 'integer', '$caption' => 'Born in which year?'),
+        array('$id' => 'last seen on date', 'data_type' => 'date', '$caption' => 'Last Seen Date', '$hint' => 'To your best knowledge, at what date was this person seen last?')
+        array('$id' => 'last seen date accuracy', 'data_type' => 'percent',
+        '$caption' => 'Accuracy of the Last Seen Date', '$hint' => 'On a
+        scale of 0 to 100%, how accurate is the date at which this person
+        was last seen?')
+    );
     return $mock;
 }
 
@@ -35,18 +38,16 @@ function read_form_fields() {
  */
 function show_entry_fields() {
     $form_field_entry_templates = array(
-        'shorttext' => "<fieldset><legend>$id</legend><p><label for='$id'>$desc</label></p><p><input type=text size=60 maxlength=256 name='$id' id='$id'/></p></fieldset>",
-        'integer' => "<fieldset><legend>$id</legend><p><label
-        for='$id'>$desc</label></p><p><input type=number size=8 name='$id' id='$id'/></p></fieldset>",
-        'enum' => "<fieldset><legend>$id</legend><p><label for='$id'>$desc</label></p><p><input type=text size=60 maxlength=256 name='$id' id='$id'/></p></fieldset>",
-        'date' => "<fieldset><legend>$id</legend><p><label
-        for='$id'>$desc</label></p><p><input type=date name='$id' id='$id'/></p></fieldset>",
-        'longtext' => "<fieldset><legend>$id</legend><p><label
-        for='$id'>$desc</label></p><p><textarea cols=60 rows=10 name='$id' id='$id'></textarea></p></fieldset>"
+        'shorttext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
+        'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number size=8 name="$id" id="$id"/></p></fieldset>',
+        'enum' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
+        'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
+        'longtext' => '<fieldset><legend>$id</legend><p><label for="$id">$desc</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>'
     );
     $form_fields = read_form_fields();
     foreach($form_fields as $field) {
-        echo strtr($form_field_entry_templates($field['$data_type']), $field);
+        $t = $form_field_entry_templates[$field['data_type']];
+        echo strtr($t, $field);
     }
 }
 
@@ -64,10 +65,9 @@ function show_entry_fields() {
     <?php show_entry_fields(); ?>
     <fieldset>
         <legend>Done!</legend>
-        <p><label><input type=checkbox name=agree/> I accept </label><a
-        href="terms">the terms and
-        conditions.</a></p>
-        <p><label><input type=submit value=Submit/></label></p>
+        <p><label><input type=checkbox name=agree /> I accept </label><a
+        href="terms">the terms and conditions.</a></p>
+        <p><label><input type=submit value=Submit /></label></p>
     </fieldset>
 </form>
 </body>
