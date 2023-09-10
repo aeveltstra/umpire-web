@@ -22,8 +22,8 @@ if ($is_valid) {
     header('Location: ./valid-email');
     die();
 } else {
-    $_SESSION['add_email_tainted'] = '';
-    $_SESSION['add_reason_tainted'] = '';
+    $_SESSION['add_email_invalid'] = $mail_tainted;
+    $_SESSION['add_reason_tainted'] = $reason_tainted;
     header('Location: ./invalid-email');
     die();
 }
