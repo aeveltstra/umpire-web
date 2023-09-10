@@ -61,7 +61,7 @@ function show_entry_fields() {
 <h1>New Case Entry - Umpire</h1>
 <h2>Please share as many details as available</h2>
 <form action="register.php" method=post>
-<?php show_entry_fields(); ?>
+    <?php show_entry_fields(); ?>
     <fieldset>
         <legend>Done!</legend>
         <p><label><input type=checkbox name=agree/> I accept </label><a
