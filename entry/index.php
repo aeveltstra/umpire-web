@@ -6,6 +6,7 @@
  * @version 2.23.909.1834
  */
 
+include_once (dirname(__FILE__) . '/../config.php');
 
 /**
  * Reads the database fields and their attributes, so they can be
@@ -20,13 +21,19 @@
  * ]
  */
 function read_form_fields() {
+    global $eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo;
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    $mysqli = new mysqli($eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo);
+    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `translation` asc';
+    $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
+    $buffer = $result->fetch_all(MYSQLI_BOTH);
     $mock = [
         ['$id' => 'aliases', 'data_type' => 'shorttext', '$caption' => 'Other known names', '$hint' => 'Nick names, government names, pen names, etc.'],
         ['$id' => 'birth year', 'data_type' => 'integer', '$caption' => 'Born in which year?', '$hint' => 'Include the century.'],
         ['$id' => 'last seen on date', 'data_type' => 'date', '$caption' => 'Last Seen Date', '$hint' => 'To your best knowledge, at what date was this person seen last?'],
         ['$id' => 'last seen date accuracy', 'data_type' => 'percent', '$caption' => 'Accuracy of the Last Seen Date', '$hint' => 'On a scale of 0 to 100%, how accurate is the date at which this person was last seen?']
     ];
-    return $mock;
+    return $buffer;
 }
 
 /**
@@ -34,18 +41,20 @@ function read_form_fields() {
  * into the page at the place of its invocation.
  */
 function show_entry_fields() {
-    $form_field_entry_templates = array(
+    $templates = array(
         'shorttext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
         'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number size=8 name="$id" id="$id"/></p></fieldset>',
         'enum' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
         'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
-        'longtext' => '<fieldset><legend>$id</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>',
-        'percent' => '<fieldset><legend>$id</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
+        'longtext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>',
+        'percent' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
     );
-    $form_fields = read_form_fields();
-    foreach($form_fields as $field) {
-        $t = $form_field_entry_templates[$field['data_type']];
-        echo strtr($t, $field);
+    $fields = read_form_fields();
+    foreach($fields as $field) {
+        $t = $templates[$field['data_type']];
+        if (!is_null($t)) {
+            echo strtr($t, $field);
+        }
     }
 }
 
