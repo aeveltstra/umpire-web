@@ -6,7 +6,7 @@
  * @version 2.23.909.1834
  */
 
-include_once (dirname(__FILE__) . '/../config.php');
+include_once (dirname(__FILE__) . '/../../config.php');
 
 /**
  * Reads the database fields and their attributes, so they can be
