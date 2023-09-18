@@ -24,7 +24,7 @@ function read_form_fields() {
     global $eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $mysqli = new mysqli($eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo);
-    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `translation` asc';
+    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `display_sequence` asc';
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $buffer = $result->fetch_all(MYSQLI_BOTH);
     $mock = [
