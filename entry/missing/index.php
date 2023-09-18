@@ -24,7 +24,7 @@ function read_form_fields() {
     global $eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $mysqli = new mysqli($eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo);
-    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `display_sequence` asc';
+    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint`, `min` as `$min`, `max` as `$max` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `display_sequence` asc'; 
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $buffer = $result->fetch_all(MYSQLI_BOTH);
     $mock = [
@@ -42,11 +42,11 @@ function read_form_fields() {
  */
 function show_entry_fields() {
     $templates = array(
-        'shorttext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
-        'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number size=8 name="$id" id="$id"/></p></fieldset>',
+        'shorttext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength="$max" name="$id" id="$id"/></p></fieldset>',
+        'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min="$min" max="$max" name="$id" id="$id"/></p></fieldset>',
         'enum' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
         'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
-        'longtext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 name="$id" id="$id"></textarea></p></fieldset>',
+        'longtext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 maxlength="$max" name="$id" id="$id"></textarea></p></fieldset>',
         'percent' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
     );
     $fields = read_form_fields();
