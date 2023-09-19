@@ -9,6 +9,23 @@
 include_once (dirname(__FILE__) . '/../../config.php');
 
 /**
+ * Reads the enumerations from the database. They are stored as
+ * separate values for each attribute, with a language code.
+ */
+function read_enumerations_from_db() {
+
+}
+
+/**
+ * Reads the enumerations from the database and generates a single
+ * input constraint for each attribute.
+ */
+function show_enums() {
+
+}
+
+
+/**
  * Reads the database fields and their attributes, so they can be
  * used in the strtr() function to render HTML form fields.
  * @return a list of tuples. Every field is a tuple, with the
@@ -24,7 +41,7 @@ function read_form_fields() {
     global $eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $mysqli = new mysqli($eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo);
-    $sql = 'SELECT `id` as `$id`, `data_type`, `translation` as `$caption`, `hint` as `$hint`, `min` as `$min`, `max` as `$max` FROM `attributes` as a inner join `attribute_translations` as t on t.attribute_id = a.id where use_for in (\'any\', \'missing_people\') and t.language_code = \'en\' order by `display_sequence` asc'; 
+    $sql = 'SELECT `$id`, `data_type`, `$caption`, `$hint`, `$min`, `$max`, `$hide_on_entry` FROM `vw_missing_entry_form_attributes` order by `display_sequence` asc'; 
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $buffer = $result->fetch_all(MYSQLI_BOTH);
     $mock = [
@@ -42,9 +59,13 @@ function read_form_fields() {
  */
 function show_entry_fields() {
     $templates = array(
-        'shorttext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength="$max" name="$id" id="$id"/></p></fieldset>',
+        'shorttext' => '<fieldset><legend>$caption</legend><p><label
+        for="$id">$hint</label></p><p><input type=text size=60
+        minlength="$min" maxlength="$max" name="$id" id="$id"/></p></fieldset>',
         'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min="$min" max="$max" name="$id" id="$id"/></p></fieldset>',
-        'enum' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=text size=60 maxlength=256 name="$id" id="$id"/></p></fieldset>',
+        'enum' => '<fieldset><legend>$caption</legend><p><label
+        for="$id">$hint</label></p><p><input type=text size=60
+        minlength="$min" maxlength=256 name="$id" id="$id"/></p></fieldset>',
         'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
         'longtext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 maxlength="$max" name="$id" id="$id"></textarea></p></fieldset>',
         'percent' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
@@ -54,6 +75,7 @@ function show_entry_fields() {
         $t = $templates[$field['data_type']];
         if (!is_null($t)) {
             echo strtr($t, $field);
+            echo "\r\n\r\n";
         }
     }
 }
