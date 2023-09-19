@@ -41,7 +41,7 @@ function read_form_fields() {
     global $eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo;
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $mysqli = new mysqli($eraskcsstufgyc, $vhjilfyhkkot, $bjkyfvbnkiyf, $yaefgvcaoelo);
-    $sql = 'SELECT `$id`, `data_type`, `$caption`, `$hint`, `$min`, `$max`, `$hide_on_entry` FROM `vw_missing_entry_form_attributes` order by `display_sequence` asc'; 
+    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, `max`, `hide_on_entry` FROM `vw_missing_entry_form_attributes` order by `display_sequence` asc'; 
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $buffer = $result->fetch_all(MYSQLI_BOTH);
     $mock = [
@@ -59,22 +59,23 @@ function read_form_fields() {
  */
 function show_entry_fields() {
     $templates = array(
-        'shorttext' => '<fieldset><legend>$caption</legend><p><label
-        for="$id">$hint</label></p><p><input type=text size=60
-        minlength="$min" maxlength="$max" name="$id" id="$id"/></p></fieldset>',
-        'integer' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min="$min" max="$max" name="$id" id="$id"/></p></fieldset>',
-        'enum' => '<fieldset><legend>$caption</legend><p><label
-        for="$id">$hint</label></p><p><input type=text size=60
-        minlength="$min" maxlength=256 name="$id" id="$id"/></p></fieldset>',
-        'date' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=date name="$id" id="$id"/></p></fieldset>',
-        'longtext' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><textarea cols=60 rows=10 maxlength="$max" name="$id" id="$id"></textarea></p></fieldset>',
-        'percent' => '<fieldset><legend>$caption</legend><p><label for="$id">$hint</label></p><p><input type=number min=0 max=100 name="$id" id="$id"/></p></fieldset>'
+        'shorttext' => '<fieldset><legend>%3$s</legend><p><label
+        for="%1$s">%4$s</label></p><p><input type=text size=60
+        minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s"/></p></fieldset>',
+        'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min="%5$d" max="%6$d" name="%1$s" id="%1$s"/></p></fieldset>',
+        'enum' => '<fieldset><legend>%3$s</legend><p><label
+        for="%1$s">%4$s</label></p><p><input type=text size=60
+        minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s"/></p></fieldset>',
+        'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s"/></p></fieldset>',
+        'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s"></textarea></p></fieldset>',
+        'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 name="%1$s" id="%1$s"/></p></fieldset>'
     );
     $fields = read_form_fields();
     foreach($fields as $field) {
-        $t = $templates[$field['data_type']];
+       [$id, $data_type, $caption, $hint, $min, $max, $hide_on_entry] = $field;
+        $t = $templates[$data_type];
         if (!is_null($t)) {
-            echo strtr($t, $field);
+            echo sprintf($t, $id, $hide_on_entry, $caption, $hint, $min, $max);
             echo "\r\n\r\n";
         }
     }
