@@ -8,6 +8,8 @@ $last_email_tainted = $_SESSION['reset_email_tainted'];
 <head>
 <title>Error: invalid e-mail - Forgot Password - Umpire</title>
 <meta name=description value="That does not look like a valid e-mail address."/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel=stylesheet href="/umpire/c/main.css"/>
 </head>
 <body>
 <h1>Error: invalid e-mail - Forgot Password - Umpire</h1>
