@@ -12,8 +12,16 @@ declare(strict_types=1);
 require_once('../../../config.php');
 
 function is_email_known($candidate) {
-    $hashed_candidate = hash('sha512', $candidate);
-    $sql = 'select count(*) as `amount` from `users` where `email_hash` = \'' . $hashed_candidate . '\'';
+    $hashed_candidate = hash(
+        'sha512', 
+        $candidate
+    );
+    $sql = 'select 
+        count(*) as `amount` 
+        from `users` 
+        where `email_hash` = \'' 
+        . $hashed_candidate 
+        . '\'';
     $rows = query($sql);
     if ($rows) {
         $row = $rows[0];
@@ -26,11 +34,46 @@ function is_email_known($candidate) {
 }
 
 function add_user($candidate) {
-    $hashed_candidate = hash('sha512', $candidate);
-    
-    $sql = 'insert into `users` (' .
-            '`email_hash`, `access_requested_on`, `key_hash`, `secret_hash`, `hashing_algo`, `hashing_version`, `last_hashed_date`) ' .
-            ' values ();';
+    $hashed_candidate = hash(
+        'sha512', 
+        $candidate
+    );
+    $key = make_user_key();
+    $secret = make_user_secret();
+    $hashing_algo = 'sha512';
+    $hashing_version = 1;
+    $key_hash = hash(
+        $hashing_algo,
+        $key
+    );
+    $secret_hash = hash(
+        $hashing_algo,
+        $secret
+    );
+    $sql = 'insert into `users` (
+            `email_hash`, 
+            `access_requested_on`, 
+            `key_hash`, 
+            `secret_hash`, 
+            `hashing_algo`, 
+            `hashing_version`, 
+            `last_hashed_date`
+            ) values (\''
+            . $hashed_candidate 
+            . '\', 
+            getdate(), 
+            \''
+            . $key_hash
+            . '\', 
+            \''
+            . $secret_hash
+            . '\', 
+            \''
+            . $hashing_algo
+            . '\', 
+            \'1\',
+            getdate()
+            ');';
 }
 
 session_start();
@@ -46,4 +89,3 @@ if ($is_known) {
 header('Location: ./send');
 die();
 ?>
-
