@@ -107,7 +107,7 @@ function show_entry_fields() {
     <fieldset>
         <legend>Done!</legend>
         <p><label><input type=checkbox name=agree /> I accept </label><a
-        href="../terms">the terms and conditions.</a></p>
+        href="/umpire/terms">the terms and conditions.</a></p>
         <p><label><input type=submit value=Submit /></label></p>
     </fieldset>
 </form>
