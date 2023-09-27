@@ -181,7 +181,7 @@ if ($is_known) {
 <title>Save this info! - Umpire</title>
 <meta name="description" value="This will be shown only once."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet src="/umpire/c/main.css"/>
+<link rel=stylesheet href="/umpire/c/main.css"/>
 </head>
 <body>
 <h1>Save this info! - Umpire</h1>
