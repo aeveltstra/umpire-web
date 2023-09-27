@@ -33,6 +33,75 @@ function is_email_known($candidate) {
     return false;
 }
 
+function make_user_key() {
+    return bin2hex(
+        random_bytes(64)
+    );
+}
+
+function make_user_secret() {
+    $word_list = [
+        'horse',
+        'green',
+        'sombrero',
+        'falsetto',
+        'ivy',
+        'farms',
+        'pizza',
+        'dulcimer',
+        'hashbrown',
+        'return',
+        'thankful',
+        'venerate',
+        'treaty',
+        'madness',
+        'slicing',
+        'majestic',
+        'fibrous',
+        'pineapple',
+        'exterior',
+        'individual',
+        'vertices',
+        'properly',
+        'ringtoss',
+        'cookie cutter',
+        'vigorous',
+        'edge',
+        'corkscrew',
+        'friends',
+        'electricity',
+        'overconfidence',
+        'polarizing',
+        'shameful',
+        'complete',
+        'sandwich',
+        'tomato',
+        'lettuce',
+        'flimsy',
+        'dainty',
+        'perpendicular',
+        'guacamole',
+        'flavor',
+        'molecule',
+        'tear',
+        'choice',
+        'beefsteak'
+    ],
+    $result = array();
+    foreach(
+        array_rand(
+            $word_list, 
+            7
+        ) as $k 
+    ) {
+        $result[] = $word_list[$k];
+    }
+    return implode(
+        ' ',
+        $result
+    );
+}
+
 function add_user($candidate) {
     $hashed_candidate = hash(
         'sha512', 
