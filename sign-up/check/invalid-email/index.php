@@ -6,11 +6,11 @@ $add_reason_tainted = $_SESSION['add_reason_tainted'];
 ?>
 <!DOCTYPE html>
 <html lang=en charset="utf-8">
-<head>
+<head><meta charset="utf-8" />
 <title>Error: invalid e-mail - Sign up - Umpire</title>
-<meta name=description value="That does not look like a valid e-mail address."/>
+<meta name=description content="That does not look like a valid e-mail address."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet src="/umpire/c/main.css"/>
 </head>
 <body>
 <h1>Error: invalid e-mail - Sign up - Umpire</h1>

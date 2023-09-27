@@ -120,29 +120,29 @@ function add_user($candidate) {
         $secret
     );
     $sql = 'insert into `users` (
-            `email_hash`, 
-            `access_requested_on`, 
-            `key_hash`, 
-            `secret_hash`, 
-            `hashing_algo`, 
-            `hashing_version`, 
-            `last_hashed_date`
-            ) values (\''
-            . $hashed_candidate 
-            . '\', 
-            getdate(), 
-            \''
-            . $key_hash
-            . '\', 
-            \''
-            . $secret_hash
-            . '\', 
-            \''
-            . $hashing_algo
-            . '\', 
-            \'1\',
-            getdate()
-            ');';
+        `email_hash`, 
+        `access_requested_on`, 
+        `key_hash`, 
+        `secret_hash`, 
+        `hashing_algo`, 
+        `hashing_version`, 
+        `last_hashed_date`
+        ) values (\''
+        . $hashed_candidate 
+        . '\', 
+        getdate(), 
+        \''
+        . $key_hash
+        . '\', 
+        \''
+        . $secret_hash
+        . '\', 
+        \''
+        . $hashing_algo
+        . '\', 
+        \'1\',
+        getdate()
+    );';
     $result = query($sql);
     return [$key, $secret];
 }
@@ -150,18 +150,11 @@ function add_user($candidate) {
 session_start();
 $add_email_valid = $_SESSION['add_email_valid'];
 unset($_SESSION['add_email_valid']);
-
-$is_known = is_email_known($add_email_valid);
-
-if ($is_known) {
-    
-    header('Location: ./thank-you');
-} else {
-    [$key, $secret] = add_user($add_email_valid);
-    $success = mail(
-        $admin_email,
-        'Umpire access requested',
-        "Hello,  
+/* $admin_email is set in config.php */
+$success = mail(
+    $admin_email,
+    'Umpire access requested',
+    "Hello,  
   
 Special access has been requested to the Umpire database from this email address:  
 ${add_email_valid}  
@@ -171,7 +164,36 @@ https://www.umpi.re/applications/?email=${add_email_valid}
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${admin_email}."
-    );
+);
+
+$is_known = is_email_known($add_email_valid);
+
+if ($is_known) {
+    header('Location: ./sent');
+} else {
+    [$key, $secret] = add_user($add_email_valid);
 }
 
 ?>
+<!DOCTYPE html>
+<html lang="en" encoding="utf-8">
+<head><meta charset="utf-8" />
+<title>Save this info! - Umpire</title>
+<meta name="description" value="This will be shown only once."/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel=stylesheet src="/umpire/c/main.css"/>
+</head>
+<body>
+<h1>Save this info! - Umpire</h1>
+<h2>This will be shown only once.</h2>
+<p>You will be asked for these when you log in. If you lose them, you have to reset them. The Umpire operatives CANNOT retrieve them, and CANNOT send them to you.</p>
+<p>Please print this page or save it as a PDF and store it somewhere else.</p>
+<p>The email address you provided:</p>
+<p><?php = addslashes($add_email_valid) ?></p>
+<p>This is your access key:</p>
+<p><?php = addslashes($key) ?></p>
+<p>And this is your secret pass phrase:</p>
+<p><?php = addslashes($secret) ?></p>
+<p>Note: the Umpire operatives will NEVER ask for your key or secret pass phrase. They may ask for your email address.</p>
+</body>
+</html>

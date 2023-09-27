@@ -89,12 +89,12 @@ function show_entry_fields() {
 
 ?>
 <!DOCTYPE html>
-<html lang=en encoding="utf-8">
-<head>
+<html lang=en>
+<head><meta charset="utf-8" />
 <title>New Missing Person's Case Entry - Umpire</title>
-<meta name=description value="Please share as many details as available"/>
+<meta name=description content="Please share as many details as available"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet src="/umpire/c/main.css"/>
 </head>
 <body>
 <h1>New Missing Person's Case Entry - Umpire</h1>
