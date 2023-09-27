@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.926.1815
+ * @version 2.23.926.2143
  */
 
 require_once('../../../config.php');
@@ -143,18 +143,35 @@ function add_user($candidate) {
             \'1\',
             getdate()
             ');';
+    $result = query($sql);
+    return [$key, $secret];
 }
 
 session_start();
 $add_email_valid = $_SESSION['add_email_valid'];
+unset($_SESSION['add_email_valid']);
+
 $is_known = is_email_known($add_email_valid);
 
 if ($is_known) {
+    
     header('Location: ./thank-you');
 } else {
-    $phrase = add_user($add_email_valid);
+    [$key, $secret] = add_user($add_email_valid);
+    $success = mail(
+        $admin_email,
+        'Umpire access requested',
+        "Hello,  
+  
+Special access has been requested to the Umpire database from this email address:  
+${add_email_valid}  
+  
+Please use this link to review the application:  
+https://www.umpi.re/applications/?email=${add_email_valid}
+  
+--
+I am a robot. I cannot read your reply. For feedback and support, reach out to ${admin_email}."
+    );
 }
 
-header('Location: ./send');
-die();
 ?>
