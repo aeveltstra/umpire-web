@@ -10,11 +10,12 @@ declare(strict_types=1);
 
 session_start();
 $known_email = $_SESSION['known_email'];
+unset($_SESSION['known_email']);
 $reset_key = $_SESSION['reset_key'];
 $success = mail(
     $known_email,
     'Umpire: set your access credentials',
-    "Hello,\r\n\r\nUse the below link to set your credentials to access the database for Unidentified and Missing People, Independent Research and Education.\r\n\r\nhttps://www.umpi.re/set-access/?reset_key=${reset_key}&email=${known_email}\r\n\r\n"
+    "Hello,\r\n\r\nUse the below link to set your credentials to access the database for Unidentified and Missing People, Independent Research and Education.\r\n\r\nhttps://www.umpi.re/reset-access/?reset_key=${reset_key}&email=${known_email}\r\n\r\n"
 );
 
 
@@ -26,4 +27,3 @@ if ($success) {
     die();
 }
 ?>
-
