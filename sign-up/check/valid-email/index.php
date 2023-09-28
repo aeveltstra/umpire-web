@@ -8,8 +8,17 @@ session_start();
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.927.2028
+ * @version 2.23.927.2049
  */
+
+if (
+    !isset($_SESSION['add_user_email_valid'])
+    || !isset($_SESSION['add_user_reason_tainted'])
+    || !isset($_SESSION['add_user_agreed_tainted'])
+    ) {
+    header('Location: ./error-missing-input/');
+    die();
+}
 
 require_once('../../../config.php');
 
@@ -143,7 +152,7 @@ function add_user($candidate) {
         . $hashing_algo
         . '\', 
         \'1\',
-        getdate()
+        now()
     );';
     $result = query($sql);
     return [$key, $secret];
