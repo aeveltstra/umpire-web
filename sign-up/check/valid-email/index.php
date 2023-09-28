@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+error_reporting(E_ALL);
 session_start();
 
 /**
@@ -7,7 +8,7 @@ session_start();
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.926.2143
+ * @version 2.23.927.2028
  */
 
 require_once('../../../config.php');
@@ -87,7 +88,7 @@ function make_user_secret() {
         'tear',
         'choice',
         'beefsteak'
-    ],
+    ];
     $result = array();
     foreach(
         array_rand(
@@ -150,8 +151,10 @@ function add_user($candidate) {
 
 $add_email_valid = $_SESSION['add_user_email_valid'];
 unset($_SESSION['add_user_email_valid']);
-$add_user_reason = $_SESSION['add_user_reason'];
-unset($_SESSION['add_user_reason']);
+$add_user_reason = $_SESSION['add_user_reason_tainted'];
+unset($_SESSION['add_user_reason_tainted']);
+$add_user_agreed = $_SESSION['add_user_agreed_tainted'];
+unset($_SESSION['add_user_agreed_tainted']);
 
 /* $admin_email is set in config.php */
 $success = mail(
@@ -164,9 +167,15 @@ ${add_email_valid}
 
 Their reason is:
 ${add_user_reason}
+
+Did they agree to the terms and conditions?
+${add_user_agreed}
   
-Please use this link to review the application:  
-https://www.umpi.re/applications/?email=${add_email_valid}
+Use this link to accept the application:  
+https://www.umpi.re/applications/accept?email=${add_email_valid}
+
+Use this link to reject it:
+https://www.umpi.re/applications/reject?email=${add_email_valid}
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${admin_email}."
