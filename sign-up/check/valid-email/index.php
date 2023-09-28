@@ -27,11 +27,14 @@ if (
  */
 require_once('../../../config.php');
 
-function is_email_known($candidate) {
-    $hashed_candidate = hash(
+function hash_candidate(string: $candidate): string {
+    return hash(
         'sha512', 
         $candidate
     );
+}
+
+function is_email_known(string: $hashed_candidate): bool {
     $sql = 'select 
         count(*) as `amount` 
         from `users` 
@@ -39,9 +42,9 @@ function is_email_known($candidate) {
         . $hashed_candidate 
         . '\'';
     $rows = query($sql);
-    if ($rows) {
+    if (!empty($rows)) {
         $row = $rows[0];
-        if ($row) {
+        if (!empty($row)) {
             $amount = $row['amount'];
             return $amount > 0;
         }
@@ -49,13 +52,13 @@ function is_email_known($candidate) {
     return false;
 }
 
-function make_user_key() {
+function make_user_key(): string {
     return bin2hex(
         random_bytes(64)
     );
 }
 
-function make_user_secret() {
+function make_user_secret(): string {
     $word_list = [
         'horse',
         'green',
@@ -118,11 +121,7 @@ function make_user_secret() {
     );
 }
 
-function add_user($candidate) {
-    $hashed_candidate = hash(
-        'sha512', 
-        $candidate
-    );
+function add_user(string: $hashed_candidate): ?array {
     $key = make_user_key();
     $secret = make_user_secret();
     $hashing_algo = 'sha512';
@@ -143,7 +142,9 @@ function add_user($candidate) {
         `hashing_algo`, 
         `hashing_version`, 
         `last_hashed_date`
-        ) values ( ?, now(), ?, ?, ?, ?, now());';
+        ) values ( 
+            ?, now(), ?, ?, ?, ?, now()
+        );';
     $result = db_exec($sql, 'ssssi', [
         $hashed_candidate,
         $key_hash,
@@ -151,7 +152,10 @@ function add_user($candidate) {
         $hashing_algo,
         1
     ]);
-    return [$key, $secret];
+    if ($result) {
+        return [$key, $secret];
+    }
+    return null;
 }
 
 $add_email_valid = $_SESSION['add_user_email_valid'];
@@ -160,8 +164,20 @@ $add_user_reason = $_SESSION['add_user_reason_tainted'];
 unset($_SESSION['add_user_reason_tainted']);
 $add_user_agreed = $_SESSION['add_user_agreed_tainted'];
 unset($_SESSION['add_user_agreed_tainted']);
+if (empty($add_user_agreed)) {
+    $add_user_agreed = 'no';
+} else if ('on' == $add_user_agreed) {
+    $add_user_agreed = 'yes';
+} else {
+    $add_user_agreed = 'no';
+}
 
-$is_known = is_email_known($add_email_valid);
+$candidate_hash = hash_candidate(
+    $add_email_valid
+);
+$is_known = is_email_known(
+    $candidate_hash
+);
 
 if ($is_known) {
     header('Location: ./sent');
@@ -169,10 +185,10 @@ if ($is_known) {
     /* $admin_email is set in config.php */
     $success = mail(
         $admin_email,
-            'Umpire access requested',
-            "Hello,  
+        'Umpire access requested',
+        "Hello,  
   
-Special access has been requested to the Umpire database from this email address:  
+Special access has been requested to the Umpire database for this email address:  
 ${add_email_valid}  
 
 Their reason is:
@@ -182,15 +198,22 @@ Did they agree to the terms and conditions?
 ${add_user_agreed}
   
 Use this link to accept the application:  
-https://www.umpi.re/applications/accept?email=${add_email_valid}
+https://www.umpi.re/applications/accept?id=${candidate_hash}
 
 Use this link to reject it:
-https://www.umpi.re/applications/reject?email=${add_email_valid}
+https://www.umpi.re/applications/reject?id=${candidate_hash}
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${support_email}."
     );
-    [$key, $secret] = add_user($add_email_valid);
+    $user_added = add_user($candidate_hash);
+    if (empty($user_added)) {
+        header(
+            'Location: ./error-storage-failure/'
+        );
+    } else {
+        [$key, $secret] = $user_added;
+    }
 }
 
 ?>
@@ -214,6 +237,6 @@ I am a robot. I cannot read your reply. For feedback and support, reach out to $
 <p>And this is your secret pass phrase:</p>
 <p><?php echo addslashes($secret) ?></p>
 <p>Note: the Umpire operatives will NEVER ask for your key or secret pass phrase. They may ask for your email address.</p>
+<p>Return to the <a href="/umpire/">home page</a>.</p>
 </body>
 </html>
-
