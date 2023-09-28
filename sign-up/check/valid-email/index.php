@@ -8,7 +8,7 @@ session_start();
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.927.2049
+ * @version 2.23.928.1936
  */
 
 if (
