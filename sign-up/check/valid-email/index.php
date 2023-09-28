@@ -20,6 +20,11 @@ if (
     die();
 }
 
+/**
+ * config.php contains db functionality
+ * like query(sql) and 
+ * db_exec(sql, params_typestring, params).
+ */
 require_once('../../../config.php');
 
 function is_email_known($candidate) {
@@ -138,23 +143,14 @@ function add_user($candidate) {
         `hashing_algo`, 
         `hashing_version`, 
         `last_hashed_date`
-        ) values (\''
-        . $hashed_candidate 
-        . '\', 
-        getdate(), 
-        \''
-        . $key_hash
-        . '\', 
-        \''
-        . $secret_hash
-        . '\', 
-        \''
-        . $hashing_algo
-        . '\', 
-        \'1\',
-        now()
-    );';
-    $result = query($sql);
+        ) values ( ?, now(), ?, ?, ?, ?, now());';
+    $result = db_exec($sql, 'ssssi', [
+        $hashed_candidate,
+        $key_hash,
+        $secret_hash,
+        $hashing_algo,
+        1
+    ]);
     return [$key, $secret];
 }
 
@@ -165,11 +161,16 @@ unset($_SESSION['add_user_reason_tainted']);
 $add_user_agreed = $_SESSION['add_user_agreed_tainted'];
 unset($_SESSION['add_user_agreed_tainted']);
 
-/* $admin_email is set in config.php */
-$success = mail(
-    $admin_email,
-    'Umpire access requested',
-    "Hello,  
+$is_known = is_email_known($add_email_valid);
+
+if ($is_known) {
+    header('Location: ./sent');
+} else {
+    /* $admin_email is set in config.php */
+    $success = mail(
+        $admin_email,
+            'Umpire access requested',
+            "Hello,  
   
 Special access has been requested to the Umpire database from this email address:  
 ${add_email_valid}  
@@ -187,14 +188,8 @@ Use this link to reject it:
 https://www.umpi.re/applications/reject?email=${add_email_valid}
   
 --
-I am a robot. I cannot read your reply. For feedback and support, reach out to ${admin_email}."
-);
-
-$is_known = is_email_known($add_email_valid);
-
-if ($is_known) {
-    header('Location: ./sent');
-} else {
+I am a robot. I cannot read your reply. For feedback and support, reach out to ${support_email}."
+    );
     [$key, $secret] = add_user($add_email_valid);
 }
 
