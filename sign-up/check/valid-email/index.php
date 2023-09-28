@@ -27,14 +27,14 @@ if (
  */
 require_once('../../../config.php');
 
-function hash_candidate(string: $candidate): string {
+function hash_candidate(string $candidate): string {
     return hash(
         'sha512', 
         $candidate
     );
 }
 
-function is_email_known(string: $hashed_candidate): bool {
+function is_email_known(string $hashed_candidate): bool {
     $sql = 'select 
         count(*) as `amount` 
         from `users` 
@@ -121,7 +121,7 @@ function make_user_secret(): string {
     );
 }
 
-function add_user(string: $hashed_candidate): ?array {
+function add_user(string $hashed_candidate): ?array {
     $key = make_user_key();
     $secret = make_user_secret();
     $hashing_algo = 'sha512';
