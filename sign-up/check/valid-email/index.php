@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+session_start();
 
 /**
  * Request credentials to access Umpire
@@ -147,9 +148,11 @@ function add_user($candidate) {
     return [$key, $secret];
 }
 
-session_start();
-$add_email_valid = $_SESSION['add_email_valid'];
-unset($_SESSION['add_email_valid']);
+$add_email_valid = $_SESSION['add_user_email_valid'];
+unset($_SESSION['add_user_email_valid']);
+$add_user_reason = $_SESSION['add_user_reason'];
+unset($_SESSION['add_user_reason']);
+
 /* $admin_email is set in config.php */
 $success = mail(
     $admin_email,
@@ -158,6 +161,9 @@ $success = mail(
   
 Special access has been requested to the Umpire database from this email address:  
 ${add_email_valid}  
+
+Their reason is:
+${add_user_reason}
   
 Please use this link to review the application:  
 https://www.umpi.re/applications/?email=${add_email_valid}
@@ -189,11 +195,12 @@ if ($is_known) {
 <p>You will be asked for these when you log in. If you lose them, you have to reset them. The Umpire operatives CANNOT retrieve them, and CANNOT send them to you.</p>
 <p>Please print this page or save it as a PDF and store it somewhere else.</p>
 <p>The email address you provided:</p>
-<p><?php = addslashes($add_email_valid) ?></p>
+<p><?php echo addslashes($add_email_valid) ?></p>
 <p>This is your access key:</p>
-<p><?php = addslashes($key) ?></p>
+<p><?php echo addslashes($key) ?></p>
 <p>And this is your secret pass phrase:</p>
-<p><?php = addslashes($secret) ?></p>
+<p><?php echo addslashes($secret) ?></p>
 <p>Note: the Umpire operatives will NEVER ask for your key or secret pass phrase. They may ask for your email address.</p>
 </body>
 </html>
+
