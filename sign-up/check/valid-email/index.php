@@ -4,8 +4,9 @@
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.928.2054
+ * @version 2.23.928.2156
  */
+ error_reporting(E_ALL);
 
 /**
  * db_utils.php contains db functionality
@@ -169,7 +170,7 @@ $is_known = is_email_known(
 );
 
 if ($is_known) {
-    header('Location: ./sent');
+    header('Location: ./sent/');
 } else {
     echo '<!-- s: ';
     echo vardump($is_known);

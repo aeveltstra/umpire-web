@@ -4,16 +4,16 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.919.2229
+ * @version 2.23.928.2211
  */
-include_once '../../config.php';
+include_once '../../db_utils.php';
 
 /**
  * Reads the enumerations from the database. They are stored as
  * separate values for each attribute, with a language code.
  */
 function read_enumerations_from_db() {
-    $sql = "select `attribute_id`, `enum_value` from `enums` where `language_code` = 'en' order by `attribute_id`";
+    $sql = "select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = 'en' order by `attribute_id`, `caption`";
     return query($sql);
 }
 
