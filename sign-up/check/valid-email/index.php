@@ -1,16 +1,20 @@
 <?php
-declare(strict_types=1);
-error_reporting(E_ALL);
-session_start();
-
 /**
  * Request credentials to access Umpire
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.928.1936
+ * @version 2.23.928.2054
  */
 
+/**
+ * db_utils.php contains db functionality
+ * like query(sql) and 
+ * db_exec(sql, params_typestring, params).
+ */
+require_once('../../../db_utils.php');
+
+session_start();
 if (
     !isset($_SESSION['add_user_email_valid'])
     || !isset($_SESSION['add_user_reason_tainted'])
@@ -19,13 +23,6 @@ if (
     header('Location: ./error-missing-input/');
     die();
 }
-
-/**
- * config.php contains db functionality
- * like query(sql) and 
- * db_exec(sql, params_typestring, params).
- */
-require_once('../../../config.php');
 
 function hash_candidate(string $candidate): string {
     return hash(
@@ -41,15 +38,7 @@ function is_email_known(string $hashed_candidate): bool {
         where `email_hash` = \'' 
         . $hashed_candidate 
         . '\'';
-    $rows = query($sql);
-    if (!empty($rows)) {
-        $row = $rows[0];
-        if (!empty($row)) {
-            $amount = $row['amount'];
-            return $amount > 0;
-        }
-    }
-    return false;
+    return scalar($sql);
 }
 
 function make_user_key(): string {
@@ -182,11 +171,22 @@ $is_known = is_email_known(
 if ($is_known) {
     header('Location: ./sent');
 } else {
-    /* $admin_email is set in config.php */
-    $success = mail(
-        $admin_email,
-        'Umpire access requested',
-        "Hello,  
+    echo '<!-- s: ';
+    echo vardump($is_known);
+    echo ' -->';
+    $user_added = add_user($candidate_hash);
+    if (empty($user_added)) {
+        header(
+            'Location: ./error-storage-failure/'
+        );
+    } else {
+        [$key, $secret] = $user_added;
+
+        /* $admin_email is set in config.php */
+        $success = mail(
+            $admin_email,
+            'Umpire access requested',
+            "Hello,  
   
 Special access has been requested to the Umpire database for this email address:  
 ${add_email_valid}  
@@ -205,14 +205,7 @@ https://www.umpi.re/applications/reject?id=${candidate_hash}
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${support_email}."
-    );
-    $user_added = add_user($candidate_hash);
-    if (empty($user_added)) {
-        header(
-            'Location: ./error-storage-failure/'
         );
-    } else {
-        [$key, $secret] = $user_added;
     }
 }
 
