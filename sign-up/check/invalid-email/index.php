@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-error_reporting(E_ALL);
 session_start();
 
 $add_user_email_invalid = $_SESSION['add_user_email_invalid'];
@@ -17,7 +16,7 @@ $add_user_reason_tainted = $_SESSION['add_user_reason_tainted'];
 <body>
 <h1>Error: invalid e-mail - Sign up - Umpire</h1>
 <h2>That did not look like a valid e-mail address. Try again.</h2>
-<form method=post action="../check/">
+<form method=post action="../../check/">
 <fieldset><legend>I want special access to Umpire.</legend>
 <p><label for=email>My E-mail:</label></p>
 <p><input type=email name=email id=email
