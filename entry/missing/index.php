@@ -4,8 +4,9 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.928.2211
+ * @version 2.23.929.2250
  */
+error_reporting(E_ALL);
 include_once '../../db_utils.php';
 
 /**
@@ -23,9 +24,7 @@ function read_enumerations_from_db() {
  * input constraint for each attribute.
  */
 function show_enums() {
-  
     $xs = read_enumerations_from_db();
-    
     $a = '';
     $m = '';
     foreach($xs as $x) {
@@ -41,7 +40,6 @@ function show_enums() {
         $v = addslashes($e);
         $m .= '<option value="' . $v . '">' . $v . '</option>';
     }
-    
 }
 
 /**
@@ -77,7 +75,7 @@ function show_entry_fields() {
     );
     $fields = read_form_fields();
     foreach($fields as $field) {
-       [$id, $data_type, $caption, $hint, $min, $max, $hide_on_entry] = $field;
+        [$id, $data_type, $caption, $hint, $min, $max, $hide_on_entry] = $field;
         $t = $templates[$data_type];
         if (!is_null($t)) {
             echo sprintf($t, $id, $hide_on_entry, $caption, $hint, $min, $max);
@@ -99,15 +97,17 @@ function show_entry_fields() {
 <body>
 <h1>New Missing Person's Case Entry - Umpire</h1>
 <h2>Please share as many details as available</h2>
-<form action=register method=post>
+<form action="register/" method=post>
     <?php 
+    /* 
         show_enums();
         show_entry_fields(); 
+    */
     ?>
     <fieldset>
         <legend>Done!</legend>
         <p><label><input type=checkbox name=agree /> I accept </label><a
-        href="/umpire/terms">the terms and conditions.</a></p>
+        href="/umpire/terms/">the terms and conditions.</a></p>
         <p><label><input type=submit value=Submit /></label></p>
     </fieldset>
 </form>

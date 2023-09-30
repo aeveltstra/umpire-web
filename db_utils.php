@@ -95,7 +95,7 @@ function db_exec(string $dml, ?string $param_types = null, ?array $params = null
         return [];
     }
     if (method_exists($result, 'fetch_all')) {
-        return $result->fetch_all(MYSQLI_ASSOC);
+        return $result->fetch_all(MYSQLI_BOTH);
     }
     return [];
 }
