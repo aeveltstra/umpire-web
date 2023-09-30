@@ -27,16 +27,15 @@ $is_valid = filter_var(
 
 if ($is_valid) {
     $_SESSION['add_user_email_valid'] = $email_tainted;
-session_write_close();
+    session_write_close();
     header('Location: ./valid-email/');
+    die();
+} 
 
-    exit();
-} else {
-    $_SESSION['add_user_email_invalid'] = $email_tainted;
+$_SESSION['add_user_email_invalid'] = $email_tainted;
 session_write_close();
-    header('Location: ./invalid-email/');
-    exit();
-}
+header('Location: ./invalid-email/');
+die();
 /* echo var_dump($_SESSION); */
 ?>
 

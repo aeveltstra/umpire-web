@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
+error_reporting(E_ALL);
 
 /* config.php provides the connect_db() function. */
-require_once('./config.php');
+include_once './config.php';
 
 /**
  * Runs the sql query on the database and returns the result
@@ -18,7 +19,7 @@ require_once('./config.php');
  * Returns:
  * The only value that the SQL statement can return.
  */
-function scalar(string $sql): any {
+function scalar(string $sql) {
     $mysqli = connect_db();
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $row = $result->fetch_assoc();

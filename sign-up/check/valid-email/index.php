@@ -13,7 +13,7 @@
  * like query(sql) and 
  * db_exec(sql, params_typestring, params).
  */
-require_once('../../../db_utils.php');
+include_once '../../../db_utils.php';
 
 session_start();
 if (
