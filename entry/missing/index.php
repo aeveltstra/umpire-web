@@ -4,10 +4,10 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.929.2250
+ * @version 2.23.1004.2004
  */
 error_reporting(E_ALL);
-include_once '../../db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 /**
  * Reads the enumerations from the database. They are stored as
