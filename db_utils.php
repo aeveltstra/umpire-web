@@ -1,9 +1,14 @@
 <?php
+/**
+ * Database utilities.
+ * Has a few abstractions for running custom queries, also defines 
+ * a few standard queries expected to be used often.
+ */
 declare(strict_types=1);
 error_reporting(E_ALL);
 
 /* config.php provides the connect_db() function. */
-include_once './config.php';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
 
 /**
  * Runs the sql query on the database and returns the result
@@ -49,7 +54,7 @@ function query(string $sql, ?string $param_types = null, ?array $params = null):
     if (empty($param_types) || empty($params)) {
         $mysqli = connect_db();
         $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
-        return $result->fetch_all(MYSQLI_BOTH);
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
     return db_exec($sql, $param_types, $params);
 }
@@ -95,9 +100,39 @@ function db_exec(string $dml, ?string $param_types = null, ?array $params = null
         return [];
     }
     if (method_exists($result, 'fetch_all')) {
-        return $result->fetch_all(MYSQLI_BOTH);
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
     return [];
+}
+
+
+/**
+ * Reads the enumerations from the database. They are stored as
+ * separate values for each attribute, with a language code.
+ *
+ * Parameters:
+ * - language_code: a 2-letter ISO language code that determines
+ *                  which translation to retrieve. For instance: 'en'.
+ *
+ * Returns: a list of tuples, each of which has the following fields:
+ * - attribute_id: identifies the attribute to enumerate,
+ * - enum_value: an enumerated value for the attribute, which gets
+ *               stored in the database.
+ * - caption: the text to display to the user.
+ * The list is ordered by attribute_id and caption, ascending.
+ * 
+ * You can destructure like so:
+ *
+ * $enums = read_enumerations_from_db('en');
+ * foreach($enums as list(
+ *      'attribute_id' => $id,
+ *      'enum_value' => $val,
+ *      'caption' => $txt
+ * )) { echo "$id - $val ($txt)"; }
+ */
+function read_enumerations_from_db(string $language_code): array {
+    $sql = "select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = ? order by `attribute_id`, `caption`";
+    return query($sql, 's', [$language_code]);
 }
 
 ?>
