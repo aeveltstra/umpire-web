@@ -135,4 +135,37 @@ function read_enumerations_from_db(string $language_code): array {
     return query($sql, 's', [$language_code]);
 }
 
+/**
+ * The current version of PHP, 7.4, returns a hash of 128 chars
+ * for sha512.
+ */
+function hash_candidate(string $candidate): string {
+    return hash(
+        'sha512', 
+        $candidate
+    );
+}
+
+/**
+ * Whether an email address is known for an existing user
+ * of the system.
+ * 
+ * Parameters: 
+ * - hashed_candidate, string: the hash of the email address
+ *   to check for existence. Use the hash_candidate function
+ *   in this module to hash the email address.
+ * 
+ * Returns:
+ * True if the user is recognized by the passed-in email hash.
+ */
+function is_email_known(string $hashed_candidate): bool {
+    $sql = 'select 
+        (count(*) > 0) as `is_known` 
+        from `users` 
+        where `email_hash` = \'' 
+        . $hashed_candidate 
+        . '\'';
+    return ('1' == scalar($sql));
+}
+
 ?>
