@@ -1,24 +1,52 @@
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
-<title>Success! Case entered successfully - Umpire</title>
-<meta name=description content="Thank you for your entry."/>
+<title>Success! - Umpire</title>
+<meta name=description content="Missing person's case entered successfully."/>
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="/umpire/c/main.css" />
 </head>
 <body>
 <h1>Success! - Umpire</h1>
 <h2>Missing person's case entered successfully</h1>
-<form>
+<p>Anything else we can do for you?</p>
+<form action="subscribe/" method=post>
     <fieldset><legend>New Case ID</legend>
-        <p><label for="case_id">This is the identification for the case you entered. Should you want to talk to us about the case, please use this ID as reference.</label></p>
+        <p><label for="case_id">This is the identification of
+             the case you entered. Should you want to talk to us 
+            about the case, please use this ID as reference.
+        </label></p>
         <p><input type=text name=case_id size=60 value="" /></p>
     </fieldset>
-    <fieldset><legend>Where do you want to go next?</legend>
-        <ul>
-            <li>Back to <a href="/umpire/">the home page</a>.</li>
-        </ul>
+    <fieldset><legend>Would you like to keep track?</legend>
+        <p>You can subscribe to updates on this case. 
+            We'll send you a notification every time 
+            it changes in relevant ways. Please note that
+            by subscribing, you allow is to register your 
+            email address. Should you wish to remain 
+            anonymous, please use an email address that 
+            does not use your real name.</p>
+        <p><label><input type=checkbox name=chk_yes_subscribe /> Yes,
+            I want to subscribe to case changes.</label></p>
+    </fieldset>
+    <fieldset><legend>Need to edit your case?</legend>
+        <p>Approved case owners are allowed to edit their cases. 
+            We store changes and old versions of each case. 
+            Changes can be undone in case you make mistakes.
+            Would you like to be registered as the case owner?
+            We do not show to the public who owns or entered a 
+            case. It will be visible to case workers and system
+            administrators. You will be given a user account 
+            if you don't already have one.
+        </p>
+        <p><label><input type=checkbox name=chk_yes_own /> Yes,
+            I want to be registered as owner of this 
+            case.</label></p>
+        <p><label for=email_sub>E-mail Address:</label></p>
+        <p><input type=email name=email_sub id=email_sub size=60 /></p>
+        <p><label><input type=submit value="OK"/></label></p>
     </fieldset>
 </form>
+<p><a href="/umpire/entry/">Enter a new case into the system.</a></p>
 </body>
 </html>
