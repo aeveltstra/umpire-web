@@ -3,4 +3,4 @@ form,fieldset,legend,input,button,textarea{font:inherit}
 input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:44pt;font-weight:bold}
 fieldset{margin-bottom:2em}
 fieldset legend{overflow-wrap:break-word;font-weight:bold}
-
+input,textarea{max-width:99%}
