@@ -1,3 +1,43 @@
+<?php
+declare(strict_types=1);
+/**
+ * Confirm that registering the case was successful.
+ * Display the new case ID.
+ * Offer the user to subscribe to or own the case.
+ * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @version 2.23.1010.2022
+ */
+
+$started = session_start();
+/* These values are generated during case entry. */
+/* The new case id identifies the case. That allows users to 
+ * subscribe to updates and edit the case.
+ */
+$case_id = $_SESSION['new_case_id'];
+if (empty($case_id)) {
+    $case_id = 'unknown';
+}
+
+/* The owner of the case is anoynmous if the case got entered by a 
+ * user who did not log in to identify themselves. If they had logged 
+ * in prior to entering the case, this value will be false.
+ */
+$is_case_owner_anonymous = $_SESSION['new_case_owner_is_anonymous'];
+if (empty($is_case_owner_anonymous)) {
+    $is_case_owner_anonymous = true;
+}
+
+/* The owner of the case is added during case entry. If the case got
+ * entered by an anonymous user, a temporary user id will be given. 
+ * If the user had logged in prior to entering the case, that user's
+ * id will be given.
+ */
+$case_owner = $_SESSION['new_case_owner'];
+if (empty($case_owner)) {
+    $case_owner = 'anonymous';
+}
+
+?>
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
@@ -12,11 +52,19 @@
 <p>Anything else we can do for you?</p>
 <form action="subscribe/" method=post>
     <fieldset><legend>New Case ID</legend>
-        <p><label for="case_id">This is the identification of
-             the case you entered. Should you want to talk to us 
-            about the case, please use this ID as reference.
-        </label></p>
-        <p><input type=text name=case_id size=60 value="" /></p>
+        <p>This is the identification of the case you entered. 
+            Should you want to talk to us about the case, please 
+            use this ID as reference.</p>
+        <p><?php 
+            /* We MUST NOT place the case id into a form field,
+             * as doing so will imply to the receiving process
+             * that this form is the source of truth for that id,
+             * but it most certainly isn't, as anyone could enter
+             * any case id they'd feel like. Instead, the form
+             * processor must read the case id from session memory.
+             */
+            echo $case_id;
+        ?></p>
     </fieldset>
     <fieldset><legend>Would you like to keep track?</legend>
         <p>You can subscribe to updates to this case. 
@@ -29,6 +77,7 @@
         <p><label><input type=checkbox name=chk_yes_subscribe /> Yes,
             I want to subscribe to case changes.</label></p>
     </fieldset>
+    <?php if ($is_case_owner_anonymous) { ?>
     <fieldset><legend>Need to edit your case?</legend>
         <p>Approved case owners are allowed to edit their cases. 
             We store changes and old versions of each case. 
@@ -43,6 +92,7 @@
             I want to be registered as owner of this 
             case.</label></p>
     </fieldset>
+    <?php } ?>
     <fieldset><legend>How can we reach you?</legend>
         <p><label for=email_sub>E-mail Address:</label></p>
         <p><input type=email name=email_sub id=email_sub size=60 /></p>

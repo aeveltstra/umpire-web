@@ -8,6 +8,7 @@ $started = session_start();
  * @author A.E.Veltstra for OmegaJunior Consultancy
  * @version 2.23.927.0015
  */
+
 /* 
 echo var_dump($_POST);
 echo "\nSession started: ${started}\n";
