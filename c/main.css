@@ -1,6 +1,11 @@
 html,body{font-size:medium}
-form,fieldset,legend,input,button,textarea{font:inherit}
+body{margin:0;padding-left:1em;padding-right:1em}
+form,fieldset,legend,input,button,textarea{font:inherit;box-sizing:border-box}
+form,fieldset,p{margin-left:0;margin-right:0;max-width:calc(100vw - 2em)}
+fieldset,p{padding-left:1em;padding-right:1em}
+fieldset{border-width:1pt}
+fieldset>p{padding-left:0;padding-right:0}
 input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:44pt;font-weight:bold}
 fieldset{margin-bottom:2em}
 fieldset legend{overflow-wrap:break-word;font-weight:bold}
-input,textarea{max-width:99%}
+input,textarea{max-width:calc(100vw - 4em - 2pt)}
