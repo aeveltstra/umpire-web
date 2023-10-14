@@ -1,3 +1,11 @@
+<?php
+declare(strict_types=1);
+/**
+ * Shows the sign-up form.
+ * @author A.E.Veltstra
+ * @versio 2.23.1014.1010
+ */
+?>
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
@@ -16,7 +24,7 @@
 <p><label for=key>Access Key:</label></p>
 <p><input type=text name=key id=key value="" size=60 maxlength=512 /></p>
 <p><label for=secret>Secret Pass Phrase:</label></p>
-<p><input type=password name=secret id=secret value="" size=60 maxlength=512 /></p>
+<p><input type=password name=secret id=secret size=60 maxlength=512 /></p>
 <p><label><input type=submit value="Sign in"/></label></p>
 </fieldset>
 </form>

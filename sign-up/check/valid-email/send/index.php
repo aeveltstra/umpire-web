@@ -59,10 +59,10 @@ Did they agree to the terms and conditions?
 ${access_request_agreed_to_terms}  
   
 Use this link to accept the application:  
-https://www.umpi.re/applications/accept?id=${email_hash}  
+https://www.umpi.re/applications/accept/?id=${access_request_email}  
   
 Use this link to reject it:  
-https://www.umpi.re/applications/reject?id=${email_hash}  
+https://www.umpi.re/applications/reject/?id=${access_request_email}  
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${support_email}."

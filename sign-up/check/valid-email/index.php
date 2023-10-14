@@ -15,6 +15,7 @@
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
+ini_set('session.use-strict-mode', true);
 session_start();
 if (
     !isset($_SESSION['add_user_email_valid'])
