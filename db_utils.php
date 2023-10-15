@@ -3,9 +3,10 @@
  * Database utilities.
  * Has a few abstractions for running custom queries, also defines 
  * a few standard queries expected to be used often.
+ * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @version 2.23.1014.1328
  */
 declare(strict_types=1);
-error_reporting(E_ALL);
 
 /* config.php provides the connect_db() function. */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
@@ -24,7 +25,10 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
  * Returns:
  * The only value that the SQL statement can return.
  */
-function scalar(string $sql) {
+function scalar(?string $sql) {
+    if (empty($sql)) {
+        return null;
+    }
     $mysqli = connect_db();
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $row = $result->fetch_assoc();
@@ -50,7 +54,10 @@ function scalar(string $sql) {
  * key-value pairs named after the field names specified in 
  * the SQL statement.
  */
-function query(string $sql, ?string $param_types = null, ?array $params = null): ?array {
+function query(?string $sql, ?string $param_types = null, ?array $params = null): ?array {
+    if (empty($sql)) {
+        return null;
+    }
     if (empty($param_types) || empty($params)) {
         $mysqli = connect_db();
         $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
@@ -87,7 +94,10 @@ function query(string $sql, ?string $param_types = null, ?array $params = null):
  * key-value pairs named after the field names specified in the 
  * SQL statement.
  */
-function db_exec(string $dml, ?string $param_types = null, ?array $params = null): array {
+function db_exec(?string $dml, ?string $param_types = null, ?array $params = null): array {
+    if (empty($dml)) {
+        return [];
+    }
     $mysqli = connect_db();
     $ps = $mysqli->prepare($dml);
     if (!empty($param_types) && !empty($params)) {
@@ -158,14 +168,96 @@ function hash_candidate(string $candidate): string {
  * Returns:
  * True if the user is recognized by the passed-in email hash.
  */
-function is_email_known(string $hashed_candidate): bool {
+function is_email_known(?string $email): bool {
+    if (empty($email)) {
+        return false;
+    }
+    $email_hashed = hash_candidate($email);
     $sql = 'select 
         (count(*) > 0) as `is_known` 
         from `users` 
         where `email_hash` = \'' 
-        . $hashed_candidate 
+        . $email_hashed
         . '\'';
     return ('1' == scalar($sql));
+}
+
+/**
+ * Retrieves from the users table for the passed-in email address,
+ * the hashing algorithm and version used to hash the key and secret
+ * used to authenticate the user who owns that email address.
+ * 
+ * Parameters
+ * - email: should be the email hoped to have been registered
+ *
+ * Returns
+ * An empty array in case no user was found with that email address,
+ * or an array for that user, containing these fields:
+ * - hashing_algo: the name of the algorithm used to hash tokens,
+ * - hashing_version: the version of the hashing algorithm.
+ */
+function get_hashing_algo_for_user_by_email(?string $email):?array {
+    if (empty($email)) {
+        return [];
+    }
+    $email_hash = hash_candidate($email);
+    $sql = 'select `hashing_algo`, `hashing_version` 
+        from `users` where `email_hash` = ?';
+    $result = query($sql, 's', [$email_hash]);
+    if (count($result) > 0) {
+        return $result[0];
+    }
+    return [];
+}
+
+/**
+ * Whether or not the provided credentials match a known user.
+ * We hash the provided information using the same hashing algorithm
+ * as used by the system when it stored the user's credentials last
+ * time.
+ */
+function is_user_known(?string $email, ?string $key, ?string $secret):int {
+    if (
+        empty($email)
+        || empty($key)
+        || empty($secret)
+    ) {
+        return -1;
+    }
+    $h = get_hashing_algo_for_user_by_email($email);
+    if (empty($h) || (count($h) < 2)) { 
+        return -2;
+    }
+    [
+        'hashing_algo' => $hashing_algo, 
+        'hashing_version' => $hashing_version
+    ] = $h;
+    if (empty($hashing_algo) || empty($hashing_version)) {
+        return -3;
+    }
+    $email_hash = hash_candidate($email);
+    $key_hash = hash($hashing_algo, $key);
+    $secret_hash = hash($hashing_algo, $secret);
+    $sql = 'select
+        (count(*) > 0) as `is_known`
+        from `users`
+        where `email_hash` = ?
+        and `key_hash` = ?
+        and `secret_hash` = ?';
+    $result = query(
+        $sql, 'sss', [
+            $email_hash, 
+            $key_hash, 
+            $secret_hash
+        ]
+    );
+    if (empty($result) || empty($result[0])) {
+        return -4;
+    }
+    if ('1' == $result[0]['is_known']) {
+        return 1;
+    }
+    return -5;
 }
 
 ?>

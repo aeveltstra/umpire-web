@@ -153,24 +153,23 @@ $add_user_agreed = $_SESSION['add_user_agreed_tainted'];
 unset($_SESSION['add_user_agreed_tainted']);
 if (empty($add_user_agreed)) {
     $add_user_agreed = 'no';
-} else if ('on' == $add_user_agreed) {
+} else if ('on' === $add_user_agreed) {
     $add_user_agreed = 'yes';
 } else {
     $add_user_agreed = 'no';
 }
 
-$candidate_hash = hash_candidate(
+$is_known = is_email_known(
     $add_email_valid
 );
-$is_known = is_email_known(
-    $candidate_hash
-);
-
 if ($is_known) {
     header('Location: ./sent/');
     die;
 }
 
+$candidate_hash = hash_candidate(
+    $add_email_valid
+);
 $user_added = add_user($candidate_hash);
 if (empty($user_added)) {
     header('Location: ./error-storage-failure/');

@@ -19,7 +19,7 @@ $equalities = [];
 $inequalities = [];
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
-//include_once './entry/missing/index.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 $equalities[] = [1, '1', scalar('select 1')];
 $equalities[] = [2, 'en', scalar('select `language_code` from `enums` where `language_code` = \'en\' limit 1;')];
@@ -40,6 +40,22 @@ $equalities[] = [11, 3, count(array_keys($enumerations[0]))];
 echo '<!-- enumerations: ';
 var_dump($enumerations);
 echo '-->';
+
+$equalities[] = [12, 'sha512', get_hashing_algo_for_user_by_email('omegajunior@protonmail.com')['hashing_algo']];
+$equalities[] = [13, true, is_email_known('omegajunior@protonmail.com')];
+$equalities[] = [14, 1, is_user_known(
+    'omegajunior@protonmail.com',
+    'da5d1e035d2ff80c27a068ba766cff98c645462add916883a31670f30b36621ea8ca83c22739732552ab5671b3178bc64e1982286f6fb50d2c230ad61d357795',
+    'sombrero fibrous ringtoss corkscrew friends overconfidence dainty'
+)];
+$equalities[] = [15, '363f38ff73db62541bdffccb7b2af662c4e6687ab03896b45a047c501bfe30e03dc6d73c65227cf05bf20e77ceece3c6e73cedac37a159676a7d22b580ef4ad8', hash('sha512','da5d1e035d2ff80c27a068ba766cff98c645462add916883a31670f30b36621ea8ca83c22739732552ab5671b3178bc64e1982286f6fb50d2c230ad61d357795')]; 
+$inequalities[] = [16, false, isset(get_hashing_algo_for_user_by_email('haunted{house|daisies')['hashing_algo'])];
+$inequalities[] = [17, true, is_email_known('not_even:an|email{address')];
+$equalities[] = [18, '02fb3892ed21f19f2a795b6e36186693b1c17e815bac0704ac1094b6d13873eb3f5802da3a924d64e2e9da170e831886f250c4b0364749fd9831d6cc0248dde5', hash('sha512', 'sombrero fibrous ringtoss corkscrew friends overconfidence dainty')];
+
+$unit_test_19_set = set_session_variable('unit_test_19', 'hello');
+$equalities[] = [20, true, $unit_test_19_set];
+$equalitites[] = [19, 'hello', get_session_variable('unit_test_19')];
 
 /** Equality test. Returns true if values equal. 
  *  Use this as the array_filter function.
@@ -70,7 +86,7 @@ $make_inequality_failure_output = function($test):string {
     $counter = $test[0];
     $a_type = gettype($a);
     $b_type = gettype($b);
-    return "Fail: difference test ${counter} expected value [${a}] of type ${a_type} to differ from actual value [${b}] of type {$b_type}, but they are the same.";
+    return "Fail: difference test ${counter} expected value ≤${a}≥ of type ${a_type} to differ from actual value ≤${b}≥ of type {$b_type}, but they are the same.";
 };
 
 /** Interpret the equality test results. 
@@ -82,7 +98,7 @@ $make_equality_failure_output = function($test):string {
     $counter = $test[0];
     $a_type = gettype($a);
     $b_type = gettype($b);
-    return "Fail: equality test ${counter} expected value [${a}] of type ${a_type} to be the same as actual value [${b}] of type {$b_type}, but they differ.";
+    return "Fail: equality test ${counter} expected value ≤${a}≥ of type ${a_type} to be the same as actual value ≤${b}≥ of type {$b_type}, but they differ.";
 };
 
 /** Gather the test result interpretations. */
@@ -94,7 +110,7 @@ if (empty($output)) {
     echo "All's well.";
 }
 foreach($output as $fail) {
-    echo "$fail\n";
+    echo "$fail\r\n";
 }
 
 ?>

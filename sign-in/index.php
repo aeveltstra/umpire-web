@@ -2,9 +2,14 @@
 declare(strict_types=1);
 /**
  * Shows the sign-up form.
- * @author A.E.Veltstra
- * @versio 2.23.1014.1010
+ * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @version 2.23.1014.1010
  */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+$did_authenticate = did_user_authenticate();
+$form_nonce = make_and_store_session_nonce(
+    'authentication_form'
+);
 ?>
 <!DOCTYPE html>
 <html lang=en>
@@ -20,11 +25,21 @@ declare(strict_types=1);
 <form method=post action="authenticate/">
 <fieldset><legend>Gain special access to Umpire.</legend>
 <p><label for=email>E-mail Address:</label></p>
-<p><input type=email name=email id=email value="" size=60 maxlength=256 /></p>
+<p><input type=email name=email id=email size=60 maxlength=256 /></p>
 <p><label for=key>Access Key:</label></p>
-<p><input type=text name=key id=key value="" size=60 maxlength=512 /></p>
+<p><input type=text name=key id=key size=60 maxlength=512 /></p>
 <p><label for=secret>Secret Pass Phrase:</label></p>
 <p><input type=password name=secret id=secret size=60 maxlength=512 /></p>
+<?php
+  if ($did_authenticate) {
+    echo '<p class=warning>Warning: you already are logged in. 
+    Pressing this button will log you out first.</p>';
+    echo "\r\n";
+  }
+  if ($form_nonce) {
+    echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
+  }
+?>
 <p><label><input type=submit value="Sign in"/></label></p>
 </fieldset>
 </form>
