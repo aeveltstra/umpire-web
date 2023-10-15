@@ -2,7 +2,7 @@
 /**
  * Attempt to match passed-in user credentials to the users table.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1015.1305
+ * @version 2.23.1015.1332
  */
 declare(strict_types=1);
 
@@ -45,7 +45,7 @@ if (1 !== $is_user_known) {
     header('Location: ./failed/');
     die;
 }
-set_session_variable('user_token', make_session_hash("$email|$key"));
+store_that_user_authenticated(make_session_hash("$email|$key"));
 $return_to = get_session_variable('return_to');
 if (empty($return_to)) {
     header('Location: ./success/');
