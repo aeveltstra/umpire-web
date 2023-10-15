@@ -4,10 +4,10 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1006.0007
+ * @version 2.23.1015.1641
  */
-error_reporting(E_ALL);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 /**
  * Reads the enumerations from the database and generates a single
@@ -102,6 +102,7 @@ function show_missing_form_entry_fields() {
     }
 }
 
+$form_nonce = make_and_store_session_nonce('missing_entry_form');
 
 ?>
 <!DOCTYPE html>
@@ -119,7 +120,6 @@ function show_missing_form_entry_fields() {
     <?php 
         show_enums();
     ?>
-
     <fieldset>
         <legend>Terms and conditions</legend>
         <p></p>
@@ -128,6 +128,9 @@ function show_missing_form_entry_fields() {
     </fieldset>
     <?php 
         show_missing_form_entry_fields(); 
+        if ($form_nonce) {
+            echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
+        }
     ?>
     <fieldset>
         <legend>Done!</legend>
