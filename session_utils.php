@@ -2,7 +2,7 @@
 /**
  * Helper functions for handling sessions.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1015.1314
+ * @version 2.23.1015.1707
  */
 
 declare(strict_types=1);
@@ -106,6 +106,9 @@ function get_session_user_token():string {
  *
  *  This has been modeled after wp_create_nonce().
  *
+ *  We need this function separate from the storage function, because
+ *  the nonce validation function uses it separately.
+ *
  *  Parameters:
  *  - id, string, required: custom identifier you use to determine
  *    which nonce to read / inspect.
@@ -118,9 +121,21 @@ function make_session_nonce(string $id):string {
 
 /**
  * Stores a nonce in the session variable identified by id.
+ * Use this for instance to prevent cross-site request forgery
+ * also known as CSRF. Use the make_and_store_session_nonce(id) 
+ * function, as a convenience method. 
  */
 function store_session_nonce(string $id, string $nonce):bool {
     return set_session_variable($id . '_nonce', $nonce);
+}
+
+/**
+ * Removes a session nonce stored earlier. Do this to prevent
+ * reposting of the same form, after validating a nonce seen
+ * earlier.
+ */
+function remove_session_nonce(string $id):bool {
+    return unset_session_variable($id . '_nonce');
 }
 
 /**

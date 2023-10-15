@@ -1,24 +1,45 @@
 <?php
-declare(strict_types=1);
 /**
  * Stores the missing person's case entry. Fields are generated on 
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
  * @version 2.23.1010.2207
  */
+declare(strict_types=1);
 error_reporting(E_ALL);
 
 /* If this process got invoked by any method other than HTTP POST,
  * processing needs to halt and the user needs to be redirected.
  * The process requires to be invoked using HTTP POST.
  */
+if (!isset($_SERVER['REQUEST_METHOD'])) {
+    http_response_code(400);
+    die();
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(400);
     die();
 }
+if (!isset($_POST['nonce'])) {
+    header('Location: ./error-wrong-form/');
+    die();
+}
 
 /**
- * db_utils contains functions to read from and store into 
+ * Session Utils contain functions to read from and store into
+ * session variables, and creates related things like nonces.
+ */
+require_once $SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+$form_id = 'missing_entry_form';
+if (!is_session_nonce_valid($form_id)) {
+    header('Location: ./error-wrong-form/');
+    die();
+} else {
+    remove_session_nonce($form_id);
+}
+
+/**
+ * DB Utils contains functions to read from and store into 
  * the database.
  */
 require_once $SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
@@ -55,16 +76,29 @@ function store(string $field_name, string $field_value, string $case_id): bool {
         /* well, obviously that didn't work. */
         return false;
     }
-    match ($data_type) {
-        'integer' => store_integer($field_name, $field_value, $case_id),
-        'longtext' => store_longtext$field_name, $field_value, $case_id),
-        'shorttext' => store_shorttext($field_name, $field_value, $case_id),
-        'date' => store_date($field_name, $field_value, $case_id),
-        'time' => store_time($field_name, $field_value, $case_id),
-        'enum' => store_enumeration($field_name, $field_value, $case_id),
+    switch ($data_type) {
+        case 'integer':
+            store_integer($field_name, $field_value, $case_id);
+            break;
+        case 'longtext':
+            store_longtext($field_name, $field_value, $case_id);
+            break;
+        case 'shorttext':
+            store_shorttext($field_name, $field_value, $case_id);
+            break;
+        case 'date':
+            store_date($field_name, $field_value, $case_id);
+            break;    
+        case 'time':
+            store_time($field_name, $field_value, $case_id);
+            break;
+        case 'enum':
+            store_enumeration($field_name, $field_value, $case_id);
+            break;
     }
 }
 
+//$new_case_id = make_case_id();
 
 header('Location: ./success/');
 die;
