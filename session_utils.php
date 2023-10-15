@@ -2,7 +2,7 @@
 /**
  * Helper functions for handling sessions.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1014.1430
+ * @version 2.23.1015.1314
  */
 
 declare(strict_types=1);
@@ -28,6 +28,17 @@ function set_session_variable(string $k, string $v):bool {
 }
 
 /**
+ * Wraps around destroying session variables to include the specific
+ * application name, which reduces the chance other of PHP instances 
+ * on the same iron server to delete session variables of the same name.
+ */
+function unset_session_variable(string $k):bool {
+    $varname = get_session_app_name() . $k;
+    unset($_SESSION[$varname]);
+    return true;
+}
+
+/**
  * Wraps around getting session variables to include the specific
  * application name, which reduces the chance of other PHP instances
  * on the same iron server to read session variables of the same name.
@@ -40,9 +51,27 @@ function get_session_variable(string $k):string {
     return '';
 }
 
-/** Determine whether the user authenticated. */
+/**
+ * Store the fact that the current user authenticated by supplying
+ * their token. If their token is not supplied, or if it is empty,
+ * the session variable will reflect that the user did not authenticate.
+ * Check whether a user authenticated by calling the function
+ * did_user_authenticate().
+ */
+function store_that_user_authenticated(?string $user_token):bool {
+    if(empty($user_token)) {
+        unset_session_variable('user_token');
+        return false;
+    }
+    set_session_variable('user_token', $user_token);
+    return true;
+}
+
+/** Determine whether the user authenticated. Set the by calling the
+ *  function store_that_user_authenticated(token).
+ */
 function did_user_authenticate():bool {
-  return (!empty(get_session_variable('user_did_authenticate')));
+  return (!empty(get_session_variable('user_token')));
 }
 
 /** Hash any value using the same algorithm every time */

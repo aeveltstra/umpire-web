@@ -1,4 +1,13 @@
 <?php
+/**
+ *  Unit tests make sure individual processes work as expected,
+ *  outside of their normal application. This allows us to fine-
+ *  tune their working without interfering with the regular flow
+ *  of the programs.
+ *  @author A.E.Veltstra for OmegaJunior Consultancy, LLC
+ *  @version 2.23.1015.1329
+ */
+
 declare(strict_types=1);
 error_reporting(E_ALL);
 
@@ -56,6 +65,13 @@ $equalities[] = [18, '02fb3892ed21f19f2a795b6e36186693b1c17e815bac0704ac1094b6d1
 $unit_test_19_set = set_session_variable('unit_test_19', 'hello');
 $equalities[] = [20, true, $unit_test_19_set];
 $equalitites[] = [19, 'hello', get_session_variable('unit_test_19')];
+
+$did_unset = unset_session_variable('user_token');
+$equalities[] = [21, true, $did_unset];
+$equalities[] = [22, false, did_user_authenticate()];
+$did_set = store_that_user_authenticated("bla bla bla");
+$equalities[] = [23, true, $did_set];
+$equalities[] = [24, true, did_user_authenticate()];
 
 /** Equality test. Returns true if values equal. 
  *  Use this as the array_filter function.

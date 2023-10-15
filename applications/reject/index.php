@@ -2,8 +2,10 @@
 /**
  * Deny access to a user who has requested it.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1014.1030
+ * @version 2.23.1015.1305
  */
+declare(strict_types=1);
+error_reporting(E_ALL);
 
 /**
  * This script expects to receive input from querystring.
@@ -31,7 +33,7 @@ if (empty($_GET['id'])) {
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 if (!did_user_authenticate()) {
-    set_session_variable('reject_user_application_email', $_GET['id']);
+    set_session_variable('reject_user_application_email', $user_email);
     set_session_variable('return_to', '/umpire/applications/reject/');
     header('Location: /umpire/sign-in/');
     die;

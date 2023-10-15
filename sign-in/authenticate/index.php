@@ -2,7 +2,7 @@
 /**
  * Attempt to match passed-in user credentials to the users table.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1014.1354
+ * @version 2.23.1015.1305
  */
 declare(strict_types=1);
 
