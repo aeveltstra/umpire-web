@@ -1,3 +1,12 @@
+<?php
+/**
+ * Account creation form.
+ * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @version 2.23.1024.2214
+ */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+$form_nonce = session_make_and_remember_nonce('sign_up_form');
+?>
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
@@ -18,6 +27,11 @@
 </ul>
 <p>Your request WILL be reviewed by one of our operatives. Access will NOT be granted automatically. Argue your need to gain access to our system. Please bear in mind our operatives are volunteers. They'll get around to your request as soon as possible.</p>
 <form method=post action="check/">
+<?php
+    if ($form_nonce) {
+        echo "    <input type=hidden value='${form_nonce}' name=nonce />\r\n";
+    }
+?>
     <fieldset><legend>Terms of Use</legend>
         <p><label><input type=checkbox name=agree />I have read and agree to the <a href="terms/">terms of use</a>.</label></p>
     </fieldset>

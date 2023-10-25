@@ -3,11 +3,11 @@ declare(strict_types=1);
 /**
  * Shows the sign-up form.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1014.1010
+ * @version 2.23.1024.2211
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-$did_authenticate = did_user_authenticate();
-$form_nonce = make_and_store_session_nonce(
+$did_authenticate = session_did_user_authenticate();
+$form_nonce = session_make_and_remember_nonce(
     'authentication_form'
 );
 ?>

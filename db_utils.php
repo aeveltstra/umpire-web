@@ -4,7 +4,7 @@
  * Has a few abstractions for running custom queries, also defines 
  * a few standard queries expected to be used often.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1014.1328
+ * @version 2.23.1024.2138
  */
 declare(strict_types=1);
 
@@ -149,7 +149,7 @@ function read_enumerations_from_db(string $language_code): array {
  * The current version of PHP, 7.4, returns a hash of 128 chars
  * for sha512.
  */
-function hash_candidate(string $candidate): string {
+function db_hash_candidate(string $candidate): string {
     return hash(
         'sha512', 
         $candidate
@@ -162,17 +162,17 @@ function hash_candidate(string $candidate): string {
  * 
  * Parameters: 
  * - hashed_candidate, string: the hash of the email address
- *   to check for existence. Use the hash_candidate function
+ *   to check for existence. Use the db_hash function
  *   in this module to hash the email address.
  * 
  * Returns:
  * True if the user is recognized by the passed-in email hash.
  */
-function is_email_known(?string $email): bool {
+function db_is_email_known(?string $email): bool {
     if (empty($email)) {
         return false;
     }
-    $email_hashed = hash_candidate($email);
+    $email_hashed = db_hash_candidate($email);
     $sql = 'select 
         (count(*) > 0) as `is_known` 
         from `users` 
@@ -200,7 +200,7 @@ function get_hashing_algo_for_user_by_email(?string $email):?array {
     if (empty($email)) {
         return [];
     }
-    $email_hash = hash_candidate($email);
+    $email_hash = db_hash($email);
     $sql = 'select `hashing_algo`, `hashing_version` 
         from `users` where `email_hash` = ?';
     $result = query($sql, 's', [$email_hash]);
@@ -215,8 +215,25 @@ function get_hashing_algo_for_user_by_email(?string $email):?array {
  * We hash the provided information using the same hashing algorithm
  * as used by the system when it stored the user's credentials last
  * time.
+ * 
+ * Returns: an integer that indicates whether the user is known,
+ * or whether anything went wrong while checking for that.
+ * Known values:
+ * 1:  The user is known and the passed-in key and secret match.
+ * -1: One or more of the passed-in variables was empty,
+ *     meaning the check was aborted prematurely.
+ * -2: No hashing algorithm was found for the user by email,
+ *     effectively meaning the email does tie to a user.
+ * -3: The email does tie to a user but it does not contain
+ *     a hashing algorithm or version. That means something went
+ *     wrong during entry of the user into the system.
+ * -4: The email does tie to a user, and it has a hashing algorithm
+ *     and a version, but its hashed user key and secret do not match
+ *     the hashes created off the passed-in key and secret. 
+ *     In essence, this means: wrong user name and password.
+ * -5: Something went wrong and we don't know what.
  */
-function is_user_known(?string $email, ?string $key, ?string $secret):int {
+function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
     if (
         empty($email)
         || empty($key)
@@ -235,7 +252,7 @@ function is_user_known(?string $email, ?string $key, ?string $secret):int {
     if (empty($hashing_algo) || empty($hashing_version)) {
         return -3;
     }
-    $email_hash = hash_candidate($email);
+    $email_hash = db_hash($email);
     $key_hash = hash($hashing_algo, $key);
     $secret_hash = hash($hashing_algo, $secret);
     $sql = 'select
@@ -254,10 +271,175 @@ function is_user_known(?string $email, ?string $key, ?string $secret):int {
     if (empty($result) || empty($result[0])) {
         return -4;
     }
+    /* Strict type comparison fails.
+     * TODO: figure out why.
+     */
     if ('1' == $result[0]['is_known']) {
         return 1;
     }
     return -5;
 }
+
+function db_log_user_event(string $name):bool {
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+    if(!session_did_user_authenticate()) {
+        return false;
+    }
+    $authenticated_email_hash = session_recall_user_token();
+    $values = [$authenticated_email_hash, $name];
+    db_exec('call sp_log_user_event_by_value(?, ?)',
+        'ss',
+        $values
+    );
+    return true;
+}
+
+function may_authenticated_user_reject_access():bool {
+    include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+    if(!did_user_authenticate()) {
+        return false;
+    }
+    $authenticated_email_hash = get_session_variable('user_token');
+    $mysqli = connect_db();
+    $mysqli->query("set @result = ''");
+    $sql = 'call is_admin(@result, ?)';
+    $ps = $mysqli->prepare($sql);
+    $params = [$authenticated_email_hash];
+    $ps->bind_param('s', ...$params);
+    $ps->execute();
+    $row = $mysqli->query('select @result as is_admin');
+    return ('1' == $row['is_admin']);
+}
+
+/**
+ * Deny further access to a user, identified by the passed-in email
+ * address. The function will check whether an administrator is 
+ * logged in and invoking it.
+ */
+function reject_access(?string $user_email):bool {
+    if(!may_authenticated_user_reject_access()) {
+        return false;
+    }
+    return false;
+}
+
+function db_make_user_key(): string {
+    return bin2hex(
+        random_bytes(64)
+    );
+}
+
+function db_make_user_secret(): string {
+    $word_list = [
+        'horse',
+        'green',
+        'sombrero',
+        'falsetto',
+        'ivy',
+        'farms',
+        'pizza',
+        'dulcimer',
+        'hashbrown',
+        'return',
+        'thankful',
+        'venerate',
+        'treaty',
+        'madness',
+        'slicing',
+        'majestic',
+        'fibrous',
+        'pineapple',
+        'exterior',
+        'individual',
+        'vertices',
+        'properly',
+        'ringtoss',
+        'cookie cutter',
+        'vigorous',
+        'edge',
+        'corkscrew',
+        'friends',
+        'electricity',
+        'overconfidence',
+        'polarizing',
+        'shameful',
+        'complete',
+        'sandwich',
+        'tomato',
+        'lettuce',
+        'flimsy',
+        'dainty',
+        'perpendicular',
+        'guacamole',
+        'flavor',
+        'molecule',
+        'tear',
+        'choice',
+        'beefsteak',
+        'realize',
+        'artistic',
+        'cooking',
+        'lampshade',
+        'jokingly',
+        'pinboard',
+        'astrophysics'
+    ];
+    $result = array();
+    foreach(
+        array_rand(
+            $word_list, 
+            7
+        ) as $k 
+    ) {
+        $result[] = $word_list[$k];
+    }
+    return implode(
+        ' ',
+        $result
+    );
+}
+
+function db_add_user(string $hashed_candidate): ?array {
+    $key = db_make_user_key();
+    $secret = db_make_user_secret();
+    $hashing_algo = 'sha512';
+    $hashing_version = 1;
+    $key_hash = hash(
+        $hashing_algo,
+        $key
+    );
+    $secret_hash = hash(
+        $hashing_algo,
+        $secret
+    );
+    $sql = 'insert into `users` (
+        `email_hash`, 
+        `access_requested_on`, 
+        `key_hash`, 
+        `secret_hash`, 
+        `hashing_algo`, 
+        `hashing_version`, 
+        `last_hashed_date`
+    ) values ( 
+        ?, now(), ?, ?, ?, ?, now()
+    );';
+    $mysqli = connect_db();
+    $ps = $mysqli->prepare($sql);
+    /* automatically bind all parameters */
+    $ps->bind_param('ssssi', 
+        $hashed_candidate,
+        $key_hash,
+        $secret_hash,
+        $hashing_algo,
+        $hashing_version
+    );
+    $ps->execute();
+    $seq = $mysqli->insert_id;
+    if ($seq) {
+        return [$key, $secret];
+    }
+    return null;
+}
+
 
 ?>

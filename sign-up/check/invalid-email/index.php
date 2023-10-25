@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
-session_start();
 
-$add_user_email_invalid = $_SESSION['add_user_email_invalid'];
-$add_user_reason_tainted = $_SESSION['add_user_reason_tainted'];
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+
+$add_user_email_invalid = session_recall('add_user_email_invalid');
+$add_user_reason_tainted = session_recall('add_user_reason_tainted');
 ?>
 <!DOCTYPE html>
 <html lang=en>

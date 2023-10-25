@@ -1,3 +1,16 @@
+<?php
+/**
+ * Conveys that the user signed in successfully, and offers next
+ * actions.
+ * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @version 2.23.1024.2206
+ */
+declare(strict_types=1);
+
+/* DB Utils contains functions to retrieve information from the DB. */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8" />

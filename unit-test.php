@@ -5,7 +5,7 @@
  *  tune their working without interfering with the regular flow
  *  of the programs.
  *  @author A.E.Veltstra for OmegaJunior Consultancy, LLC
- *  @version 2.23.1015.1329
+ *  @version 2.23.1015.1920
  */
 
 declare(strict_types=1);
@@ -72,6 +72,7 @@ $equalities[] = [22, false, did_user_authenticate()];
 $did_set = store_that_user_authenticated("bla bla bla");
 $equalities[] = [23, true, $did_set];
 $equalities[] = [24, true, did_user_authenticate()];
+$inequalities[] = [25, true, may_authenticated_user_reject_access()];
 
 /** Equality test. Returns true if values equal. 
  *  Use this as the array_filter function.

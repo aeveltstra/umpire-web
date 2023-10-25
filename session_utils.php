@@ -2,15 +2,23 @@
 /**
  * Helper functions for handling sessions.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1015.1707
+ * @version 2.23.1024.2151
  */
 
 declare(strict_types=1);
 ini_set('session.use-strict-mode', 'true');
 session_start();
 
+/** Hash any value using the same algorithm every time */
+function session_make_hash(string $v):string {
+    return hash(
+        'sha512', 
+        $v
+    );
+}
+
 /** Use this if running PHP on a server shared on the same server. */
-function get_session_app_name():string {
+function session_recall_app_name():string {
     $session_umpire_app_random_seed = 'bvd67iBVDRUJ04926494720IUYTFvdfg';
     $session_umpire_app_name = 'Umpire_' . $session_umpire_app_random_seed . '_';
     return $session_umpire_app_name;
@@ -21,8 +29,8 @@ function get_session_app_name():string {
  * application name, which reduces the chance other of PHP instances 
  * on the same iron server to write session variables of the same name.
  */
-function set_session_variable(string $k, string $v):bool {
-    $varname = get_session_app_name() . $k;
+function session_remember(string $k, string $v):bool {
+    $varname = session_recall_app_name() . $k;
     $_SESSION[$varname] = $v;
     return true;
 }
@@ -32,8 +40,8 @@ function set_session_variable(string $k, string $v):bool {
  * application name, which reduces the chance other of PHP instances 
  * on the same iron server to delete session variables of the same name.
  */
-function unset_session_variable(string $k):bool {
-    $varname = get_session_app_name() . $k;
+function session_forget(string $k):bool {
+    $varname = session_recall_app_name() . $k;
     unset($_SESSION[$varname]);
     return true;
 }
@@ -43,12 +51,25 @@ function unset_session_variable(string $k):bool {
  * application name, which reduces the chance of other PHP instances
  * on the same iron server to read session variables of the same name.
  */
-function get_session_variable(string $k):string {
-    $varname = get_session_app_name() . $k;
+function session_recall(string $k):string {
+    $varname = session_recall_app_name() . $k;
     if (isset($_SESSION[$varname])) {
         return $_SESSION[$varname];
     }
     return '';
+}
+
+function session_make_user_token(string $email): string {
+    return session_make_hash($email);
+}
+
+/** 
+ * Retrieves the user token stored in this session.
+ * The token gets assigned to the user when they 
+ * authenticate successfully. 
+ */
+function session_recall_user_token():string {
+    return session_recall('user_token');
 }
 
 /**
@@ -56,45 +77,28 @@ function get_session_variable(string $k):string {
  * their token. If their token is not supplied, or if it is empty,
  * the session variable will reflect that the user did not authenticate.
  * Check whether a user authenticated by calling the function
- * did_user_authenticate().
+ * session_did_user_authenticate().
+ * 
+ * Parameters:
+ * - user_token, string, optional: should contain the logged-in
+ *   user's email address, hashed using the session_make_user_token()
+ *   function. If any other type of value is provided, checks 
+ *   on user privilege levels will fail.
  */
-function store_that_user_authenticated(?string $user_token):bool {
+function session_remember_user_token(?string $user_token):bool {
     if(empty($user_token)) {
-        unset_session_variable('user_token');
+        session_forget('user_token');
         return false;
     }
-    set_session_variable('user_token', $user_token);
+    session_remember('user_token', $user_token);
     return true;
 }
 
 /** Determine whether the user authenticated. Set the by calling the
- *  function store_that_user_authenticated(token).
+ *  function session_remember_user_token(token).
  */
-function did_user_authenticate():bool {
-  return (!empty(get_session_variable('user_token')));
-}
-
-/** Hash any value using the same algorithm every time */
-function make_session_hash(string $v):string {
-    return hash(
-        'sha512', 
-        $v
-    );
-}
-
-/** 
- * Retrieves the user token stored in this session.
- * The token gets assigned to the user when they 
- * authenticate successfully. If none exists, a random
- * value is set and returned, instead.
- */
-function get_session_user_token():string {
-    $t = get_session_variable('user_token');
-    if (empty($t)) {
-        $t = random_bytes(24);
-        set_session_variable('user_token', $t);
-    }
-    return $t;
+function session_did_user_authenticate():bool {
+  return (!empty(session_recall_user_token()));
 }
 
 /** Create a nonce to determine that, for instance, a form submission 
@@ -113,20 +117,24 @@ function get_session_user_token():string {
  *  - id, string, required: custom identifier you use to determine
  *    which nonce to read / inspect.
  */
-function make_session_nonce(string $id):string {
+function session_make_nonce(string $id):string {
     $time = ceil( time() / ( 60 * 60 * 12) );
-    $token = get_session_user_token();
-    return make_session_hash($time . '|' . $token . '|' . $id);
+    $token = session_recall_user_token();
+    if (empty($token)) {
+        $token = random_bytes(24);
+        session_remember_user_token($token);
+    }
+    return session_make_hash($time . '|' . $token . '|' . $id);
 }
 
 /**
  * Stores a nonce in the session variable identified by id.
  * Use this for instance to prevent cross-site request forgery
- * also known as CSRF. Use the make_and_store_session_nonce(id) 
+ * also known as CSRF. Use the session_make_and_remember_nonce(id) 
  * function, as a convenience method. 
  */
-function store_session_nonce(string $id, string $nonce):bool {
-    return set_session_variable($id . '_nonce', $nonce);
+function session_remember_nonce(string $id, string $nonce):bool {
+    return session_remember($id . '_nonce', $nonce);
 }
 
 /**
@@ -134,8 +142,8 @@ function store_session_nonce(string $id, string $nonce):bool {
  * reposting of the same form, after validating a nonce seen
  * earlier.
  */
-function remove_session_nonce(string $id):bool {
-    return unset_session_variable($id . '_nonce');
+function session_forget_nonce(string $id):bool {
+    return session_forget($id . '_nonce');
 }
 
 /**
@@ -144,9 +152,9 @@ function remove_session_nonce(string $id):bool {
  * a form submission is received from the expected form, and not
  * from elsewhere.
  */
-function make_and_store_session_nonce(string $id):string {
-    $nonce = make_session_nonce($id);
-    if (store_session_nonce($id, $nonce)) {
+function session_make_and_remember_nonce(string $id):string {
+    $nonce = session_make_nonce($id);
+    if (session_remember_nonce($id, $nonce)) {
         return $nonce;
     }
     return '';
@@ -155,8 +163,8 @@ function make_and_store_session_nonce(string $id):string {
 /**
  * Retrieve the nonce identified by id, from the session storage.
  */
-function get_session_nonce(string $id):string {
-    return get_session_variable($id . '_nonce');
+function session_recall_nonce(string $id):string {
+    return session_recall($id . '_nonce');
 }
 
 /**
@@ -167,15 +175,15 @@ function get_session_nonce(string $id):string {
  * 
  * This has been modeled after wp_verify_nonce().
  */
-function is_session_nonce_valid(string $id):bool {
+function session_is_nonce_valid(string $id):bool {
     if (empty($id)) {
         return false;
     }
-    $nonce = get_session_nonce($id);
+    $nonce = session_recall_nonce($id);
     if (empty($nonce)) {
         return false;
     }
-    $expected = make_session_nonce($id);
+    $expected = session_make_nonce($id);
     if (empty($expected)) {
         return false;
     }

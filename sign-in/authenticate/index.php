@@ -2,7 +2,7 @@
 /**
  * Attempt to match passed-in user credentials to the users table.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1015.1737
+ * @version 2.23.1025.2141
  */
 declare(strict_types=1);
 
@@ -31,12 +31,11 @@ if (!isset($_POST['nonce'])) {
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 $form_id = 'authentication_form';
-if(!is_session_nonce_valid($form_id)) {
+if(!session_is_nonce_valid($form_id)) {
     header('Location: ./error-wrong-form/');
     die();
-} else {
-    remove_session_nonce($form_id);
 }
+session_forget_nonce($form_id);
 
 /**
  * This script expects several inputs from form posting.
@@ -69,19 +68,26 @@ if(!$is_post_received) {
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
-$is_user_known = is_user_known($email, $key, $secret);
+/**
+ * Session Utils contains functions to read from and store into 
+ * the PHP session object, like session_remember_user_token().
+ */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+
+$is_user_known = db_is_user_known($email, $key, $secret);
 if (1 !== $is_user_known) {
     header('Location: ./failed/');
     die();
 }
-store_that_user_authenticated(make_session_hash("$email|$key"));
-$return_to = get_session_variable('return_to');
+$user_token = session_make_user_token($email);
+session_remember_user_token($user_token);
+db_log_user_event('authenticated');
+$return_to = session_recall('return_to');
 if (empty($return_to)) {
     header('Location: ./success/');
     die();
-} else {
-    unset_session_variable('return_to');
 }
+session_forget('return_to');
 header('Location: ' . $return_to);
 
 ?>
