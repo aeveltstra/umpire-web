@@ -4,7 +4,7 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1015.1641
+ * @version 2.23.1025.2059
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
@@ -102,7 +102,7 @@ function show_missing_form_entry_fields() {
     }
 }
 
-$form_nonce = make_and_store_session_nonce('missing_entry_form');
+$form_nonce = session_make_and_remember_nonce('missing_entry_form');
 
 ?>
 <!DOCTYPE html>

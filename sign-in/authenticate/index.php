@@ -68,12 +68,6 @@ if(!$is_post_received) {
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
-/**
- * Session Utils contains functions to read from and store into 
- * the PHP session object, like session_remember_user_token().
- */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
-
 $is_user_known = db_is_user_known($email, $key, $secret);
 if (1 !== $is_user_known) {
     header('Location: ./failed/');

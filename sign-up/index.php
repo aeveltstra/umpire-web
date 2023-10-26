@@ -5,6 +5,7 @@
  * @version 2.23.1024.2214
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+$did_authenticate = session_did_user_authenticate();
 $form_nonce = session_make_and_remember_nonce('sign_up_form');
 ?>
 <!DOCTYPE html>
@@ -39,17 +40,26 @@ $form_nonce = session_make_and_remember_nonce('sign_up_form');
         <p><label for=email>My E-mail Address:</label></p>
         <p><input type=email name=email id=email value="" size=60 /></p>
         <p><label for=reason>My reason for wanting access:</label></p>
+<?php
+    if ($did_authenticate) {
+      echo "        <p class=warning>Warning: you appear to be logged 
+            in. Please explain why you would need a second user account?
+            </p>\r\n";
+    }
+?>
         <p><textarea name=reason id=reason cols=60 rows=5></textarea></p>
     </fieldset>
     <fieldset><legend>Step 1 of 2</legend>
         <p><label><input type=submit value="Check my E-mail Address"/></label></p>
     </fieldset>
 </form>
+<?php if (!$did_authenticate) { ?>
 <form method=get action="../sign-in/">
     <fieldset><legend>Already have an account?</legend>
         <p><label><input type=submit value="Yes, let me sign in!"/></label></p>
     </fieldset>
 </form>
+<?php } ?>
 </body>
 </html>
 

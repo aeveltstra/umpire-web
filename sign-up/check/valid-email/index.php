@@ -2,11 +2,12 @@
 /**
  * Request credentials to access Umpire.
  * Step 2: check whether the passed-in email is a known user,
- * and if so, set a temporary reset key.
+ * and if not, create a new user record and send out an email.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1024.2244
+ * @version 2.23.1025.2337
  */
  error_reporting(E_ALL);
+
 
 /**
  * db_utils.php contains db functionality like query(sql) and 
@@ -15,10 +16,9 @@
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
-$email = session_remember('add_user_email_valid');
-$reason = session_remember('add_user_reason_tainted');
-$agreed = session_remember('add_user_agreed_tainted');
-$is_form_nonce_valid = session_is_nonce_valid('sign_up_form');
+$email = session_recall('add_user_email_valid');
+$reason = session_recall('add_user_reason_tainted');
+$agreed = session_recall('add_user_agreed_tainted');
 session_forget_nonce('sign_up_form');
 session_forget('add_user_agreed_tainted');
 session_forget('add_user_reason_tainted');
@@ -26,8 +26,6 @@ session_forget('add_user_email_valid');
 
 if (   empty($email) 
     || empty($reason) 
-    || empty($agreed) 
-    || !$is_form_nonce_valid
 ) {
     header('Location: ./error-missing-input/');
     die();
@@ -35,22 +33,28 @@ if (   empty($email)
 
 if ('on' === $agreed) {
     $agreed = 'yes';
+} else {
+    $agreed = 'no';
 }
 
 $is_known = db_is_email_known(
     $email
 );
 if ($is_known) {
+    session_remember_user_token(session_make_user_token($email));
+    db_log_user_event('applied_for_access');
     header('Location: ./sent/');
     die;
 }
 
-$candidate_hash = db_hash_candidate($email);
+$candidate_hash = db_hash($email);
 $user_added = db_add_user($candidate_hash);
 if (empty($user_added)) {
     header('Location: ./error-storage-failure/');
     die;
-} 
+}
+session_remember_user_token(session_make_user_token($email));
+db_log_user_event('applied_for_access');
 
 [$key, $secret] = $user_added;
 session_remember('access_request_email', $email);

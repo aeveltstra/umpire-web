@@ -32,9 +32,8 @@ $form_nonce = session_make_and_remember_nonce(
 <p><input type=password name=secret id=secret size=60 maxlength=512 /></p>
 <?php
   if ($did_authenticate) {
-    echo '<p class=warning>Warning: you already are logged in. 
-    Pressing this button will log you out first.</p>';
-    echo "\r\n";
+    echo "<p class=warning>Warning: you already are logged in. 
+    Pressing this button will log you out first.</p>\r\n";
   }
   if ($form_nonce) {
     echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";

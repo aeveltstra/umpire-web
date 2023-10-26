@@ -24,25 +24,31 @@ function session_recall_app_name():string {
     return $session_umpire_app_name;
 }
 
-/** 
- * Wraps around setting session variables to include the specific
- * application name, which reduces the chance other of PHP instances 
- * on the same iron server to write session variables of the same name.
- */
-function session_remember(string $k, string $v):bool {
-    $varname = session_recall_app_name() . $k;
-    $_SESSION[$varname] = $v;
-    return true;
-}
-
 /**
  * Wraps around destroying session variables to include the specific
  * application name, which reduces the chance other of PHP instances 
  * on the same iron server to delete session variables of the same name.
  */
-function session_forget(string $k):bool {
+function session_forget(?string $k):bool {
+    if (empty($k)) {
+        return true;
+    }
     $varname = session_recall_app_name() . $k;
     unset($_SESSION[$varname]);
+    return true;
+}
+
+/** 
+ * Wraps around setting session variables to include the specific
+ * application name, which reduces the chance other of PHP instances 
+ * on the same iron server to write session variables of the same name.
+ */
+function session_remember(string $k, ?string $v):bool {
+    if (empty($v)) {
+        return session_forget($k);
+    }
+    $varname = session_recall_app_name() . $k;
+    $_SESSION[$varname] = $v;
     return true;
 }
 
@@ -98,7 +104,14 @@ function session_remember_user_token(?string $user_token):bool {
  *  function session_remember_user_token(token).
  */
 function session_did_user_authenticate():bool {
-  return (!empty(session_recall_user_token()));
+    $token = session_recall_user_token();
+    if (empty($token)) {
+        return false;
+    }
+    if (strpos($token, 'anonymous_')) {
+        return false;
+    }
+    return true;
 }
 
 /** Create a nonce to determine that, for instance, a form submission 
@@ -121,7 +134,7 @@ function session_make_nonce(string $id):string {
     $time = ceil( time() / ( 60 * 60 * 12) );
     $token = session_recall_user_token();
     if (empty($token)) {
-        $token = random_bytes(24);
+        $token = 'anonymous_' + random_bytes(24);
         session_remember_user_token($token);
     }
     return session_make_hash($time . '|' . $token . '|' . $id);

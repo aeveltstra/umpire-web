@@ -149,7 +149,7 @@ function read_enumerations_from_db(string $language_code): array {
  * The current version of PHP, 7.4, returns a hash of 128 chars
  * for sha512.
  */
-function db_hash_candidate(string $candidate): string {
+function db_hash(string $candidate): string {
     return hash(
         'sha512', 
         $candidate
@@ -157,29 +157,46 @@ function db_hash_candidate(string $candidate): string {
 }
 
 /**
- * Whether an email address is known for an existing user
- * of the system.
+ * Whether a hashed email address is known for an existing user of the
+ * system.
  * 
  * Parameters: 
- * - hashed_candidate, string: the hash of the email address
- *   to check for existence. Use the db_hash function
- *   in this module to hash the email address.
+ * - email_hash, string: the hash of the email address to check for 
+ *   existence. Use the db_hash function in this module to hash the 
+ *   email address.
  * 
  * Returns:
  * True if the user is recognized by the passed-in email hash.
+ */
+function db_is_email_hash_known(?string $email_hash): bool {
+    if (empty($email_hash)) {
+        return false;
+    }
+    $sql = 'select 
+        (count(*) > 0) as `is_known` 
+        from `users` 
+        where `email_hash` = \'' 
+        . $email_hash
+        . '\'';
+    return ('1' == scalar($sql));
+}
+
+/**
+ * Whether an email address is known for an existing user of the 
+ * system.
+ * 
+ * Parameters: 
+ * - email, string: the email address to check for existence.
+ * 
+ * Returns:
+ * True if the user is recognized by the passed-in email address.
  */
 function db_is_email_known(?string $email): bool {
     if (empty($email)) {
         return false;
     }
-    $email_hashed = db_hash_candidate($email);
-    $sql = 'select 
-        (count(*) > 0) as `is_known` 
-        from `users` 
-        where `email_hash` = \'' 
-        . $email_hashed
-        . '\'';
-    return ('1' == scalar($sql));
+    $email_hashed = db_hash($email);
+    return db_is_email_hash_known($email_hashed);
 }
 
 /**
@@ -294,12 +311,12 @@ function db_log_user_event(string $name):bool {
     return true;
 }
 
-function may_authenticated_user_reject_access():bool {
+function db_may_authenticated_user_reject_access():bool {
     include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
     if(!did_user_authenticate()) {
         return false;
     }
-    $authenticated_email_hash = get_session_variable('user_token');
+    $authenticated_email_hash = session_recall_user_token();
     $mysqli = connect_db();
     $mysqli->query("set @result = ''");
     $sql = 'call is_admin(@result, ?)';
@@ -316,8 +333,8 @@ function may_authenticated_user_reject_access():bool {
  * address. The function will check whether an administrator is 
  * logged in and invoking it.
  */
-function reject_access(?string $user_email):bool {
-    if(!may_authenticated_user_reject_access()) {
+function db_reject_access(?string $user_email):bool {
+    if(!db_may_authenticated_user_reject_access()) {
         return false;
     }
     return false;
