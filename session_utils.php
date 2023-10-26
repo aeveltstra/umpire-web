@@ -134,7 +134,7 @@ function session_make_nonce(string $id):string {
     $time = ceil( time() / ( 60 * 60 * 12) );
     $token = session_recall_user_token();
     if (empty($token)) {
-        $token = 'anonymous_' + random_bytes(24);
+        $token = 'anonymous_' . random_bytes(24);
         session_remember_user_token($token);
     }
     return session_make_hash($time . '|' . $token . '|' . $id);
