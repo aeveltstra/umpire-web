@@ -4,7 +4,7 @@ declare(strict_types=1);
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1025.2059
+ * @version 2.23.1028.1000
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
@@ -55,7 +55,7 @@ function show_enums() {
  * ]
  */
 function read_missing_form_entry_fields() {
-    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, `max`, `hide_on_entry` FROM `vw_missing_entry_form_attributes_en` order by `display_sequence` asc'; 
+    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, `max`, `default`, `is_write_once` FROM `vw_missing_entry_form_attributes_en` order by `display_sequence` asc'; 
     return query($sql);
 }
 
@@ -66,12 +66,12 @@ function read_missing_form_entry_fields() {
  */
 function show_missing_form_entry_fields() {
     $templates = array(
-        'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s"/></p></fieldset>',
-        'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min="%5$d" max="%6$d" name="%1$s" id="%1$s"/></p></fieldset>',
-        'enum' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s" list="list_%1$s"/></p></fieldset>',
-        'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s"/></p></fieldset>',
-        'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s"></textarea></p></fieldset>',
-        'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 name="%1$s" id="%1$s"/></p></fieldset>'
+        'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>',
+        'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'enum' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" list="list_%1$s" %7$s/></p></fieldset>',
+        'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
+        'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>'
     );
     $fields = read_missing_form_entry_fields();
     if (!is_array($fields)) {
@@ -84,18 +84,24 @@ function show_missing_form_entry_fields() {
         'hint' => $hint, 
         'min' => $min, 
         'max' => $max, 
-        'hide_on_entry' => $hide_on_entry
+        'is_write_once' => $is_write_once,
+        'default' => $default
     )) {
         $t = $templates[$data_type];
         if (!is_null($t)) {
+            $is_disabled = '';
+            if ($is_write_once) {
+                $is_disabled = 'disabled="disabled"';
+            }
             echo sprintf(
                 $t, 
-                $id, 
-                $hide_on_entry, 
-                $caption, 
-                $hint, 
-                $min, 
-                $max
+                addslashes($id), 
+                addslashes($default), 
+                addslashes($caption), 
+                addslashes($hint), 
+                addslashes($min), 
+                addslashes($max),
+                $is_disabled
             );
             echo "\r\n\r\n";
         }
