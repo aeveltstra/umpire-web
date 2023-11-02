@@ -1,11 +1,62 @@
-html,body{font-size:medium}
-body{margin:0;padding-left:1em;padding-right:1em}
-form,fieldset,legend,input,button,textarea{font:inherit;box-sizing:border-box}
+/* Light mode */
+@media (prefers-color-scheme: light) {
+   :root {
+       --body-bg: #fff;
+       --body-color: #222;
+       --fldset-bg: #fafafa;
+       --fldset-color: #222;
+       --fldset-border-color: #fafafa;
+       --fldset-active-border-style: outset;
+       --fldset-inactive-border-style: solid;
+       --fld-active-bg: #fff;
+       --fld-active-color: #000;
+       --fld-active-border-style: inset;
+       --fld-inactive-border-style: solid;
+       --fld-inactive-bg: #eaeaea;
+       --fld-inactive-color: #111;
+       --a-href-color: #06e;
+       --btn-color: #ccc;
+       --btn-bg: #06e;
+       --btn-hover-bg: #17f;
+       --btn-hover-color: #fff;
+   }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+   :root {
+       --body-bg: #222;
+       --body-color: #ddd;
+       --fldset-bg: #111;
+       --fldset-color: #ddd;
+       --fldset-border-color: #111;
+       --fldset-active-border-style: outset;
+       --fldset-inactive-border-style: solid;
+       --fld-active-bg: #444;
+       --fld-active-color: #fff;
+       --fld-active-border-style: inset;
+       --fld-inactive-border-style: solid;
+       --fld-inactive-bg: #222;
+       --fld-inactive-color: #ccc;
+       --a-href-color: #59b;
+       --btn-color: #eee;
+       --btn-bg: #06e;
+       --btn-hover-bg: #17f;
+       --btn-hover-color: #fff;
+   }
+}
+html,body{font-size:medium;background-color:var(--body-bg);color:var(--body-color)}
+body{margin:0;margin-left:auto;margin-right:auto;max-width:60em;padding-left:1em;padding-right:1em}
+form,fieldset,legend,input,button,textarea{font:inherit;box-sizing:border-box;border-radius:5pt}
 form,fieldset,p{margin-left:0;margin-right:0;max-width:calc(100vw - 2em)}
 fieldset,p{padding-left:1em;padding-right:1em}
-fieldset{border-width:1pt}
 fieldset>p{padding-left:0;padding-right:0}
-input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:44pt;font-weight:bold}
-fieldset{margin-bottom:2em}
+fieldset{border-width:1pt;border-style:outset;margin-bottom:2em;background-color:var(--fldset-bg);border-color:var(--fldset-border-color);color:var(--fldset-color);border-style:var(--fldset-inactive-border-style)}
+fieldset:focus-within{border-style:var(--fldset-active-border-style)}
+fieldset:hover{border-style:var(--fldset-active-border-style)}
 fieldset legend{overflow-wrap:break-word;font-weight:bold}
-input,textarea{max-width:calc(100vw - 4em - 2pt)}
+input,textarea{max-width:calc(100vw - 4em - 4pt);padding:2pt;border-style:var(--fld-inactive-border-style);border-width:1pt;background-color:var(--fld-inactive-bg);color:var(--fld-inactive-color);border-color:var(--fld-inactive-bg)}
+input:focus,textarea:focus{border-style:var(--fld-active-border-style);background-color:var(--fld-active-bg);color:var(--fld-active-color);border-color:var(--fldset-border-color)}
+input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:44pt;font-weight:bold;background-color:var(--btn-bg);color:var(--btn-color);border-style:outset;padding:0.5em 1.5em}
+input[type=submit]:hover,input[type=button]:hover,input[type=reset]:hover,button:hover{background-color:var(--btn-hover-bg);color:var(--btn-hover-color)}
+a[href]{color:var(--a-href-color)}
