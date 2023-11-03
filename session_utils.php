@@ -108,7 +108,7 @@ function session_did_user_authenticate():bool {
     if (empty($token)) {
         return false;
     }
-    if (strpos($token, 'anonymous_')) {
+    if (0 === strpos($token, 'anonymous_', 0)) {
         return false;
     }
     return true;
