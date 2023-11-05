@@ -5,7 +5,7 @@
  *  tune their working without interfering with the regular flow
  *  of the programs.
  *  @author A.E.Veltstra for OmegaJunior Consultancy, LLC
- *  @version 2.23.1015.1920
+ *  @version 2.23.1104.1246
  */
 
 declare(strict_types=1);
@@ -39,6 +39,7 @@ $inequalities[] = [5, '0', query('select count(*) from `enums` order by `attribu
 $equalities[] = [6, 'attribute_id,enum_value,caption', join(',', array_keys(query('select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = \'en\';')[0]))];
 
 /* this is weird but due to how mysqli->fetch_all(MYSQLI_BOTH) does associations. It returns both the field index numbers and the field names. We use MYSQLI_ASSOC, so the result should have field names, only. */
+
 $inequalities[] = [7, '0,attribute_id,1,enum_value,2,caption', join(',', array_keys(query('select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = \'en\';')[0]))];
 $equalities[] = [8, 'attribute_id,enum_value,caption', join(',', array_keys(db_exec('select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = ?;', 's', ['en'])[0]))];
 
@@ -49,30 +50,31 @@ $equalities[] = [11, 3, count(array_keys($enumerations[0]))];
 echo '<!-- enumerations: ';
 var_dump($enumerations);
 echo '-->';
-
 $equalities[] = [12, 'sha512', get_hashing_algo_for_user_by_email('omegajunior@protonmail.com')['hashing_algo']];
-$equalities[] = [13, true, is_email_known('omegajunior@protonmail.com')];
-$equalities[] = [14, 1, is_user_known(
+$equalities[] = [13, true, db_is_email_known('omegajunior@protonmail.com')];
+$equalities[] = [14, 0, db_is_user_known(
     'omegajunior@protonmail.com',
     'da5d1e035d2ff80c27a068ba766cff98c645462add916883a31670f30b36621ea8ca83c22739732552ab5671b3178bc64e1982286f6fb50d2c230ad61d357795',
     'sombrero fibrous ringtoss corkscrew friends overconfidence dainty'
 )];
 $equalities[] = [15, '363f38ff73db62541bdffccb7b2af662c4e6687ab03896b45a047c501bfe30e03dc6d73c65227cf05bf20e77ceece3c6e73cedac37a159676a7d22b580ef4ad8', hash('sha512','da5d1e035d2ff80c27a068ba766cff98c645462add916883a31670f30b36621ea8ca83c22739732552ab5671b3178bc64e1982286f6fb50d2c230ad61d357795')]; 
 $inequalities[] = [16, false, isset(get_hashing_algo_for_user_by_email('haunted{house|daisies')['hashing_algo'])];
-$inequalities[] = [17, true, is_email_known('not_even:an|email{address')];
+$inequalities[] = [17, true, db_is_email_known('not_even:an|email{address')];
 $equalities[] = [18, '02fb3892ed21f19f2a795b6e36186693b1c17e815bac0704ac1094b6d13873eb3f5802da3a924d64e2e9da170e831886f250c4b0364749fd9831d6cc0248dde5', hash('sha512', 'sombrero fibrous ringtoss corkscrew friends overconfidence dainty')];
 
-$unit_test_19_set = set_session_variable('unit_test_19', 'hello');
+$unit_test_19_set = session_remember('unit_test_19', 'hello');
 $equalities[] = [20, true, $unit_test_19_set];
-$equalitites[] = [19, 'hello', get_session_variable('unit_test_19')];
+$equalitites[] = [19, 'hello', session_recall('unit_test_19')];
 
-$did_unset = unset_session_variable('user_token');
+$did_unset = session_forget_user_token();
 $equalities[] = [21, true, $did_unset];
-$equalities[] = [22, false, did_user_authenticate()];
-$did_set = store_that_user_authenticated("bla bla bla");
+$equalities[] = [22, false, session_did_user_authenticate()];
+$did_set = session_remember_user_token("bla bla bla");
 $equalities[] = [23, true, $did_set];
-$equalities[] = [24, true, did_user_authenticate()];
-$inequalities[] = [25, true, may_authenticated_user_reject_access()];
+$equalities[] = [24, true, session_did_user_authenticate()];
+$inequalities[] = [25, true, db_may_authenticated_user_reject_access(
+    "non-existant"
+)];
 
 /** Equality test. Returns true if values equal. 
  *  Use this as the array_filter function.

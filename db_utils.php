@@ -4,7 +4,7 @@
  * Has a few abstractions for running custom queries, also defines 
  * a few standard queries expected to be used often.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1024.2138
+ * @version 2.23.1104.1239
  */
 declare(strict_types=1);
 
@@ -158,7 +158,11 @@ function db_hash(string $candidate): string {
 
 /**
  * Whether a hashed email address is known for an existing user of the
- * system.
+ * system. This is useful because the authenticated user token from
+ * the session_utils module can be passed into this function, to 
+ * determine whether they still are known. (They could have been deleted,
+ * for instance, in the meantime between authenticating and taking
+ * some other action.)
  * 
  * Parameters: 
  * - email_hash, string: the hash of the email address to check for 
@@ -291,8 +295,12 @@ function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
     /* Strict type comparison fails.
      * TODO: figure out why.
      */
-    if ('1' == $result[0]['is_known']) {
+    $is_known = $result[0]['is_known'];
+    if (1 == $is_known) {
         return 1;
+    }
+    if (0 == $is_known) {
+        return 0;
     }
     return -5;
 }
@@ -311,21 +319,34 @@ function db_log_user_event(string $name):bool {
     return true;
 }
 
-function db_may_authenticated_user_reject_access():bool {
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-    if(!did_user_authenticate()) {
+function db_is_user_admin(
+    ?string $session_user_token
+):bool {
+    if (empty($session_user_token)) {
         return false;
     }
-    $authenticated_email_hash = session_recall_user_token();
     $mysqli = connect_db();
-    $mysqli->query("set @result = ''");
-    $sql = 'call is_admin(@result, ?)';
+    $mysqli->query("set @result = 0");
+    $sql = 'call sp_is_user_admin(?, @result)';
     $ps = $mysqli->prepare($sql);
-    $params = [$authenticated_email_hash];
+    $params = [$session_user_token];
     $ps->bind_param('s', ...$params);
     $ps->execute();
-    $row = $mysqli->query('select @result as is_admin');
-    return ('1' == $row['is_admin']);
+    $result = $mysqli->query('select @result as `is_user_admin`;');
+    $result = $result->fetch_all(MYSQLI_ASSOC);
+    return ('1' == $result[0]['is_user_admin']);
+}
+
+function db_may_authenticated_user_accept_access(
+    ?string $session_user_token
+):bool {
+    return db_is_user_admin($session_user_token);
+}
+
+function db_may_authenticated_user_reject_access(
+    ?string $session_user_token
+):bool {
+    return db_is_user_admin($session_user_token);
 }
 
 /**

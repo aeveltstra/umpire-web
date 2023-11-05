@@ -2,7 +2,7 @@
 /**
  * Helper functions for handling sessions.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1024.2151
+ * @version 2.23.1104.1300
  */
 
 declare(strict_types=1);
@@ -72,10 +72,20 @@ function session_make_user_token(string $email): string {
 /** 
  * Retrieves the user token stored in this session.
  * The token gets assigned to the user when they 
- * authenticate successfully. 
+ * authenticate successfully, and also when a form
+ * needs a nonce if the user is anonymous.
  */
 function session_recall_user_token():string {
     return session_recall('user_token');
+}
+/** 
+ * Deletes the user token from this session.
+ * The token gets assigned to the user when they 
+ * authenticate successfully, and also when a form
+ * needs a nonce if the user is anonymous.
+ */
+function session_forget_user_token():bool {
+    return session_forget('user_token');
 }
 
 /**
