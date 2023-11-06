@@ -354,16 +354,21 @@ function db_may_authenticated_user_reject_access(
  * address. The function will check whether the current user has the 
  * privilege to accept an access application.
  */
-function db_accept_access(?string $current_user, ?string $accept_email):bool {
-    if(!db_may_authenticated_user_reject_access($current_user)) {
+function db_accept_access(?string $current_user_hash, ?string $accept_email):bool {
+    if(!db_may_authenticated_user_reject_access($current_user_hash)) {
         return false;
     }
-    $values = [$current_user, $accept_email];
-    db_exec('call sp_accept_access_application(?, ?)',
-        'ss',
-        $values
-    );
-    return true;
+    $accept_email_hash = db_hash($accept_email);
+    $params = [$current_user_hash, $accept_email_hash];
+    $mysqli = connect_db();
+    $mysqli->query("set @success = 0");
+    $sql = 'call sp_accept_access_application(?, ?, @success)';
+    $ps = $mysqli->prepare($sql);
+    $ps->bind_param('ss', ...$params);
+    $ps->execute();
+    $result = $mysqli->query('select @success as `is_successful`;');
+    $result = $result->fetch_all(MYSQLI_ASSOC);
+    return ('1' == $result[0]['is_successful']);
 }
 
 /**
