@@ -42,8 +42,8 @@ $form_nonce = session_make_and_remember_nonce(
     if ($user_may_accept) {
 ?>
 <fieldset><legend>Accept these</legend>
-<p><label for="accept_emails">One or more email addresses, separated by a comma</label></p>
-<p><textarea id=accept_emails placeholder="some@one.here,
+<p><label for="accept_emails">One or more email addresses, one per line.</label></p>
+<p><textarea id=accept_emails placeholder="some@one.here
 someone@else.there" cols=60 rows=5 maxlength=512 ></textarea></p>
 </fieldset>
 <?php 
@@ -51,8 +51,8 @@ someone@else.there" cols=60 rows=5 maxlength=512 ></textarea></p>
     if ($user_may_reject) {
 ?>
 <fieldset><legend>Reject these</legend>
-<p><label for="reject_emails">One or more email addresses, one per line</label></p>
-<p><textarea id=reject_emails placeholder="some@one.here,
+<p><label for="reject_emails">One or more email addresses, one per line.</label></p>
+<p><textarea id=reject_emails placeholder="some@one.here
 someone@else.there" cols=60 rows=5 maxlength=512 ></textarea></p>
 </fieldset>
 <?php } ?>
