@@ -350,15 +350,37 @@ function db_may_authenticated_user_reject_access(
 }
 
 /**
- * Deny further access to a user, identified by the passed-in email
- * address. The function will check whether an administrator is 
- * logged in and invoking it.
+ * Allows further access to a user, identified by the passed-in email
+ * address. The function will check whether the current user has the 
+ * privilege to accept an access application.
  */
-function db_reject_access(?string $user_email):bool {
-    if(!db_may_authenticated_user_reject_access()) {
+function db_accept_access(?string $current_user, ?string $accept_email):bool {
+    if(!db_may_authenticated_user_reject_access($current_user)) {
         return false;
     }
-    return false;
+    $values = [$current_user, $accept_email];
+    db_exec('call sp_accept_access_application(?, ?)',
+        'ss',
+        $values
+    );
+    return true;
+}
+
+/**
+ * Deny further access to a user, identified by the passed-in email
+ * address. The function will check whether the current user has the 
+ * privilege to reject an access application.
+ */
+function db_reject_access(?string $current_user, ?string $reject_email):bool {
+    if(!db_may_authenticated_user_reject_access($current_user)) {
+        return false;
+    }
+    $values = [$current_user, $accept_email];
+    db_exec('call sp_reject_access_application(?, ?)',
+        'ss',
+        $values
+    );
+    return true;
 }
 
 function db_make_user_key(): string {
