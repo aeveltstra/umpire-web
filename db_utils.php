@@ -4,12 +4,13 @@
  * Has a few abstractions for running custom queries, also defines 
  * a few standard queries expected to be used often.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1104.1239
+ * @version 2.23.1107.2038
  */
 declare(strict_types=1);
 
 /* config.php provides the connect_db() function. */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
+mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
 
 /**
  * Runs the sql query on the database and returns the result
@@ -365,10 +366,15 @@ function db_accept_access(?string $current_user_hash, ?string $accept_email):boo
     $sql = 'call sp_accept_access_application(?, ?, @success)';
     $ps = $mysqli->prepare($sql);
     $ps->bind_param('ss', ...$params);
-    $ps->execute();
-    $result = $mysqli->query('select @success as `is_successful`;');
-    $result = $result->fetch_all(MYSQLI_ASSOC);
-    return ('1' == $result[0]['is_successful']);
+    mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
+    try {
+        $ps->execute();
+        $result = $mysqli->query('select @success as `is_successful`;');
+        $result = $result->fetch_all(MYSQLI_ASSOC);
+        return ('1' == $result[0]['is_successful']);
+    } catch (mysqli_sql_exception $e)  {
+        return false;
+    }
 }
 
 /**
@@ -387,10 +393,15 @@ function db_reject_access(?string $current_user_hash, ?string $reject_email):boo
     $sql = 'call sp_reject_access_application(?, ?, @success)';
     $ps = $mysqli->prepare($sql);
     $ps->bind_param('ss', ...$params);
-    $ps->execute();
-    $result = $mysqli->query('select @success as `is_successful`;');
-    $result = $result->fetch_all(MYSQLI_ASSOC);
-    return ('1' == $result[0]['is_successful']);
+    mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
+    try {
+        $ps->execute();
+        $result = $mysqli->query('select @success as `is_successful`;');
+        $result = $result->fetch_all(MYSQLI_ASSOC);
+      return ('1' == $result[0]['is_successful']);
+    } catch (mysqli_sql_exception $e) {
+        return false;
+    }
 }
 
 function db_make_user_key(): string {
