@@ -30,8 +30,18 @@ if (empty($reject_email)) {
     }
 }
 
+$valid_email = filter_var(
+    $reject_email,
+    FILTER_VALIDATE_EMAIL
+);
+
+if (false === $reject_email) {
+    header('Location: ./error-missing-required-parameters/');
+    die();
+}
+
 if (!session_did_user_authenticate()) {
-    session_remember($reject_email_variable, $reject_email);
+    session_remember($reject_email_variable, $valid_email);
     session_remember('return_to', '/umpire/applications/reject/');
     header('Location: /umpire/sign-in/');
     die();
@@ -40,13 +50,13 @@ if (!session_did_user_authenticate()) {
 $current_user = session_recall_user_token();
 $user_may_reject = db_may_authenticated_user_reject_access($current_user);
 if (!$user_may_reject) {
-    session_remember($reject_email_variable, $reject_email);
+    session_remember($reject_email_variable, $valid_email);
     session_remember('return_to', '/umpire/applications/reject/');
     header('Location: ../access-denied/'); 
     die();
 }
 
-$success = db_reject_access($current_user, $reject_email);
+$success = db_reject_access($current_user, $valid_email);
 if (!$success) {
     header('Location: ./failed/');
     die();
@@ -67,9 +77,9 @@ if (!$success) {
     <h2>The application to access Umpire has been rejected successfully.</h2>
     <?php
         if (!empty($reject_email)) {
-            echo '<p>E-mail address of the rejected application: ';
-            echo htmlspecialchars($reject_email);
-            echo '.</p>';
+            echo '<p>E-mail address of the rejected application: ',
+                htmlspecialchars($valid_email),
+                 '.</p>';
         }
     ?>
     <p>Would you like to manage other <a href="../">access applications</a>?</p>
