@@ -30,8 +30,18 @@ if (empty($accept_email)) {
     }
 }
 
+$valid_email = filter_var(
+    $accept_email,
+    FILTER_VALIDATE_EMAIL
+);
+
+if (false === $valid_email) {
+    header('Location: ./error-missing-required-parameters/');
+    die();
+}
+
 if (!session_did_user_authenticate()) {
-    session_remember($accept_email_variable, $accept_email);
+    session_remember($accept_email_variable, $valid_email);
     session_remember('return_to', '/umpire/applications/accept/');
     header('Location: /umpire/sign-in/');
     die();
@@ -40,13 +50,13 @@ if (!session_did_user_authenticate()) {
 $current_user = session_recall_user_token();
 $user_may_accept = db_may_authenticated_user_accept_access($current_user);
 if (!$user_may_accept) {
-    session_remember($accept_email_variable, $accept_email);
+    session_remember($accept_email_variable, $valid_email);
     session_remember('return_to', '/umpire/applications/accept/');
     header('Location: ../access-denied/'); 
     die();
 }
 
-$success = db_accept_access($current_user, $accept_email);
+$success = db_accept_access($current_user, $valid_email);
 if (!$success) {
     header('Location: ./failed/');
     die();
@@ -66,10 +76,10 @@ if (!$success) {
     <h1>Successfully Accepted Application</h1>
     <h2>The application to access Umpire has been accepted successfully.</h2>
     <?php
-        if (!empty($accept_email)) {
-            echo '<p>E-mail address of the accepted application: ';
-            echo htmlspecialchars($accept_email);
-            echo '.</p>';
+        if (!empty($valid_email)) {
+            echo '<p>E-mail address of the accepted application: ',
+                htmlspecialchars($valid_email),
+                '.</p>';
         }
     ?>
     <p>Would you like to manage other <a href="../">access applications</a>?</p>

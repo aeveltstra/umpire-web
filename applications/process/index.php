@@ -80,7 +80,8 @@ if (!empty($reject_emails)) {
 }
 if (!empty($xs_a)) {
     $xs_a = array_map(function ($x) use (&$current_user) {
-        if (empty($x)) { return null; }
+        $x = filter_var($x, FILTER_VALIDATE_EMAIL);
+        if (false === $x || empty($x)) { return null; }
         $success = db_accept_access($current_user, $x);
         if ($success) { return $x; }
         return null;
@@ -91,7 +92,8 @@ if (!empty($xs_a)) {
 }
 if (!empty($xs_r)) {
     $xs_r = array_map(function ($x) use (&$current_user) {
-        if (empty($x)) { return null; }
+        $x = filter_var($x, FILTER_VALIDATE_EMAIL);
+        if (false === $x || empty($x)) { return null; }
         $success = db_reject_access($current_user, $x);
         if ($success) { return $x; }
         return null;
@@ -120,7 +122,7 @@ if (!empty($xs_r)) {
         } else {
             echo "<p>E-mail addresses of accepted applications:</p><ul>\r\n";
             array_walk($xs_a, function($x) {
-                echo '<li>' . htmlspecialchars($x) . '</li>' . "\r\n";
+                echo '<li>', htmlspecialchars($x), '</li>', "\r\n";
             });
             echo "</ul>\r\n";
         }
@@ -129,7 +131,7 @@ if (!empty($xs_r)) {
         } else {
             echo "<p>E-mail addresses of rejected applications:</p><ul>\r\n";
             array_walk($xs_r, function($x) {
-                echo '<li>' . htmlspecialchars($x) . '</li>' . "\r\n";
+                echo '<li>', htmlspecialchars($x), '</li>', "\r\n";
             });
             echo "</ul>\r\n";
         }
