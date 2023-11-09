@@ -320,6 +320,30 @@ function db_log_user_event(string $name):bool {
     return true;
 }
 
+function db_which_of_these_privileges_does_user_hold(
+    ?string $user_token,
+    ?string ...$privileges
+) {
+    if (empty($user_token) || empty($privileges)) {
+        return false;
+    }
+    $mysqli = connect_db();
+    $mysqli->query("set @result = 0");
+    $sql = 'call sp_which_of_these_privileges_does_user_hold(?,?,@result)';
+    $ps = $mysqli->prepare($sql);
+    $x = implode(',', $privileges);
+    $params = [$user_token, $x];
+    $ps->bind_param('ss', ...$params);
+    $ps->execute();
+    $result = $mysqli->query('select @result as `found`;');
+    $result = $result->fetch_all(MYSQLI_ASSOC);
+    $output = [];
+    for (i = 0; i < length($result); i+=1) {
+        $output[] = $result[i]['found'];
+    }
+    return $output;
+}
+
 function db_is_user_admin(
     ?string $session_user_token
 ):bool {
