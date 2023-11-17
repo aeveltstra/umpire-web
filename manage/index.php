@@ -17,7 +17,7 @@ if (!session_did_user_authenticate()) {
 }
 
 $current_user = session_recall_user_token();
-$held_privileges = db_which_of_these_privileges_does_user_have(
+$held_privileges = db_which_of_these_privileges_does_user_hold(
     $current_user,
     'may_manage_forms',
     'may_manage_users',
@@ -45,6 +45,11 @@ if (empty($held_privileges)) {
     <h2>Make desicions about Umpire configurations and user subscriptions</h2>
     <?php
     ?>
-    <p>Would you like to manage other <a href="../">access applications</a>?</p>
+    <p>Would you like to manage:</p>
+    <ul>
+        <li><a href="forms/">entry forms</a>?</li>
+        <li><a href="../subscriptions/">user subscriptions</a>?</li>
+        <li><a href="../applications/">access applications</a>?</li>
+    </ul>
 </body>
 </html>

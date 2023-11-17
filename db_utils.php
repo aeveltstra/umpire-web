@@ -4,7 +4,7 @@
  * Has a few abstractions for running custom queries, also defines 
  * a few standard queries expected to be used often.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1107.2038
+ * @version 2.23.1116.1806
  */
 declare(strict_types=1);
 
@@ -338,8 +338,8 @@ function db_which_of_these_privileges_does_user_hold(
     $result = $mysqli->query('select @result as `found`;');
     $result = $result->fetch_all(MYSQLI_ASSOC);
     $output = [];
-    for (i = 0; i < length($result); i+=1) {
-        $output[] = $result[i]['found'];
+    for ($i = 0; $i < count($result); $i+=1) {
+        $output[] = $result[$i]['found'];
     }
     return $output;
 }
