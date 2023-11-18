@@ -47,7 +47,7 @@
 }
 html,body{font-size:medium;background-color:var(--body-bg);color:var(--body-color)}
 body{margin:0;margin-left:auto;margin-right:auto;max-width:60em;padding-left:1em;padding-right:1em}
-form,fieldset,legend,input,button,textarea{font:inherit;box-sizing:border-box;border-radius:5pt}
+form,fieldset,legend,input,button,select,textarea{font:inherit;box-sizing:border-box;border-radius:5pt}
 form,fieldset,p{margin-left:0;margin-right:0;max-width:calc(100vw - 2em)}
 fieldset,p{padding-left:1em;padding-right:1em}
 fieldset>p{padding-left:0;padding-right:0}

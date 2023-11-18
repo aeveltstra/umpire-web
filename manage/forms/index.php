@@ -102,7 +102,19 @@ if (!empty($form_choice)) {
             's', 
             [$form_choice]
         );
-
+        $dt_options = '';
+        $dts = [
+            'date',
+            'enum', 
+            'integer', 
+            'longtext', 
+            'percent',
+            'shorttext', 
+            'time'
+        ];
+        foreach($dts as $dt) {
+            $dt_options .= "<option>{$dt}</option>";
+        }
         foreach($xs as $x) {
             $display_seq   = $x['display_sequence'];
             $field_id      = htmlspecialchars($x['id'],        ENT_QUOTES);
@@ -115,7 +127,16 @@ if (!empty($form_choice)) {
             echo "
         <tr><th>{$display_seq}</th>
             <td>{$field_id}</td>
-            <td><select><option>{$data_type}</option></select></td>
+            <td>
+                <select>
+                    <optgroup label='Currently Stored'>
+                    <option selected=selected>{$data_type}</option>
+                    </optgroup>
+                    <optgroup label='Options'>
+                    {$dt_options}
+                    </optgroup>
+                </select>
+            </td>
             <td><input type=number value='{$min}'/></td>
             <td><input type=number value='{$max}'/></td>
             <td><input type=text value='{$default}'/></td>
