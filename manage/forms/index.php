@@ -39,12 +39,13 @@ if (isset($_GET['id'])) {
 }
 if (!empty($form_choice)) {
     $rows = query(
-        'select `id` from `forms` where `id` = ?',
+        'select `form`, `caption` from `form_caption_translations` where `language` = \'en\' and `form` = ?',
         's',
         [$form_choice]
     );
-    if (count($rows) === 1 && isset($rows[0]['id'])) {
+    if (count($rows) === 1 && isset($rows[0]['form'])) {
         $is_form_known = true;
+        $form_caption = $rows[0]['caption'];
     }
 }
 
@@ -63,20 +64,23 @@ if (!empty($form_choice)) {
 <?php
     if (!$is_form_known) {
         echo '<h2>Choose which form to edit:</h2><ul>';
-        $rows = query(
-            'select `id` from `forms`'
-        );
+        $rows = query('select `form`, `caption` from `form_caption_translations` where `language` = \'en\'');
+
         foreach($rows as $row) {
             $id_for_show = htmlspecialchars(
-                $row['id'], ENT_QUOTES
+                $row['form'], ENT_QUOTES
             );
-            echo "<li><a href='?id={$id_for_show}'>{$id_for_show}</a></li>";
+            $caption_for_show = htmlspecialchars(
+                $row['caption'], ENT_QUOTES
+            );
+            echo "<li><a href='?id={$id_for_show}'>{$caption_for_show}</a></li>";
         }
         echo '</ul>';
     } else {
         $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
+        $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
         echo "
-    <h2>Editing form {$form_id_for_show}.</h2>
+    <h2>Editing form {$form_caption_for_show}.</h2>
     <h3>These attributes are assigned currently.</h3>
     <p>Follow their link to configure their properties.</p>
     <ol>
