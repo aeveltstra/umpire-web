@@ -58,6 +58,7 @@ if (!empty($form_choice)) {
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="/umpire/c/manage-form.css"/>
 </head>
 <body>
     <h1>Manage Umpire Entry Forms</h1>
@@ -80,28 +81,50 @@ if (!empty($form_choice)) {
         $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
         $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
         echo "
-    <h2>Editing form {$form_caption_for_show}.</h2>
+    <h2>Editing Form: {$form_caption_for_show}.</h2>
     <h3>These attributes are assigned currently.</h3>
-    <p>Follow their link to configure their properties.</p>
-    <ol>
+    <form id='attriutes_for_form_{$form_id_for_show}'><table>
+    <thead>
+        <tr><th>Display Sequence</th>
+            <th>Identity</th>
+            <th>Data Type</th>
+            <th>Minimum Value</th>
+            <th>Maximum Value</th>
+            <th>Default Value</th>
+            <th>Write Once</th>
+            <th>Hide on Entry</th>
+        </tr>
+    </thead>
+    <tbody>
               ";
         $xs = query(
             'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` from `form_attributes` as `fa` inner join `attributes` as `a` on `a`.`id` = `fa`.`attribute` where `fa`.`form` = ? order by `fa`.`display_sequence`', 
             's', 
             [$form_choice]
         );
+
         foreach($xs as $x) {
-            $field_id_for_show = htmlspecialchars($x['id'], ENT_QUOTES);
+            $display_seq   = $x['display_sequence'];
+            $field_id      = htmlspecialchars($x['id'],        ENT_QUOTES);
+            $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
+            $min           = $x['min'];
+            $max           = $x['max'];
+            $default       = htmlspecialchars($x['default'],   ENT_QUOTES);
+            $is_write_once = ((1 == $x['is_write_once']) ? 'checked=checked' : '');
+            $hide_on_entry = ((1 == $x['hide_on_entry']) ? 'checked=checked' : '');
             echo "
-        <li value='{$x['display_sequence']}'>
-            <a href='../fields/?id={$field_id_for_show}' 
-                title='Manage the field {$field_id_for_show}'>
-            {$field_id_for_show} 
-            </a>
-        </li>
+        <tr><th>{$display_seq}</th>
+            <td>{$field_id}</td>
+            <td><select><option>{$data_type}</option></select></td>
+            <td><input type=number value='{$min}'/></td>
+            <td><input type=number value='{$max}'/></td>
+            <td><input type=text value='{$default}'/></td>
+            <td><input type=checkbox {$is_write_once} /></td>
+            <td><input type=checkbox {$hide_on_entry} /></td>
+        </tr>
     ";
         }
-        echo "</ol>\r\n";
+        echo "</tbody></table></form>\r\n";
     }
 ?>
 </body>

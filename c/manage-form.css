@@ -1,0 +1,20 @@
+/* Light mode */
+@media (prefers-color-scheme: light) {
+   :root {
+        --manage-form-table-bg: #fafafa;
+   }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+   :root {
+        --manage-form-table-bg: #111;
+   }
+}
+
+
+table{background-color:var(--manage-form-table-bg);border-radius:5pt}
+th,td{padding:4pt;text-align:left;vertical-align:bottom}
+input,select{width:10em}
+input[type=checkbox]{width:auto}
+
