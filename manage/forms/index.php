@@ -30,25 +30,35 @@ if (empty($held_privileges)) {
     header('Location: ../access-denied/'); 
     die();
 }
-
+$form_nonce = session_make_and_remember_nonce('manage_entry_form');
 
 $form_choice = '';
-$is_form_known = false;
 if (isset($_GET['id'])) {
     $form_choice = $_GET['id'];
 }
+$is_form_known = false;
+$form_caption = '';
 if (!empty($form_choice)) {
-    $rows = query(
-        'select `form`, `caption` from `form_caption_translations` where `language` = \'en\' and `form` = ?',
+    $form_captions = query(
+        'select `form`, `caption`, `language` from `form_caption_translations` where `form` = ?',
         's',
         [$form_choice]
     );
-    if (count($rows) === 1 && isset($rows[0]['form'])) {
+    $amount = count($form_captions);
+    if ($amount > 0) {
         $is_form_known = true;
-        $form_caption = $rows[0]['caption'];
+        for ($i = 0; $i < $amount; $i+=1) {
+            if ('en' === $form_captions[$i]['language']) {
+                $form_caption = $form_captions[$i]['caption'];
+            }
+        }
+        if (empty($form_caption)) {
+            $form_caption = $form_captions[0]['caption'];
+        }
     }
 }
 
+$form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,6 +69,143 @@ if (!empty($form_choice)) {
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="/umpire/c/main.css"/>
 <link rel=stylesheet href="/umpire/c/manage-form.css"/>
+<script type="text/javascript">/* <![CDATA[ */
+function hide_changed(input_id) {
+    "use strict";
+    if (!!input_id) {
+        const notice = document.getElementById("changed_" + input_id);
+        if (!!notice) {
+            notice.hidden = true;
+        }
+    }
+}
+function hide_fail(input_id) {
+    "use strict";
+    if (!!input_id) {
+        const notice = document.getElementById("failed_" + input_id);
+        if (!!notice) {
+            notice.hidden = true;
+        }
+    }
+}
+function hide_success(input_id) {
+    "use strict";
+    if (!!input_id) {
+        const notice = document.getElementById("succeeded_" + input_id);
+        if (!!notice) {
+            notice.hidden = true;
+        }
+    }
+}
+function show_success(input_id) {
+    "use strict";
+    if (!!input_id) {
+        hide_fail(input_id);
+        hide_changed(input_id);
+        const notice = document.getElementById("succeeded_" + input_id);
+        if (!!notice) {
+            notice.hidden = false;
+        }
+    }
+
+}
+function show_changed(input_id, response_status) {
+    "use strict";
+    if (!!input_id) {
+        hide_success(input_id);
+        hide_fail(input_id);
+        const notice = document.getElementById("changed_" + input_id);
+        if (!!notice) {
+            notice.hidden = false;
+        }
+    }
+}
+function show_fail(input_id, response_status) {
+    "use strict";
+    if (!!input_id) {
+        hide_success(input_id);
+        hide_changed(input_id);
+        const notice = document.getElementById("failed_" + input_id);
+        if (!!notice) {
+            notice.hidden = false;
+        }
+    }
+}
+function store_form_caption(input, old_caption) {
+    "use strict";
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    if (input) {
+        const id = input.id;
+        if (!!id) {
+            const xs = id.split('_');
+            if (xs.length) {
+                const x = xs[xs.length - 1];
+                const fd = new FormData();
+                fd.append('form_id', '<?php echo $form_id_for_show; ?>');
+                fd.append('language', x);
+                fd.append('old_caption', old_caption);
+                fd.append('new_caption', input.value);
+                fd.append('nonce', '<?php echo $form_nonce; ?>');
+                fetch(
+                    './store_form_caption.php',
+                    {
+                        method: "POST",
+                        body: fd,
+                        cache: "no-cache",
+                        mode: "same-origin",
+                        credentials: "omit"
+                    }
+                ).then((response) => {
+                    if (response.ok) {
+                        show_success(id);
+                    } else {
+                        show_fail(id, response.status);
+                    }
+                }).catch(alert);
+            }
+        }
+    }
+    return false;
+}
+function store(input, old_value) {
+    "use strict";
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    if (input) {
+        const id = input.id;
+        if (!!id) {
+            const fd = new FormData();
+            fd.append('form_id', '<?php echo $form_id_for_show; ?>');
+            fd.append('attribute', id);
+            fd.append('old_value', old_value);
+            fd.append('new_value', input.value);
+            fd.append('nonce', '<?php echo $form_nonce; ?>');
+            fetch(
+                './store_form_attribute.php',
+                {
+                    method: "POST",
+                    body: fd,
+                    cache: "no-cache",
+                    mode: "same-origin",
+                    credentials: "omit"
+                }
+            ).then((response) => {
+                if (response.ok) {
+                    show_success(id);
+                } else {
+                    show_fail(id, response.status);
+                }
+            }).catch(alert);
+        }
+    }
+    return false;
+}
+/* ]]> */</script>
 </head>
 <body>
     <h1>Manage Umpire Entry Forms</h1>
@@ -78,14 +225,48 @@ if (!empty($form_choice)) {
         }
         echo '</ul>';
     } else {
-        $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
         $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
         echo "
-    <h2>Editing Form: {$form_caption_for_show}.</h2>
+    <h2>Form being edited: {$form_caption_for_show}.</h2>
+    <section>
+        <h3>Change Form Captions</h3>
+        <form><fieldset><legend>Each language has its own caption</legend>
+        <table>
+            <thead>
+                <tr>
+                    <th>&nbsp;&nbsp;</th>
+                    <th>Language</th>
+                    <th>Translation</th>
+                </tr>
+            </thead>
+            <tbody>";
+        foreach ($form_captions as $translation) {
+            $c = htmlspecialchars($translation['caption'], ENT_QUOTES);
+            $t = htmlspecialchars($translation['language'], ENT_QUOTES);
+            echo "
+                    <tr>
+                        <td>
+                            <span hidden class=changed id=changed_new_caption_{$t} title='Changed'>&hellip;</span>
+                            <span hidden class=failed id=failed_new_caption_{$t} title='Storing failed'>&otimes;</span>
+                            <span hidden class=succeeded id=succeeded_new_caption_{$t} title='Stored successfully'>&radic;</span>
+                        </td>
+                        <th>${t}</th>
+                        <td>
+                            <label for=new_caption_{$t}><input type=text name=new_caption_{$t} id=new_caption_{$t} size=60 maxlength=256 placeholder='{$c}' value='{$c}' onchange='store_form_caption(this, \"{$c}\")' /></label>
+                        </td>
+                    </tr>
+            ";
+        }
+        echo "
+             </tbody></table></fieldset></form>
+        </section>
+    <section>
     <h3>These attributes are assigned currently.</h3>
     <form id='attriutes_for_form_{$form_id_for_show}'><table>
     <thead>
-        <tr><th>Display Sequence</th>
+        <tr>
+            <th>&nbsp;&nbsp;</th>
+            <th>Display Sequence</th>
             <th>Identity</th>
             <th>Data Type</th>
             <th>Minimum Value</th>
@@ -125,10 +306,16 @@ if (!empty($form_choice)) {
             $is_write_once = ((1 == $x['is_write_once']) ? 'checked=checked' : '');
             $hide_on_entry = ((1 == $x['hide_on_entry']) ? 'checked=checked' : '');
             echo "
-        <tr><th>{$display_seq}</th>
+        <tr>
+            <td>
+                <span hidden class=changed id=changed_{$field_id} title='Changed'>&hellip;</span>
+                <span hidden class=failed id=failed_{$field_id} title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded id=succeeded_{$field_id} title='Stored successfully'>&radic;</span>
+            </td>
+            <th>{$display_seq}</th>
             <td>{$field_id}</td>
             <td>
-                <select>
+                <select name=data_type id=data_type onchange='store(this, \"{$field_id}\", \"{$data_type}\")'>
                     <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
                     </optgroup>
@@ -137,16 +324,16 @@ if (!empty($form_choice)) {
                     </optgroup>
                 </select>
             </td>
-            <td><input type=number value='{$min}'/></td>
-            <td><input type=number value='{$max}'/></td>
-            <td><input type=text value='{$default}'/></td>
-            <td><input type=checkbox {$is_write_once} /></td>
-            <td><input type=checkbox {$hide_on_entry} /></td>
+            <td><input type=number name=min id=min onchange='store(this, \"{$field_id}\", \"{$min}\")' value='{$min}'/></td>
+            <td><input type=number name=max id=max onchange='store(this, \"{$field_id}\", \"{$max}\")' value='{$max}'/></td>
+            <td><input type=text name=default id=default onchange='store(this, \"{$field_id}\", \"{$default}\")' value='{$default}'/></td>
+            <td><input type=checkbox name=is_write_once id=is_write_once {$is_write_once} onchange='store(this, \"{$field_id}\", \"{$x['is_write_once']}\")' /></td>
+            <td><input type=checkbox name=hide_on_entry id=hide_on_entry {$hide_on_entry} onchange='store(this, \"{$field_id}\", \"{$x['hide_on_entry']}\")' /></td>
         </tr>
     ";
         }
-        echo "</tbody></table></form>\r\n";
     }
 ?>
+    </tbody></table></form>
 </body>
 </html>
