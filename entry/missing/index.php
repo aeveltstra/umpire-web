@@ -1,11 +1,13 @@
 <?php
-declare(strict_types=1);
 /**
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1028.1000
+ * @version 2.23.1214.2200
  */
+declare(strict_types=1);
+error_reporting(E_ALL);
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
@@ -13,8 +15,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
  * Reads the enumerations from the database and generates a single
  * input constraint for each attribute.
  */
-function show_enums() {
-    $xs = read_enumerations_from_db('en');
+function show_enums(string $lang) {
+    $xs = db_read_enumerations($lang);
     if (!is_array($xs)) {
         return;
     }
@@ -42,29 +44,12 @@ function show_enums() {
     }
 }
 
-/**
- * Reads the database fields and their attributes, so they can be
- * used in the strtr() function to render HTML form fields.
- * @return a list of tuples. Every field is a tuple, with the
- * field attributes being the tuple elements. The list is sorted
- * by display sequence.
- * Like so:
- * [
- *     ['id' => 'aliases', 'data_type' => 'shorttext'],
- *     ['id' => 'birth year', 'data_type' => 'integer']
- * ]
- */
-function read_missing_form_entry_fields() {
-    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, `max`, `default`, `is_write_once` FROM `vw_missing_entry_form_attributes_en` order by `display_sequence` asc'; 
-    return query($sql);
-}
-
 
 /**
  * Generates HTML for the form fields and echoes the result
  * into the page at the place of its invocation.
  */
-function show_missing_form_entry_fields() {
+function show_form_entry_fields(string $form_id, string $lang) {
     $templates = array(
         'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>',
         'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
@@ -73,7 +58,7 @@ function show_missing_form_entry_fields() {
         'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
         'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>'
     );
-    $fields = read_missing_form_entry_fields();
+    $fields = db_read_form_entry_fields($form_id, $lang);
     if (!is_array($fields)) {
         return;
     }
@@ -124,7 +109,7 @@ $form_nonce = session_make_and_remember_nonce('missing_entry_form');
 <h2>Please share as many details as available</h2>
 <form action="register/" method=post>
     <?php 
-        show_enums();
+        show_enums('en');
     ?>
     <fieldset>
         <legend>Terms and conditions</legend>
@@ -133,14 +118,15 @@ $form_nonce = session_make_and_remember_nonce('missing_entry_form');
         href="/umpire/terms/">the terms and conditions.</a></p>
     </fieldset>
     <?php 
-        show_missing_form_entry_fields(); 
+        show_form_entry_fields('enter_missing', 'en'); 
         if ($form_nonce) {
             echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
         }
     ?>
     <fieldset>
         <legend>Done!</legend>
-        <p><label><input type=submit value=Submit /></label></p>
+        <p><label><input type=submit value=Register /></label></p>
+        <input type=hidden value='enter_missing' name=form_id />
     </fieldset>
 </form>
 </body>

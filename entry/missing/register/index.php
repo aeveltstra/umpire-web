@@ -3,10 +3,13 @@
  * Stores the missing person's case entry. Fields are generated on 
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1010.2207
+ * @version 2.23.1214.2207
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+
 
 /* If this process got invoked by any method other than HTTP POST,
  * processing needs to halt and the user needs to be redirected.
@@ -20,7 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(400);
     die();
 }
-if (!isset($_POST['nonce'])) {
+$is_form_acceptable = true;
+$form_nonce = null;
+$form_id = null;
+if (isset($_POST['nonce'])) {
+    $form_nonce = $_POST['nonce'];
+} else {
+    $is_form_acceptable = false;
+}
+if (isset($_POST['form_id'])) {
+    $form_id = $_POST['form_id'];
+} else {
+    $is_form_acceptable = false;
+}
+if (!$is_form_acceptable) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -29,78 +45,85 @@ if (!isset($_POST['nonce'])) {
  * Session Utils contain functions to read from and store into
  * session variables, and creates related things like nonces.
  */
-require_once $SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $form_id = 'missing_entry_form';
-if (!is_session_nonce_valid($form_id)) {
+if (!session_is_nonce_valid($form_id)) {
     header('Location: ./error-wrong-form/');
     die();
 } else {
-    remove_session_nonce($form_id);
-}
-
-/**
- * DB Utils contains functions to read from and store into 
- * the database.
- */
-require_once $SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
-
-/**
- * Start with creating a new case id. This is needed later 
- * to assign all the profile fields. 
- * 
- * Returns: the case id, if creation of a new profile succeeded.
- */
-function make_case_id() {
-    $sql = 'insert into `profiles` (case_id) values (NULL);';
-    /* We cannot use a function from db_utils because none
-     * that exist return the automatically incremented row id.
+    /* The fact that we had a valid nonce implies that a user token
+     * exists. It could be for an anonymous but also for an authenticated
+     * user. An anonymous user is likely to have a unique token, which
+     * will not yet exist in the database. An authenticated user does
+     * have their user token match a database user.
      */
-    $mysqli = connect_db();
-    $ps = $mysqli->prepare($sql);
-    $ps->execute();
-    $seq = $mysqli->insert_id;
-    return $seq;
+    session_forget_nonce($form_id);
 }
 
 /**
- * Now we have the case id, we can start assigning the field
- * values. We match a form input to a field, by name. The DB
- * stores each data type in a separate table, identifying the
- * value for a case by case id.
+ * DB Utils contains functions to read from and store into the database, like
+ * the function to read form entry fields.
  */
-function store(string $field_name, string $field_value, string $case_id): bool {
-    $data_type = query('SELECT `data_type` FROM 
-    `vw_missing_entry_form_attributes_en` where id = ?',
-    's', [$field_name])[0]['data_type'];
-    if (empty($data_type)) {
-        /* well, obviously that didn't work. */
-        return false;
-    }
-    switch ($data_type) {
-        case 'integer':
-            store_integer($field_name, $field_value, $case_id);
-            break;
-        case 'longtext':
-            store_longtext($field_name, $field_value, $case_id);
-            break;
-        case 'shorttext':
-            store_shorttext($field_name, $field_value, $case_id);
-            break;
-        case 'date':
-            store_date($field_name, $field_value, $case_id);
-            break;    
-        case 'time':
-            store_time($field_name, $field_value, $case_id);
-            break;
-        case 'enum':
-            store_enumeration($field_name, $field_value, $case_id);
-            break;
-    }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+
+/**
+ * We'll ask the database what fields are available for this form, as to
+ * request only those from te POSTed data. If they can't be found, we halt.
+ */
+$expected_fields = db_read_form_entry_fields('enter_missing', 'en');
+if (!is_array($expected_fields)) {
+    header('500');
+    die();
 }
 
-//$new_case_id = make_case_id();
+/**
+ * Form Saving Utils contains functions to store form entries into the database.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/form_saving_utils.php';
 
-header('Location: ./success/');
-die;
+$result = form_enter_new($form_id, $expected_fields, $_POST);
+$new_case_id = $result['new_case_id'];
+$fails = $result['fails'];
+
+if (empty($fails)) {
+    header('Location: ./success/');
+    die();
+}
+
+session_remember('new_case_id', strval($new_case_id));
 
 ?>
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="utf-8" />
+    <title>We ran into a snag, mate - Umpire</title>
+    <meta name=description content="Something went wrong while we tried to register your entry."/>
+    <meta name=author value="OmegaJunior Consultancy, LLC" />
+    <meta name=viewport content="width=device-width, initial-scale=1.0" />
+    <link rel=stylesheet href="/umpire/c/main.css"/>
+    <link rel=stylesheet href="/umpire/c/manage-form.css"/>
+</head>
+<body>
+    <h1>We ran into a snag, mate - Umpire</h1>
+    <h2>Something went wrong while we tried to register your entry.</h2>
+    <h3>The following fields failed to have their values stored:</h3>
+    <ul>
+        <?php 
+            $template = '<li>%1$s: %2$s</li>';
+            foreach($fails as list(
+                'case' => $case_id,
+                'field' => $field_id,
+                'value' => $field_value
+            )) {
+                echo sprintf(
+                    $template,
+                    addslashes($field_id),
+                    addslashes(strval($field_value))
+                );
+            }
+        ?>
+    </ul>
+    <p>Please <a href="../">try again</a>.</p>
+</body>
+</html>

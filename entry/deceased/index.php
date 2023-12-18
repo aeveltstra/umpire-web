@@ -140,7 +140,7 @@ $form_nonce = session_make_and_remember_nonce('deceased_entry_form');
     ?>
     <fieldset>
         <legend>Done!</legend>
-        <p><label><input type=submit value=Submit /></label></p>
+        <p><label><input type=submit value=Register /></label></p>
     </fieldset>
 </form>
 </body>

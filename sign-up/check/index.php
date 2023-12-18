@@ -5,6 +5,8 @@ declare(strict_types=1);
  * @author A.E.Veltstra for OmegaJunior Consultancy
  * @version 2.23.1025.2245
  */
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
 /**
  * If this process gets invoked by any method other than HTTP POST,

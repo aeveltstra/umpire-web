@@ -58,6 +58,35 @@ if (!empty($form_choice)) {
     }
 }
 
+function show_enums() {
+    $xs = db_read_enumerations('en');
+    if (!is_array($xs)) {
+        return;
+    }
+    $last_id = '';
+    $m = '';
+    foreach($xs as list(
+        'attribute_id' => $attribute_id,
+        'enum_value' => $enum_value,
+        'caption' => $caption
+    )) {
+        if (empty($last_id)) {
+            $last_id = $attribute_id;
+        } else if ($last_id != $attribute_id) {
+            if ($m) {
+                $n = '<datalist id="list_' . addslashes($last_id) . '"><label>Or choose: <select>' . $m . '</select></label></datalist>';
+                echo $n;
+                echo "\r\n\t";
+            }
+            $last_id = $attribute_id;
+            $m = '';
+        }
+        $v1 = addslashes($enum_value);
+        $c2 = htmlspecialchars($caption);
+        $m .= '<option value="' . $v1 . '">' . $c2 . '</option>';
+    }
+}
+
 $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 ?>
 <!DOCTYPE html>
@@ -230,7 +259,7 @@ function store(input, old_value) {
     <h2>Form being edited: {$form_caption_for_show}.</h2>
     <section>
         <h3>Change Form Captions</h3>
-        <form><fieldset><legend>Each language has its own caption</legend>
+        <form><fieldset><legend>Each language has its own caption:</legend>
         <table>
             <thead>
                 <tr>
@@ -258,11 +287,16 @@ function store(input, old_value) {
             ";
         }
         echo "
-             </tbody></table></fieldset></form>
-        </section>
+        </tbody></table></fieldset></form>
+    </section>
     <section>
-    <h3>These attributes are assigned currently.</h3>
-    <form id='attriutes_for_form_{$form_id_for_show}'><table>
+    <form id='attriutes_for_form_{$form_id_for_show}'>";
+
+    show_enums();
+
+    echo "<fieldset><legend>These attributes are assigned currently:</legend>
+
+    <table>
     <thead>
         <tr>
             <th>&nbsp;&nbsp;</th>
@@ -305,6 +339,10 @@ function store(input, old_value) {
             $default       = htmlspecialchars($x['default'],   ENT_QUOTES);
             $is_write_once = ((1 == $x['is_write_once']) ? 'checked=checked' : '');
             $hide_on_entry = ((1 == $x['hide_on_entry']) ? 'checked=checked' : '');
+            $enum_list = '';
+            if ($x['data_type'] == 'enum') {
+                $enum_list = 'role="listbox" aria-required="true" aria-autocomplete="list" aria-controls="list_' . $field_id . '" list="list_' . $field_id . '"';
+            }
             echo "
         <tr>
             <td>
@@ -326,7 +364,7 @@ function store(input, old_value) {
             </td>
             <td><input type=number name=min id=min onchange='store(this, \"{$field_id}\", \"{$min}\")' value='{$min}'/></td>
             <td><input type=number name=max id=max onchange='store(this, \"{$field_id}\", \"{$max}\")' value='{$max}'/></td>
-            <td><input type=text name=default id=default onchange='store(this, \"{$field_id}\", \"{$default}\")' value='{$default}'/></td>
+            <td><input type=text name=default id=default onchange='store(this, \"{$field_id}\", \"{$default}\")' value='{$default}' {$enum_list} /></td>
             <td><input type=checkbox name=is_write_once id=is_write_once {$is_write_once} onchange='store(this, \"{$field_id}\", \"{$x['is_write_once']}\")' /></td>
             <td><input type=checkbox name=hide_on_entry id=hide_on_entry {$hide_on_entry} onchange='store(this, \"{$field_id}\", \"{$x['hide_on_entry']}\")' /></td>
         </tr>
@@ -334,6 +372,6 @@ function store(input, old_value) {
         }
     }
 ?>
-    </tbody></table></form>
+    </tbody></table></fieldset></form>
 </body>
 </html>

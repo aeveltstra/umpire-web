@@ -19,6 +19,7 @@
        --btn-bg: #06e;
        --btn-hover-bg: #17f;
        --btn-hover-color: #fff;
+       color-scheme: light;
    }
 }
 
@@ -43,20 +44,21 @@
        --btn-bg: #06e;
        --btn-hover-bg: #17f;
        --btn-hover-color: #fff;
+       color-scheme: dark;
    }
 }
 html,body{font-size:medium;background-color:var(--body-bg);color:var(--body-color)}
-body{margin:0;margin-left:auto;margin-right:auto;max-width:60em;padding-left:1em;padding-right:1em}
-form,fieldset,legend,input,button,select,textarea{font:inherit;box-sizing:border-box;border-radius:5pt}
+body{font-family:sans-serif;margin:0;margin-left:auto;margin-right:auto;max-width:60em;padding-left:1em;padding-right:1em}
+form,fieldset,legend,input,button,select,textarea{font:inherit;box-sizing:border-box;border-radius:3pt}
 form,fieldset,p{margin-left:0;margin-right:0;max-width:calc(100vw - 2em)}
 fieldset,p{padding-left:1em;padding-right:1em}
 fieldset>p{padding-left:0;padding-right:0}
 fieldset{border-width:1pt;border-style:outset;margin-bottom:2em;background-color:var(--fldset-bg);border-color:var(--fldset-border-color);color:var(--fldset-color);border-style:var(--fldset-inactive-border-style)}
 fieldset:focus-within{border-style:var(--fldset-active-border-style)}
 fieldset:hover{border-style:var(--fldset-active-border-style)}
-fieldset legend{overflow-wrap:break-word;font-weight:bold}
-input,select,textarea{max-width:calc(100vw - 4em - 4pt);padding:2pt;border-style:var(--fld-inactive-border-style);border-width:1pt;background-color:var(--fld-inactive-bg);color:var(--fld-inactive-color);border-color:var(--fld-inactive-bg)}
-input:focus,select:focus,textarea:focus{border-style:var(--fld-active-border-style);background-color:var(--fld-active-bg);color:var(--fld-active-color);border-color:var(--fldset-border-color)}
+fieldset legend{overflow-wrap:break-word;font-weight:bold;background-color:var(--body-bg);color:var(--body-color);padding:0.5em 1em}
+input,select,textarea{min-width:4em;max-width:calc(100vw - 4em - 4pt);padding:2pt;border-style:var(--fld-inactive-border-style);border-width:1pt;background-color:var(--fld-inactive-bg);color:var(--fld-inactive-color);border-color:var(--fld-inactive-bg)}
+input:focus,select:focus,textarea:focus,input:active,select:active,textarea:active{border-style:var(--fld-active-border-style);background-color:var(--fld-active-bg);color:var(--fld-active-color);border-color:var(--fldset-border-color)}
 input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:7em;font-weight:bold;background-color:var(--btn-bg);color:var(--btn-color);border-style:outset;padding:0.5em 1.5em}
 input[type=submit]:hover,input[type=button]:hover,input[type=reset]:hover,button:hover{background-color:var(--btn-hover-bg);color:var(--btn-hover-color)}
 a[href]{color:var(--a-href-color)}
