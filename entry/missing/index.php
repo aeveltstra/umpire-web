@@ -3,7 +3,7 @@
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1214.2200
+ * @version 2.23.1224.550
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -84,8 +84,8 @@ function show_form_entry_fields(string $form_id, string $lang) {
                 addslashes($default), 
                 addslashes($caption), 
                 addslashes($hint), 
-                addslashes($min), 
-                addslashes($max),
+                $min, 
+                $max,
                 $is_disabled
             );
             echo "\r\n\r\n";
