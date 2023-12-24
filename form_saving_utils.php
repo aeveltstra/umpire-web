@@ -38,7 +38,7 @@ function form_make_case_id(string $form_id) {
     $mysqli = connect_db();
     $ps = $mysqli->prepare($sql);
     $params = [$form_id];
-    $ps->bind_param('s', $params);
+    $ps->bind_param('s', ...$params);
     $ps->execute();
     $seq = $mysqli->insert_id;
     $ps->reset();
