@@ -3,7 +3,7 @@
  * Stores the missing person's case entry. Fields are generated on 
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1214.2207
+ * @version 2.23.1224.628
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -81,7 +81,7 @@ if (!is_array($expected_fields)) {
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/form_saving_utils.php';
 
-$result = form_enter_new($form_id, $expected_fields, $_POST);
+$result = form_enter_new('enter_missing', $expected_fields, $_POST);
 $new_case_id = $result['new_case_id'];
 $fails = $result['fails'];
 
