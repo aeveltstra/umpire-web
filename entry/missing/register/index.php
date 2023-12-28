@@ -33,6 +33,9 @@ if (isset($_POST['nonce'])) {
 }
 if (isset($_POST['form_id'])) {
     $form_id = $_POST['form_id'];
+    if ($form_id != 'enter_missing') {
+        $is_form_acceptable = false;
+    }
 } else {
     $is_form_acceptable = false;
 }
