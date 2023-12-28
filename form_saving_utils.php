@@ -49,7 +49,7 @@ function form_make_case_id(string $form_id) {
  * avoid creating orphaned case records. */
 function form_store_integer(
     string $field_name,
-    int $field_value,
+    $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -57,7 +57,7 @@ function form_store_integer(
     $input = [
         $case_id,
         $field_name,
-        $field_value,
+        intval($field_value),
         session_recall_user_token()
     ];
     db_exec($sql,
