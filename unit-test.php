@@ -6,7 +6,7 @@
  *  of the programs.
  *  @author A.E.Veltstra for OmegaJunior Consultancy,
 		LLC
- *  @version 2.23.1104.1246
+ *  @version 2.23.1227.2133
  */
 
 declare(strict_types=1);
@@ -124,21 +124,25 @@ $equalities[] = [
 		3,
 		count(array_keys($enumerations[0]))
 	];
-$equalities[] = [
+$inequalities[] = [
         12,
 		'sha512',
-		get_hashing_algo_for_user_by_email('omegajunior@protonmail.com')['hashing_algo']
+		get_hashing_algo_for_user_by_email('nobody@no.where')['hashing_algo']
 	];
 $equalities[] = [
         13,
-		true,
-		db_is_email_known('omegajunior@protonmail.com')
+		false,
+		db_is_email_known('nobody@no.where')
 	];
-$equalities[] = [
+/*
+ Cannot match equal to 0, because the function returns several error codes.
+ At best we can match that it differs from 1, the only success response.
+ */
+$inequalities[] = [
         14,
-		0,
+		1,
 		db_is_user_known(
-            'omegajunior@protonmail.com',
+            'nobody@dr.no',
             'da5d1e035d2ff80c27a068ba766cff98c645462add916883a31670f30b36621ea8ca83c22739732552ab5671b3178bc64e1982286f6fb50d2c230ad61d357795',
             'sombrero fibrous ringtoss corkscrew friends overconfidence dainty'
         )
