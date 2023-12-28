@@ -1,6 +1,6 @@
 <?php
 /**
- * Stores a form entry. Fields are generated on 
+ * Stores a form entry. Fields are generated on
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
  * @version 2.23.1214.2227
@@ -13,7 +13,7 @@ mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
 
 
 /**
- * DB Utils contains functions to read from and store into 
+ * DB Utils contains functions to read from and store into
  * the database.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
@@ -25,9 +25,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 /**
- * Start with creating a new case id. This is needed later 
- * to assign all the profile fields. 
- * 
+ * Start with creating a new case id. This is needed later
+ * to assign all the profile fields.
+ *
  * Returns: the case id, if creation of a new profile succeeded.
  */
 function form_make_case_id(string $form_id) {
@@ -48,8 +48,8 @@ function form_make_case_id(string $form_id) {
 /** TODO: rework this so it can be enveloped in a transaction, which will
  * avoid creating orphaned case records. */
 function form_store_integer(
-    string $field_name, 
-    int $field_value, 
+    string $field_name,
+    int $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -60,15 +60,15 @@ function form_store_integer(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'isis',
         $input
     );
     return true;
 }
 function form_store_longtext(
-    string $field_name, 
-    string $field_value, 
+    string $field_name,
+    string $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -79,15 +79,15 @@ function form_store_longtext(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'isss',
         $input
     );
     return true;
 }
 function form_store_shorttext(
-    string $field_name, 
-    string $field_value, 
+    string $field_name,
+    string $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -98,15 +98,15 @@ function form_store_shorttext(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'isss',
         $input
     );
     return true;
 }
 function form_store_date(
-    string $field_name, 
-    $field_value, 
+    string $field_name,
+    $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -117,15 +117,15 @@ function form_store_date(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'isds',
         $input
     );
     return true;
 }
 function form_store_time(
-    string $field_name, 
-    $field_value, 
+    string $field_name,
+    $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -136,15 +136,15 @@ function form_store_time(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'ists',
         $input
     );
     return true;
 }
 function form_store_enumerated(
-    string $field_name, 
-    string $field_value, 
+    string $field_name,
+    string $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -155,7 +155,7 @@ function form_store_enumerated(
         $field_value,
         session_recall_user_token()
     ];
-    db_exec($sql, 
+    db_exec($sql,
         'isss',
         $input
     );
@@ -163,64 +163,64 @@ function form_store_enumerated(
 }
 
 /**
- * Now we have the case id, we can start assigning the field values. We 
+ * Now we have the case id, we can start assigning the field values. We
  * match a form input to a field, by name. The DB stores each data type in a
  * separate table, identifying the value for a case by case id.
  */
 function form_store(
-        string $form_id, 
+        string $form_id,
         int $case_id,
         string $user_token,
-        string $field_name, 
-        string $data_type, 
+        string $field_name,
+        string $data_type,
         $field_value
 ): bool {
     $success = false;
     switch ($data_type) {
         case 'integer':
             $success = form_store_integer(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
             break;
         case 'longtext':
             $success = form_store_longtext(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
             break;
         case 'shorttext':
             $success = form_store_shorttext(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
             break;
         case 'date':
             $success = form_store_date(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
-            break;    
+            break;
         case 'time':
             $success = form_store_time(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
             break;
         case 'enum':
             $success = form_store_enumerated(
-                $field_name, 
-                $field_value, 
+                $field_name,
+                $field_value,
                 $case_id,
                 $user_token
             );
@@ -231,10 +231,10 @@ function form_store(
 
 function form_enter_new(string $form_id, $expected_fields, $posted) {
     /**
-     * Yes, creating a new case id here will lead to orphans. We will have to 
+     * Yes, creating a new case id here will lead to orphans. We will have to
      * remove those, later. A way to approach this with less orphan creation,
      * is to envelope the entire database entry in a transaction. And that would
-     * work specifically for this script, but it won't for the scripts that 
+     * work specifically for this script, but it won't for the scripts that
      * store individual field changes using asynchronous javascript calls.
      */
     $fails = [];
@@ -249,11 +249,11 @@ function form_enter_new(string $form_id, $expected_fields, $posted) {
         if (isset($_POST[$field_id])) {
             $value = $_POST[$field_id];
             $success = form_store(
-                $form_id, 
+                $form_id,
                 $new_case_id,
                 $user_token,
-                $field_id, 
-                $data_type, 
+                $field_id,
+                $data_type,
                 $value
             );
             if (!$success) {
