@@ -49,15 +49,19 @@ function form_make_case_id(string $form_id): int {
  * avoid creating orphaned case records. */
 function form_store_integer(
     string $field_name,
-    ?int $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
+    $new_value = null;
+    if ($field_value) {
+        $new_value = intval($field_value);
+    }
     $sql = 'call sp_store_integer(?,?,?,?)';
     $input = [
         $case_id,
         $field_name,
-        $field_value,
+        $new_value,
         session_recall_user_token()
     ];
     db_exec($sql,
@@ -106,38 +110,46 @@ function form_store_shorttext(
 }
 function form_store_date(
     string $field_name,
-    ?date $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
+    $new_value = null;
+    if($field_value) {
+        $new_value = date('Y-m-d', strtotime($field_value));
+    }
     $sql = 'call sp_store_date(?,?,?,?)';
     $input = [
         $case_id,
         $field_name,
-        $field_value,
+        $new_value,
         session_recall_user_token()
     ];
     db_exec($sql,
-        'isds',
+        'isss',
         $input
     );
     return true;
 }
 function form_store_time(
     string $field_name,
-    ?time $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
+    $new_value = null;
+    if($field_value) {
+        $new_value = date('g:i a', strtotime($field_value));
+    }
     $sql = 'call sp_store_time(?,?,?,?)';
     $input = [
         $case_id,
         $field_name,
-        $field_value,
+        $new_value,
         session_recall_user_token()
     ];
     db_exec($sql,
-        'ists',
+        'isss',
         $input
     );
     return true;
@@ -157,6 +169,29 @@ function form_store_enumerated(
     ];
     db_exec($sql,
         'isss',
+        $input
+    );
+    return true;
+}
+function form_store_percent(
+    string $field_name,
+    ?string $field_value,
+    int $case_id,
+    string $user_token
+): bool {
+    $new_value = null;
+    if ($field_value) {
+        $new_value = intval($field_value);
+    }
+    $sql = 'call sp_store_integer(?,?,?,?)';
+    $input = [
+        $case_id,
+        $field_name,
+        $new_value,
+        session_recall_user_token()
+    ];
+    db_exec($sql,
+        'isis',
         $input
     );
     return true;
@@ -219,6 +254,14 @@ function form_store(
             break;
         case 'enum':
             $success = form_store_enumerated(
+                $field_name,
+                $field_value,
+                $case_id,
+                $user_token
+            );
+            break;
+        case 'percent':
+            $success = form_store_percent(
                 $field_name,
                 $field_value,
                 $case_id,
