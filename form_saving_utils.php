@@ -30,7 +30,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
  *
  * Returns: the case id, if creation of a new profile succeeded.
  */
-function form_make_case_id(string $form_id) {
+function form_make_case_id(string $form_id): int {
     $sql = 'insert into `profiles` (case_id, form) values (NULL, ?);';
     /* We cannot use a function from db_utils because none
      * that exist return the automatically incremented row id.
@@ -49,7 +49,7 @@ function form_make_case_id(string $form_id) {
  * avoid creating orphaned case records. */
 function form_store_integer(
     string $field_name,
-    $field_value,
+    ?int $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -57,7 +57,7 @@ function form_store_integer(
     $input = [
         $case_id,
         $field_name,
-        intval($field_value),
+        $field_value,
         session_recall_user_token()
     ];
     db_exec($sql,
@@ -68,7 +68,7 @@ function form_store_integer(
 }
 function form_store_longtext(
     string $field_name,
-    string $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -87,7 +87,7 @@ function form_store_longtext(
 }
 function form_store_shorttext(
     string $field_name,
-    string $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -106,7 +106,7 @@ function form_store_shorttext(
 }
 function form_store_date(
     string $field_name,
-    $field_value,
+    ?date $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -125,7 +125,7 @@ function form_store_date(
 }
 function form_store_time(
     string $field_name,
-    $field_value,
+    ?time $field_value,
     int $case_id,
     string $user_token
 ): bool {
@@ -144,7 +144,7 @@ function form_store_time(
 }
 function form_store_enumerated(
     string $field_name,
-    string $field_value,
+    ?string $field_value,
     int $case_id,
     string $user_token
 ): bool {
