@@ -21,7 +21,7 @@ $nonce = session_make_and_remember_nonce('subscribe');
     <p>Please keep this with your records for future reference.</p>
     <h2>Do you want to subscribe to updates?</h2>
     <form action="/umpire/subscribe/" method=post><fieldset><legend>Yes, please!</legend>
-        <p><label><input type=checkbox name=agree/> I agree to the terms and conditions</label></p>
+        <p><label><input type=checkbox name=agree/> I agree</label> to the <a href="/umpire/subscribe/terms/">terms and conditions</a>.</p>
         <p><label for=email>Send notifications to this email address:</label></p>
         <p><input type=email size=60 maxlength=256 id=email name=email /></p>
         <p><label><input type=submit value=Subscribe /></label></p>

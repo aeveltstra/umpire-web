@@ -2,7 +2,7 @@
 /**
  * Attempt to subscribe user to entered case.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1129.750
+ * @version 2.24.108.2158
  */
 declare(strict_types=1);
 
@@ -48,8 +48,8 @@ if (isset($_POST['email'])) {
     $is_post_received = true;
 }
 $case_id = null;
-if (isset($_POST['case_id'])) {
-    $key = $_POST['case_id'];
+if (isset($_POST['case'])) {
+    $key = $_POST['case'];
     $is_post_received = true;
 }
 if(!$is_post_received) {
