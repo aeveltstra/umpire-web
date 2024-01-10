@@ -227,7 +227,7 @@ mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
 try {
     $stored = form_store_integer(
         "non-existant",
-		2,
+		'2',
 		1,
         $hashed_anonymous
     );
@@ -247,7 +247,7 @@ try {
 try {
     $stored = form_store_integer(
         "height",
-		66,
+		'66',
 		1,
         $hashed_anonymous
     );
