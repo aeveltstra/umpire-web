@@ -5,7 +5,7 @@
  * standard queries expected to be used often.
  * 
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1224.544
+ * @version 2.24.0111.2304
  */
 declare(strict_types=1);
 
@@ -160,7 +160,32 @@ function db_read_enumerations(string $language_code): array {
  * the statement. Avoiding views seems to fix it.
  */
 function db_read_form_entry_fields(string $form_id) {
-    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, `max`, `default`, `is_write_once` FROM (select `f`.`form` AS `form`,`t`.`language_code` AS `language_code`,`f`.`display_sequence` AS `display_sequence`,`a`.`id` AS `id`,`a`.`data_type` AS `data_type`,`t`.`translation` AS `caption`,`t`.`hint` AS `hint`,`a`.`min` AS `min`,`a`.`max` AS `max`,`a`.`is_write_once` AS `is_write_once`,`a`.`default` AS `default` from ((`attributes` `a` join `form_attributes` `f` on((`f`.`attribute` = `a`.`id`))) join `attribute_translations` `t` on((`t`.`attribute_id` = `a`.`id`))) where (`f`.`hide_on_entry` = 0)) as `entry_form_attributes` where `form` = ? and `language_code` = ? order by `display_sequence` asc'; 
+    $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, 
+            `max`, `default`, `is_write_once` FROM (
+                select `f`.`form` AS `form`,
+                `t`.`language_code` AS `language_code`,
+                `f`.`display_sequence` AS `display_sequence`,
+                `a`.`id` AS `id`,
+                `a`.`data_type` AS `data_type`,
+                `t`.`translation` AS `caption`,
+                `t`.`hint` AS `hint`,
+                `a`.`min` AS `min`,
+                `a`.`max` AS `max`,
+                `a`.`is_write_once` AS `is_write_once`,
+                `a`.`default` AS `default` 
+                from (
+                    (
+                        `attributes` `a` 
+                        join `form_attributes` `f` 
+                        on((`f`.`attribute` = `a`.`id`))
+                    ) 
+                    join `attribute_translations` `t` 
+                    on((`t`.`attribute_id` = `a`.`id`))
+                ) where (`f`.`hide_on_entry` = 0)
+            ) as `entry_form_attributes` 
+            where `form` = ? 
+            and `language_code` = ? 
+            order by `display_sequence` asc'; 
     return query($sql, 'ss', [$form_id, 'en']);
 }
 
