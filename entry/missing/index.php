@@ -3,7 +3,7 @@
  * Shows a case entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1224.550
+ * @version 2.24.0111.2338
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -51,12 +51,13 @@ function show_enums(string $lang) {
  */
 function show_form_entry_fields(string $form_id, string $lang) {
     $templates = array(
-        'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>',
-        'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s" placeholder="" %7$s/></p></fieldset>',
         'enum' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" list="list_%1$s" %7$s/></p></fieldset>',
-        'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number inputmode=numeric min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'location' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
         'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
-        'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>'
+        'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 inputmode=numeric name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
+        'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>'
     );
     $fields = db_read_form_entry_fields($form_id, $lang);
     if (!is_array($fields)) {

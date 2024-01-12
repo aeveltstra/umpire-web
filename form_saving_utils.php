@@ -114,15 +114,22 @@ function form_store_date(
     int $case_id,
     string $user_token
 ): bool {
-    $new_value = null;
+    $new_year = null;
+    $new_month = null;
+    $new_day = null;
     if($field_value) {
-        $new_value = date('Y-m-d', strtotime($field_value));
+        $epoch = strtotime($field_value);
+        $new_year = date('Y', $epoch);
+        $new_month = date('m', $epoch);
+        $new_day = date('d', $epoch);
     }
-    $sql = 'call sp_store_date(?,?,?,?)';
+    $sql = 'call sp_store_date(?,?,?,?,?,?)';
     $input = [
         $case_id,
         $field_name,
-        $new_value,
+        $new_year,
+        $new_month,
+        $new_day,
         session_recall_user_token()
     ];
     db_exec($sql,
