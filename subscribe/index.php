@@ -42,9 +42,9 @@ session_forget_nonce($form_id);
  * If those don't exist, we throw an error immediately.
  */
 $is_post_received = false;
-$email = null;
+$email_tainted = null;
 if (isset($_POST['email'])) {
-    $email = $_POST['email'];
+    $email_tainted = $_POST['email'];
     $is_post_received = true;
 }
 $case_id = null;
@@ -56,6 +56,23 @@ if(!$is_post_received) {
     header('Location: ./error-wrong-form/');
     die();
 }
+
+$is_valid = filter_var(
+    $email_tainted, 
+    FILTER_VALIDATE_EMAIL,
+    FILTER_FLAG_EMAIL_UNICODE
+);
+
+$email = '';
+if ($is_valid) {
+    $email = $email_tainted;
+} else {
+    session_remember('subscription_email_invalid', $email_tainted);
+    session_write_close();
+    header('Location: ./invalid-email/');
+    die();
+}
+
 
 /**
  * DB Utils contains functions to read from and store into 
