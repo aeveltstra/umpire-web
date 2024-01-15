@@ -1,9 +1,9 @@
 <?php
 /**
- * Stores the missing person's case entry. Fields are generated on 
+ * Stores the deceased person's case entry. Fields are generated on 
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1224.628
+ * @version 2.24.0114.1758
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -33,6 +33,9 @@ if (isset($_POST['nonce'])) {
 }
 if (isset($_POST['form_id'])) {
     $form_id = $_POST['form_id'];
+    if ($form_id != 'enter_deceased') {
+        $is_form_acceptable = false;
+    }
 } else {
     $is_form_acceptable = false;
 }
@@ -46,8 +49,8 @@ if (!$is_form_acceptable) {
  * session variables, and creates related things like nonces.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-$form_id = 'missing_entry_form';
-if (!session_is_nonce_valid($form_id)) {
+$form_nonce_id = 'deceased_entry_form';
+if (!session_is_nonce_valid($form_nonce_id)) {
     header('Location: ./error-wrong-form/');
     die();
 } else {
@@ -70,7 +73,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
  * We'll ask the database what fields are available for this form, as to
  * request only those from te POSTed data. If they can't be found, we halt.
  */
-$expected_fields = db_read_form_entry_fields('enter_missing', 'en');
+$expected_fields = db_read_form_entry_fields('enter_deceased', 'en');
 if (!is_array($expected_fields)) {
     header('500');
     die();
@@ -81,7 +84,7 @@ if (!is_array($expected_fields)) {
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/form_saving_utils.php';
 
-$result = form_enter_new('enter_missing', $expected_fields, $_POST);
+$result = form_enter_new('enter_deceased', $expected_fields, $_POST);
 $new_case_id = $result['new_case_id'];
 $fails = $result['fails'];
 
@@ -97,7 +100,7 @@ session_remember('new_case_id', strval($new_case_id));
 <html lang=en>
 <head>
     <meta charset="utf-8" />
-    <title>We ran into a snag, mate - Umpire</title>
+    <title>Jinkies! - Umpire</title>
     <meta name=description content="Something went wrong while we tried to register your entry."/>
     <meta name=author value="OmegaJunior Consultancy, LLC" />
     <meta name=viewport content="width=device-width, initial-scale=1.0" />
@@ -105,7 +108,7 @@ session_remember('new_case_id', strval($new_case_id));
     <link rel=stylesheet href="/umpire/c/manage-form.css"/>
 </head>
 <body>
-    <h1>We ran into a snag, mate - Umpire</h1>
+    <h1>Jinkies! - Umpire</h1>
     <h2>Something went wrong while we tried to register your entry.</h2>
     <h3>The following fields failed to have their values stored:</h3>
     <ul>

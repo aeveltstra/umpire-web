@@ -23,8 +23,8 @@ function show_enums(string $lang) {
     $last_id = '';
     $m = '';
     foreach($xs as list(
-        'attribute_id' => $attribute_id, 
-        'enum_value' => $enum_value, 
+        'attribute_id' => $attribute_id,
+        'enum_value' => $enum_value,
         'caption' => $caption
     )) {
         if (empty($last_id)) {
@@ -54,7 +54,7 @@ function show_form_entry_fields(string $form_id, string $lang) {
         'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s" placeholder="" %7$s/></p></fieldset>',
         'enum' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" list="list_%1$s" %7$s/></p></fieldset>',
         'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number inputmode=numeric min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
-        'location' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
+        'location' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type="text" maxlength="25" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
         'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
         'percent' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number min=0 max=100 inputmode=numeric name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
         'shorttext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>'
@@ -64,12 +64,12 @@ function show_form_entry_fields(string $form_id, string $lang) {
         return;
     }
     foreach($fields as list(
-        'id' => $id, 
-        'data_type' => $data_type, 
-        'caption' => $caption, 
-        'hint' => $hint, 
-        'min' => $min, 
-        'max' => $max, 
+        'id' => $id,
+        'data_type' => $data_type,
+        'caption' => $caption,
+        'hint' => $hint,
+        'min' => $min,
+        'max' => $max,
         'is_write_once' => $is_write_once,
         'default' => $default
     )) {
@@ -80,12 +80,12 @@ function show_form_entry_fields(string $form_id, string $lang) {
                 $is_disabled = 'disabled="disabled"';
             }
             echo sprintf(
-                $t, 
-                addslashes($id), 
-                addslashes($default), 
-                addslashes($caption), 
-                addslashes($hint), 
-                $min, 
+                $t,
+                addslashes($id),
+                addslashes($default),
+                addslashes($caption),
+                addslashes($hint),
+                $min,
                 $max,
                 $is_disabled
             );
@@ -100,35 +100,35 @@ $form_nonce = session_make_and_remember_nonce('missing_entry_form');
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
-<title>New Missing Person's Case Entry - Umpire</title>
-<meta name=description content="Please share as many details as available"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+    <title>New Missing Person's Case Entry - Umpire</title>
+    <meta name=description content="Please share as many details as available"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel=stylesheet href="/umpire/c/main.css"/>
 </head>
 <body>
-<h1>New Missing Person's Case Entry - Umpire</h1>
-<h2>Please share as many details as available</h2>
-<form action="register/" method=post>
-    <?php 
-        show_enums('en');
-    ?>
-    <fieldset>
-        <legend>Terms and conditions</legend>
-        <p></p>
-        <p><label><input type=checkbox name=agree /> I accept </label><a
-        href="/umpire/terms/">the terms and conditions.</a></p>
-    </fieldset>
-    <?php 
-        show_form_entry_fields('enter_missing', 'en'); 
-        if ($form_nonce) {
-            echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
-        }
-    ?>
-    <fieldset>
-        <legend>Done!</legend>
-        <p><label><input type=submit value=Register /></label></p>
-        <input type=hidden value='enter_missing' name=form_id />
-    </fieldset>
-</form>
+    <h1>New Missing Person's Case Entry - Umpire</h1>
+    <h2>Please share as many details as available</h2>
+    <form action="register/" method=post>
+        <?php
+            show_enums('en');
+        ?>
+        <fieldset>
+            <legend>Terms and conditions</legend>
+            <p></p>
+            <p><label><input type=checkbox name=agree /> I accept </label><a
+            href="/umpire/terms/">the terms and conditions.</a></p>
+        </fieldset>
+        <?php
+            show_form_entry_fields('enter_missing', 'en');
+            if ($form_nonce) {
+                echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
+            }
+        ?>
+        <fieldset>
+            <legend>Done!</legend>
+            <p><label><input type=submit value=Register /></label></p>
+            <input type=hidden value='enter_missing' name=form_id />
+        </fieldset>
+    </form>
 </body>
 </html>

@@ -5,7 +5,7 @@
  * standard queries expected to be used often.
  * 
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0111.2304
+ * @version 2.24.0114.1859
  */
 declare(strict_types=1);
 
@@ -113,6 +113,27 @@ function db_exec(?string $dml, ?string $param_types = null, ?array $params = nul
     return [];
 }
 
+/**
+ * Subscribes an email address to updates to a case.
+ * 
+ * Parameters:
+ * - case_id: identifies the profile / case to subscribe to.
+ * - email address: the email address to notify of case changes.
+ *
+ * Return:
+ * True if subscribing succeeded.
+ */
+function db_subscrbe(string $case_id, string $email): bool {
+    $params = [$case_id, $email];
+    $results = db_exec(
+        'call sp_subscribe(?, ?)',
+        $params
+    );
+    if (isset($results['success']) && 1 == $results['success']) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * Reads the enumerations from the database. They are stored as separate 

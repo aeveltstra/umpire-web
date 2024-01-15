@@ -49,7 +49,7 @@ if (isset($_POST['email'])) {
 }
 $case_id = null;
 if (isset($_POST['case'])) {
-    $key = $_POST['case'];
+    $case_id = $_POST['case'];
     $is_post_received = true;
 }
 if(!$is_post_received) {
@@ -63,5 +63,13 @@ if(!$is_post_received) {
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
+$is_subscribed = db_subscribe($case_id, $email);
+if ($is_subscribed) {
+    header('Location: ./success/');
+    die();
+} else {
+    header('Location: ./failed/');
+    die();
+}
 
 ?>
