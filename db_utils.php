@@ -5,7 +5,7 @@
  * standard queries expected to be used often.
  * 
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0114.1859
+ * @version 2.24.0114.2025
  */
 declare(strict_types=1);
 
@@ -123,14 +123,21 @@ function db_exec(?string $dml, ?string $param_types = null, ?array $params = nul
  * Return:
  * True if subscribing succeeded.
  */
-function db_subscrbe(string $case_id, string $email): bool {
+function db_subscrbe(int $case_id, string $email): bool {
     $params = [$case_id, $email];
-    $results = db_exec(
-        'call sp_subscribe(?, ?)',
-        $params
-    );
-    if (isset($results['success']) && 1 == $results['success']) {
-        return true;
+    $mysqli = connect_db();
+    $mysqli->query("set @success = 0");
+    $sql = 'call i(?, ?, @success)';
+    $ps = $mysqli->prepare($sql);
+    $ps->bind_param('is', ...$params);
+    mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
+    try {
+        $ps->execute();
+        $result = $mysqli->query('select @success as `is_successful`;');
+        $result = $result->fetch_all(MYSQLI_ASSOC);
+        return ('1' == $result[0]['is_successful']);
+    } catch (mysqli_sql_exception $e)  {
+        return false;
     }
     return false;
 }
