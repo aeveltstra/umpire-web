@@ -123,7 +123,7 @@ function db_exec(?string $dml, ?string $param_types = null, ?array $params = nul
  * Return:
  * True if subscribing succeeded.
  */
-function db_subscrbe(int $case_id, string $email): bool {
+function db_subscribe(int $case_id, string $email): bool {
     $params = [$case_id, $email];
     $mysqli = connect_db();
     $mysqli->query("set @success = 0");
