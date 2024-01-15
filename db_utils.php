@@ -127,7 +127,7 @@ function db_subscrbe(int $case_id, string $email): bool {
     $params = [$case_id, $email];
     $mysqli = connect_db();
     $mysqli->query("set @success = 0");
-    $sql = 'call i(?, ?, @success)';
+    $sql = 'call sp_subscribe(?, ?, @success)';
     $ps = $mysqli->prepare($sql);
     $ps->bind_param('is', ...$params);
     mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
