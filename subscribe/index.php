@@ -80,7 +80,7 @@ if ($is_valid) {
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
-$is_subscribed = db_subscribe($case_id, $email);
+$is_subscribed = db_subscribe(intval($case_id), $email);
 if ($is_subscribed) {
     header('Location: ./success/');
     die();
