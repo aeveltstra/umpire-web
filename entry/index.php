@@ -7,6 +7,9 @@
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+
 
 /**
  * We expect a form id as the form query parameter.
@@ -25,8 +28,39 @@ $form_id_prefix = 'enter_';
 $prefixed_form_id = $form_id_prefix . $given_form_id;
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+$ask_whether_form_exists = query(
+    'select 1 as `it_exists` from `forms` where `id` = ?',
+    's',
+    [$prefixed_form_id]
+);
+$does_form_exist = (
+    isset($ask_whether_form_exists[0])
+    && isset($ask_whether_form_exists[0]['it_exists'])
+    && $ask_whether_form_exists[0]['it_exists'] == 1
+);
+if (!$does_form_exist) {
+    header('Location: /umpire/entry/');
+    die();
+}
+$ask_for_form_caption = query(
+    "select `caption` from `form_caption_translations` 
+     where `form` = ? and `language` = 'en'",
+    's',
+    [$prefixed_form_id]
+);
+if (
+    isset($ask_for_form_caption[0])
+    && isset($ask_for_form_caption[0]['caption'])
+    && $ask_for_form_caption[0]['caption'] != ''
+) {
+    $form_caption = $ask_for_form_caption[0]['caption'];
+} else {
+  $form_caption = $given_form_id;
+}
 
+$page_title = $form_caption . ' - New Entry - Umpire';
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $form_nonce = session_make_and_remember_nonce('form_' . $prefixed_form_id);
 session_remember('last_case_form_id', $prefixed_form_id);
 
@@ -118,13 +152,13 @@ function show_form_entry_fields(string $form_id, string $lang) {
 <!DOCTYPE html>
 <html lang=en>
 <head><meta charset="utf-8" />
-    <title>New Case Entry - Umpire</title>
+    <title><?php echo $page_title; ?></title>
     <meta name=description content="Please share as many details as available"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel=stylesheet href="/umpire/c/main.css"/>
 </head>
 <body>
-    <h1>New Case Entry - Umpire</h1>
+    <h1><?php echo $page_title; ?></h1>
     <h2>Please share as many details as available</h2>
     <form action="register/" method=post>
         <?php
