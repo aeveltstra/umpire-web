@@ -55,7 +55,7 @@ function form_store_email(
 ): bool {
     $new_value = null;
     if ($field_value) {
-        $new_value = str($field_value);
+        $new_value = strval($field_value);
     }
     $sql = 'call sp_store_email(?,?,?,?)';
     $input = [
@@ -78,7 +78,7 @@ function form_store_image(
 ): bool {
     $new_value = null;
     if ($field_value) {
-        $new_value = str($field_value);
+        $new_value = strval($field_value);
     }
     $sql = 'call sp_store_image(?,?,?,?)';
     $input = [
@@ -125,7 +125,7 @@ function form_store_longtext(
     $sql = 'call sp_store_longtext(?,?,?,?)';
     $new_value = null;
     if ($field_value) {
-        $new_value = str($field_value);
+        $new_value = strval($field_value);
     }
     $input = [
         $case_id,

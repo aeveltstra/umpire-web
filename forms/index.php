@@ -1,9 +1,9 @@
 <?php
 /**
- * Shows a case entry form. The fields are generated on the fly
+ * Shows an entry form. The fields are generated on the fly
  * based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.24.0128.1818
+ * @version 2.24.0201.0936
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -20,7 +20,7 @@ if (isset($_GET[$expected_query_param])) {
     $given_form_id = $_GET[$expected_query_param];
 }
 if (!$given_form_id) {
-    header('Location: /entry/');
+    header('Location: /forms/');
     die();
 }
 
@@ -39,7 +39,7 @@ $does_form_exist = (
     && $ask_whether_form_exists[0]['it_exists'] == 1
 );
 if (!$does_form_exist) {
-    header('Location: /umpire/entry/');
+    header('Location: /umpire/forms/');
     die();
 }
 $ask_for_form_caption = query(
@@ -58,7 +58,7 @@ if (
   $form_caption = $given_form_id;
 }
 
-$page_title = $form_caption . ' - New Entry - Umpire';
+$page_title = $form_caption . ' - Umpire';
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $form_nonce = session_make_and_remember_nonce('form_' . $prefixed_form_id);
@@ -106,7 +106,9 @@ function show_enums(string $lang) {
 function show_form_entry_fields(string $form_id, string $lang) {
     $templates = array(
         'date' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=date name="%1$s" id="%1$s" placeholder="" %7$s/></p></fieldset>',
+        'email' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=email size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>',
         'enum' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" list="list_%1$s" %7$s/></p></fieldset>',
+        'image' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=text size=60 minlength="%5$d" maxlength="%6$d" name="%1$s" placeholder="%2$s" id="%1$s" %7$s/></p></fieldset>',
         'integer' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type=number inputmode=numeric min="%5$d" max="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
         'location' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><input type="text" maxlength="25" name="%1$s" id="%1$s" placeholder="%2$s" %7$s/></p></fieldset>',
         'longtext' => '<fieldset><legend>%3$s</legend><p><label for="%1$s">%4$s</label></p><p><textarea cols=60 rows=10 maxlength="%6$d" name="%1$s" id="%1$s" placeholder="%2$s" %7$s></textarea></p></fieldset>',
@@ -160,7 +162,7 @@ function show_form_entry_fields(string $form_id, string $lang) {
 <body>
     <h1><?php echo $page_title; ?></h1>
     <h2>Please share as many details as available</h2>
-    <form action="register/" method=post>
+    <form action="/umpire/register-form-entry/" method=post>
         <?php
             show_enums('en');
         ?>

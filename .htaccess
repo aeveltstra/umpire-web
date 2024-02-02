@@ -7,4 +7,4 @@ DirectoryIndex index.html index.php
 AddDefaultCharset UTF-8
 
 RewriteEngine On
-RewriteRule ^entry/(.+)/$ entry/index.php?form=$1 [NC,L]
+RewriteRule ^forms/(.+)/$ forms/index.php?form=$1 [NC,L]

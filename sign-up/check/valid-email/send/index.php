@@ -3,7 +3,7 @@
  * Request credentials to access Umpire
  * Step 3: send the access request to the admin.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1024.2313
+ * @version 2.24.0202.0907
  */
  error_reporting(E_ALL);
 
@@ -57,10 +57,10 @@ Did they agree to the terms and conditions?
 ${access_request_agreed_to_terms}  
   
 Use this link to accept the application:  
-${app_url}/applications/accept/?id=${access_request_email}  
+${app_url}/manage/applications/accept/?id=${access_request_email}  
   
 Use this link to reject it:  
-${app_url}/applications/reject/?id=${access_request_email}  
+${app_url}/manage/applications/reject/?id=${access_request_email}  
   
 --
 I am a robot. I cannot read your reply. For feedback and support, reach out to ${support_email}."

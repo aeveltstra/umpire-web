@@ -1,9 +1,9 @@
 <?php
 /**
- * Stores the missing person's case entry. Fields are generated on 
- * the fly based on the fields listed in the database.
+ * Stores the form entry. Fields are generated on the fly based on the 
+ * fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1224.628
+ * @version 2.24.0201.2147
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -46,42 +46,43 @@ if (!$is_form_acceptable) {
  * session variables, and creates related things like nonces.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-$form_id = 'missing_entry_form';
-if (!session_is_nonce_valid($form_id)) {
+if (!session_is_nonce_valid('form_' . $form_id)) {
     header('Location: ./error-wrong-form/');
     die();
 } else {
     /* The fact that we had a valid nonce implies that a user token
-     * exists. It could be for an anonymous but also for an authenticated
-     * user. An anonymous user is likely to have a unique token, which
-     * will not yet exist in the database. An authenticated user does
-     * have their user token match a database user.
+     * exists. It could be for an anonymous but also for an 
+     * authenticated user. An anonymous user is likely to have a unique 
+     * token, which will not yet exist in the database. An authenticated
+     * user does have their user token match a database user.
      */
     session_forget_nonce($form_id);
 }
 
 /**
- * DB Utils contains functions to read from and store into the database, like
- * the function to read form entry fields.
+ * DB Utils contains functions to read from and store into the database,
+ * like the function to read form entry fields.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 /**
  * We'll ask the database what fields are available for this form, as to
- * request only those from te POSTed data. If they can't be found, we halt.
+ * request only those from te POSTed data. If they can't be found, we 
+ * halt.
  */
-$expected_fields = db_read_form_entry_fields('enter_missing', 'en');
+$expected_fields = db_read_form_entry_fields($form_id, 'en');
 if (!is_array($expected_fields)) {
     header('500');
     die();
 }
 
 /**
- * Form Saving Utils contains functions to store form entries into the database.
+ * Form Saving Utils contains functions to store form entries into the 
+ * database.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/form_saving_utils.php';
 
-$result = form_enter_new('enter_missing', $expected_fields, $_POST);
+$result = form_enter_new($form_id, $expected_fields, $_POST);
 $new_case_id = $result['new_case_id'];
 $fails = $result['fails'];
 
@@ -124,6 +125,6 @@ session_remember('new_case_id', strval($new_case_id));
             }
         ?>
     </ul>
-    <p>Please <a href="../">try again</a>.</p>
+    <p>Please <a href="javascript:history.back()">try again</a>.</p>
 </body>
 </html>
