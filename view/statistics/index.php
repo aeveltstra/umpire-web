@@ -29,19 +29,31 @@ $forms_and_entries = query("
 $count_forms_found = count($forms_and_entries);
 $we_have_any_forms = (0 < $count_forms_found);
 
-$users_and_entries = query("
-    select `forms`.`id`, `caption`,
-     (
-        select count(*) from `user_privileges` 
-        where `form` = `forms`.`id`
-     ) as `entry_count`
-     from `forms` 
-     left join `form_caption_translations`
-     on `form_caption_translations`.`form` = `forms`.`id` 
-     and `form_caption_translations`.`language` = 'en'
+$count_known_users = 0;
+$known_users_counter = scalar("
+    select count(1) as `count_known_users` 
+     from `users` 
+     where `users`.`seq` in (
+        select `user` from `user_role_users`
+     )
 ");
-$count_users_found = count($users_and_entries);
-$we_have_any_forms = (0 < $count_users_found);
+$we_have_any_known_users = isset($known_users_counter[0]);
+if ($we_have_any_known_users) {
+    $count_known_users = $known_users_counter[0];
+}
+
+$count_anonymous_users = 0;
+$anonymous_users_counter = scalar("
+    select count(1) as `count_anonymous_users` 
+     from `users` 
+     where `users`.`seq` not in (
+        select `user` from `user_role_users`
+     )
+");
+$we_have_any_anonymous_users = isset($anonymous_users_counter[0]);
+if ($we_have_any_anonymous_users) {
+    $count_anonymous_users = $anonymous_users_counter[0];
+}
 
 /**
  * Session Utils contain functions to read from and store into
@@ -77,6 +89,13 @@ db_log_user_event('viewed_statistics');
         }
         echo "</ul>\r\n";
     }
+    
+        echo '<h3>Users</h3>' . "\r\n\t";
+        echo "<p>The system holds " . ($count_anonymous_users + $count_known_users) . " users: </p>\r\n\t<ul>\r\n";
+        echo "\t\t<li>${count_anonymous_users} Anonymous users, and </li>\r\n";
+        echo "\t\t<li>${count_known_users} Known users.</li>\r\n";
+        echo "</ul>\r\n";
+    
     ?>
     
 </body>
