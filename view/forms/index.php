@@ -37,7 +37,20 @@ if (!$we_have_any) {
  * session variables, and creates related things like nonces.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-$user_token = session_recall_user_token();
+$allow_viewing_entries = false;
+$current_user = session_recall_user_token();
+$did_user_authenticate = session_did_user_authenticate();
+if ($did_user_authenticate) {
+    $held_privileges = db_which_of_these_privileges_does_user_hold(
+        $current_user,
+        'may_see_all_cases'
+    );
+    if (empty($held_privileges)) {
+        $allow_viewing_entries = false;
+    } else {
+        $allow_viewing_entries = true;
+    }
+}
 db_log_user_event('viewed_existing_forms');
 
 ?>
@@ -51,19 +64,41 @@ db_log_user_event('viewed_existing_forms');
 </head>
 <body>
     <h1>View Entry Forms - Umpire</h1>
-    <h2>These forms exist.</h2>
-    <p>Follow the link to each, to view its entries.</p>
+    <h2>These forms exist:</h2>
     <ul>
-        <?php
-            foreach($forms_and_entries as list(
-                'id' => $form_id,
-                'caption' => $caption,
-                'entry_count' => $entry_count
-            )) {
-                $link = '/umpire/view/form-entries/?id=' . $form_id; 
-                echo "<li><a href='${link}'>${caption}</a> with ${entry_count} entries</li>";
+    <?php 
+    if ($allow_viewing_entries) {
+        foreach($forms_and_entries as list(
+            'id' => $form_id,
+            'caption' => $caption,
+            'entry_count' => $entry_count
+        )) {
+            $new_form_id = '' . $form_id;
+            if (false !== strpos($form_id, 'enter_')) {
+                $new_form_id = str_replace('enter_', '', $form_id);
             }
-        ?>
+            $view_entries_link = '/umpire/view/form-entries/' . $new_form_id . '/'; 
+            $enter_new_case_link = '/umpire/forms/' . $new_form_id . '/';
+            echo "<li>Form <q>${caption}</q>, with ${entry_count} entries. 
+                    <a href='${view_entries_link}'>View entries for this form</a> 
+                    or <a href='${enter_new_case_link}'>submit a new entry</a>.</li>";
+        }
+    } else {
+        foreach($forms_and_entries as list(
+            'id' => $form_id,
+            'caption' => $caption,
+            'entry_count' => $entry_count
+        )) {
+            $new_form_id = '' . $form_id;
+            if (false !== strpos($form_id, 'enter_')) {
+                $new_form_id = str_replace('enter_', '', $form_id);
+            }            
+            $enter_new_case_link = '/umpire/forms/' . $new_form_id . '/';
+            echo "<li>Form <q>${caption}</q>, with ${entry_count} entries. 
+                  <a href='${enter_new_case_link}'>Submit a new entry</a>,</li>";
+        }            
+    } 
+    ?>
     </ul>
 </body>
 </html>
