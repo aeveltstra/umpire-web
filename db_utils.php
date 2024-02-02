@@ -167,7 +167,13 @@ function db_subscribe(int $case_id, string $email): bool {
  * )) { echo "$id - $val ($txt)"; }
  */
 function db_read_enumerations(string $language_code): array {
-    $sql = "select `attribute_id`, `enum_value`, `caption` from `enums` where `language_code` = ? order by `attribute_id`, `caption`";
+    $sql = "select `attribute_id`, 
+            `enum_value`, 
+            `caption` 
+            from `enums` 
+            where `language_code` = ? 
+            order by `attribute_id`, 
+            `caption`";
     return query($sql, 's', [$language_code]);
 }
 
@@ -379,6 +385,10 @@ function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
     return -5;
 }
 
+/**
+ * Logs the specified event for the authenticated user.
+ * If the user did not authenticate, this function will abort.
+ */
 function db_log_user_event(string $name):bool {
     include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
     if(!session_did_user_authenticate()) {
