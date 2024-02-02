@@ -3,7 +3,7 @@
  * Stores a form entry. Fields are generated on
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.23.1214.2227
+ * @version 2.24.0201.2112
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -26,12 +26,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 /**
  * Start with creating a new case id. This is needed later
- * to assign all the profile fields.
+ * to assign all the fields.
  *
- * Returns: the case id, if creation of a new profile succeeded.
+ * Returns: the case id, if creation of a new entry succeeded.
  */
 function form_make_case_id(string $form_id): int {
-    $sql = 'insert into `profiles` (case_id, form) values (NULL, ?);';
+    $sql = 'insert into `entries` (entry_id, form) values (NULL, ?);';
     /* We cannot use a function from db_utils because none
      * that exist return the automatically incremented row id.
      */
