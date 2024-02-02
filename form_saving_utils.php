@@ -357,6 +357,7 @@ function form_enter_new(string $form_id, $expected_fields, $posted) {
     $new_case_id = form_make_case_id($form_id);
     session_remember('new_case_id', strval($new_case_id));
     $user_token = session_recall_user_token();
+    db_log_user_event('registered_form_entry');
 
     foreach($expected_fields as list(
         'id' => $field_id,
