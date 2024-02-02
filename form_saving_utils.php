@@ -3,7 +3,7 @@
  * Stores a form entry. Fields are generated on
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.24.0201.2112
+ * @version 2.24.0201.2124
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -47,6 +47,52 @@ function form_make_case_id(string $form_id): int {
 
 /** TODO: rework this so it can be enveloped in a transaction, which will
  * avoid creating orphaned case records. */
+function form_store_email(
+    string $field_name,
+    ?string $field_value,
+    int $case_id,
+    string $user_token
+): bool {
+    $new_value = null;
+    if ($field_value) {
+        $new_value = str($field_value);
+    }
+    $sql = 'call sp_store_email(?,?,?,?)';
+    $input = [
+        $case_id,
+        $field_name,
+        $new_value,
+        session_recall_user_token()
+    ];
+    db_exec($sql,
+        'isss',
+        $input
+    );
+    return true;
+}
+function form_store_image(
+    string $field_name,
+    ?string $field_value,
+    int $case_id,
+    string $user_token
+): bool {
+    $new_value = null;
+    if ($field_value) {
+        $new_value = str($field_value);
+    }
+    $sql = 'call sp_store_image(?,?,?,?)';
+    $input = [
+        $case_id,
+        $field_name,
+        $new_value,
+        session_recall_user_token()
+    ];
+    db_exec($sql,
+        'isss',
+        $input
+    );
+    return true;
+}
 function form_store_integer(
     string $field_name,
     ?string $field_value,
@@ -77,10 +123,14 @@ function form_store_longtext(
     string $user_token
 ): bool {
     $sql = 'call sp_store_longtext(?,?,?,?)';
+    $new_value = null;
+    if ($field_value) {
+        $new_value = str($field_value);
+    }
     $input = [
         $case_id,
         $field_name,
-        $field_value,
+        $new_value,
         session_recall_user_token()
     ];
     db_exec($sql,
@@ -219,6 +269,22 @@ function form_store(
 ): bool {
     $success = false;
     switch ($data_type) {
+        case 'email':
+            $success = form_store_email(
+                $field_name,
+                $field_value,
+                $case_id,
+                $user_token
+            );
+            break;
+        case 'image':
+            $success = form_store_image(
+                $field_name,
+                $field_value,
+                $case_id,
+                $user_token
+            );
+            break;
         case 'integer':
             $success = form_store_integer(
                 $field_name,
