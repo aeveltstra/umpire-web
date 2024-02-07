@@ -9,3 +9,4 @@ AddDefaultCharset UTF-8
 RewriteEngine On
 RewriteRule ^forms/(.+)/$ forms/index.php?form=$1 [NC,L]
 RewriteRule ^view/form-entries/(.+)/$ view/form-entries/index.php?form=$1 [NC,L]
+RewriteRule ^view/statistics/form-entries/(.+)/$ view/statistics/form-entries/index.php?form=$1 [NC,L]

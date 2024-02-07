@@ -79,21 +79,22 @@ db_log_user_event('viewed_statistics');
     <?php 
     if ($we_have_any_forms) {
         echo '<h3>Forms</h3>' . "\r\n\t";
-        echo "<p>The system holds ${count_forms_found} forms: </p>\r\n\t<ul>\r\n";
+        echo "<p>The system holds $count_forms_found forms: </p>\r\n\t<ul>\r\n";
         foreach($forms_and_entries as list(
             'id' => $form_id,
             'caption' => $caption,
             'entry_count' => $entry_count
         )) {
-            echo "\t\t<li>Form <q>${caption}</q>, with ${entry_count} entries. </li>\r\n";
+            $link = "<a href='form-entries/$form_id/'>View stats for the form <q>$caption</q>.</a>";
+            echo "\t\t<li>Form <q>$caption</q>, with $entry_count entries. $link</li>\r\n";
         }
         echo "</ul>\r\n";
     }
     
         echo '<h3>Users</h3>' . "\r\n\t";
         echo "<p>The system holds " . ($count_anonymous_users + $count_known_users) . " users: </p>\r\n\t<ul>\r\n";
-        echo "\t\t<li>${count_anonymous_users} Anonymous users, and </li>\r\n";
-        echo "\t\t<li>${count_known_users} Known users.</li>\r\n";
+        echo "\t\t<li>$count_anonymous_users Anonymous users, and </li>\r\n";
+        echo "\t\t<li>$count_known_users Known users.</li>\r\n";
         echo "</ul>\r\n";
     
     ?>
