@@ -61,23 +61,161 @@ if (
 $amount_of_form_entries = 0;
 $ask_for_entries_for_form = query(
     "select ( 
-            select count(*) 
-            from `entries` 
-            where `form` = `forms`.`id` 
-        ) as `amount_of_entries`, 
-        ( 
-            select count(*) 
-            from `form_attributes` 
-            where `form` = `forms`.`id` 
-        ) as `amount_of_form_attributes`, 
+        select count(*) from `entries` 
+        where `form` = `forms`.`id` 
+    ) as `amount_of_entries`, 
+    ( 
+        select count(*) from `form_attributes` 
+        where `form` = `forms`.`id` 
+    ) as `amount_of_attributes_for_this_form`, 
+    (
+        (select count(*) from `date_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `email_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `enum_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `images` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `integer_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `location_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `longtext_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `shorttext_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+         +
+        (select count(*) from `time_values` 
+        where `case_id` in ( 
+            select `entry_id` from `entries` where `form` = `forms`.`id`
+        ))
+    ) as `amount_of_attributes_stored_for_all_entries`,
+    ROUND(
         (
-            select count(*) from `shorttext_values` 
+            (select count(*) from `date_values` 
             where `case_id` in ( 
                 select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `email_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `enum_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `images` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `integer_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `location_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `longtext_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `shorttext_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+     		+
+            (select count(*) from `time_values` 
+            where `case_id` in ( 
+                select `entry_id` from `entries` where `form` = `forms`.`id`
+            ))
+        ) / (
+            select (
+            	ifnull((select 1 from `date_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `email_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `enum_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `images` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `integer_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `location_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `longtext_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `shorttext_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+                +
+                ifnull((select 1 from `time_values` 
+                where `case_id` in ( 
+                    select `entry_id` from `entries` where `form` = `forms`.`id`
+                )),0)
+            ) * ( 
+                    (
+                        select count(*) from `entries` 
+                        where `form` = `forms`.`id`
+                    ) || 1
             )
-        ) as `estimated_amount_of_form_attribute_versions` 
-        from `forms` 
-        where `id` = ?
+        )
+    ) as `estimated_amount_of_versioned_attributes_per_entry` 
+    from `forms` 
+    where `id` = ?
     ",
     's',
     [$prefixed_form_id]
@@ -87,8 +225,9 @@ if (
 ) {
     $stat_labels = [
         "amount_of_entries",
-        "amount_of_form_attributes",
-        "estimated_amount_of_form_attribute_versions"
+        "amount_of_attributes_for_this_form",
+        "amount_of_attributes_stored_for_all_entries",
+        "estimated_amount_of_versioned_attributes_per_entry"
     ];
     $stats = [];
     foreach($stat_labels as $label) {
@@ -118,7 +257,9 @@ $page_title = $form_caption . ' - Statistics for this form - Umpire';
         if ($stats) {
             echo "<ul>";
             foreach($stats as $stat) {
-                echo "<li>$stat[label]: $stat[value]</li>";
+                $label = $stat['label'];
+                $caption = mb_convert_case(str_replace('_', ' ', $label), MB_CASE_TITLE);
+                echo "<li>$caption: $stat[value]</li>";
             }
             echo "</ul>";
         } else {
