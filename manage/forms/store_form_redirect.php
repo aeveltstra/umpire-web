@@ -3,7 +3,7 @@
  * Save the web address to which the Umpire application has to redirect
  * the user after successful form submission.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0212.0125
+ * @version 2.24.0212.0916
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -77,16 +77,33 @@ if (!empty($form_choice)) {
                             $old_value_from_record
                         ]
                     );
-                    http_response_code(200);
+                    echo "{
+                      'success': true,
+                      'errors': []
+                    }";
                 } catch (mysqli_sql_exception $err) {
-                    header('x-db-err: ' . $err);
-                    http_response_code(500);
+                    echo "{
+                      'success': false,
+                      'errors': [
+                        '{$err}'
+                       ]
+                    }";
                 }
             } else {
-                http_response_code(409);
+                echo "{
+                  'success': false,
+                  'errors': [
+                    'Match failed on old values. Maybe someone else changed the form already. Reload the screen to see changes.'
+                   ]
+                }";
             }
         } else if (!empty($old_form_redirect_from_post)) {
-            http_response_code(409);
+            echo "{
+              'success': false,
+              'errors': [
+                   'Match failed on old values. Maybe someone else changed the form already. Reload the screen to see changes.'
+               ]
+            }";
         } else {
             try {
                 $result = db_exec(
@@ -104,14 +121,26 @@ if (!empty($form_choice)) {
                         $form_choice
                     ]
                 );
-                http_response_code(200);
+                echo "{
+                  'success': true,
+                  'errors': []
+                }";
             } catch (mysqli_sql_exception $err) {
-                header('x-db-err: ' . $err);
-                http_response_code(500);
+                echo "{
+                  'success': false,
+                  'errors': [
+                    '{$err}'
+                   ]
+                }";
             }
         }
     } else {
-        http_response_code(422);
+        echo "{
+          'success': false,
+          'errors': [
+            'Form not found. Return to the overview and load the form from there.'
+           ]
+        }";
     }
 }
 ?>
