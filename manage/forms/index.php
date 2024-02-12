@@ -2,7 +2,7 @@
 /**
  * Manage Entry Forms for Umpire
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0211.2314
+ * @version 2.24.0212.0111
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -41,24 +41,29 @@ $form_caption = '';
 $form_redirect = '';
 if (!empty($form_choice)) {
     $get_form_exists = query(
-        'select `id`, `url_after_entry` from `forms` where `id` = ?',
+        'select `id`, `url_after_entry` 
+            from `forms` 
+            where `id` = ?',
         's',
         [$form_choice]
     );
-    $amount = count($get_form_exists);
-    if ($amount > 0) {
-        $is_form_known = true;
-        if (isset($get_form_exists[0][`url_after_entry`])) {
+    $is_form_known = (count($get_form_exists) > 0);
+    if ($is_form_known) {
+        $form_record_has_url_after_entry = isset($get_form_exists[0][`url_after_entry`]);
+        if ($form_record_has_url_after_entry) {
             $form_redirect = $get_form_exists[0][`url_after_entry`];
         }
     }
     $form_captions = query(
-        'select `form`, `caption`, `language` from `form_caption_translations` where `form` = ?',
+        'select `form`, `caption`, `language` 
+            from `form_caption_translations` 
+            where `form` = ?',
         's',
         [$form_choice]
     );
     $amount = count($form_captions);
-    if ($amount > 0) {
+    $form_has_captions = ($amount > 0);
+    if ($form_has_captions) {
         for ($i = 0; $i < $amount; $i+=1) {
             if ('en' === $form_captions[$i]['language']) {
                 $form_caption = $form_captions[$i]['caption'];
@@ -289,7 +294,11 @@ function store(input, attrib_id, old_value) {
 <?php
     if (!$is_form_known) {
         echo '<h2>Choose which form to edit:</h2><ul>';
-        $rows = query('select `form`, `caption` from `form_caption_translations` where `language` = \'en\'');
+        $rows = query(
+            'select `form`, `caption` 
+                from `form_caption_translations` 
+                where `language` = \'en\''
+        );
 
         foreach($rows as $row) {
             $id_for_show = htmlspecialchars(
@@ -403,11 +412,11 @@ function store(input, attrib_id, old_value) {
               ";
         $xs = query(
             'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
-            from `form_attributes` as `fa` 
-            inner join `attributes` as `a` 
-            on `a`.`id` = `fa`.`attribute` 
-            where `fa`.`form` = ? 
-            order by `fa`.`display_sequence`', 
+                from `form_attributes` as `fa` 
+                inner join `attributes` as `a` 
+                on `a`.`id` = `fa`.`attribute` 
+                where `fa`.`form` = ? 
+                order by `fa`.`display_sequence`', 
             's', 
             [$form_choice]
         );
