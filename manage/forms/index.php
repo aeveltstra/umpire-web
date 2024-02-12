@@ -246,18 +246,19 @@ function store_form_redirect(input, old_value) {
     }
     return false;
 }
-function store(input, old_value) {
+function store(input, attrib_id, old_value) {
     "use strict";
     const evt = window.event;
     if (evt && evt.preventDefault) {
         evt.preventDefault();
     }
-    if (input) {
-        const id = input.id;
-        if (!!id) {
+    if (input && attrib_id) {
+        const property = input.id;
+        if (!!property) {
             const fd = new FormData();
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
-            fd.append('attribute', id);
+            fd.append('attribute', attrib_id);
+            fd.append('property', property);
             fd.append('old_value', old_value);
             fd.append('new_value', input.value);
             fd.append('nonce', '<?php echo $form_nonce; ?>');
@@ -272,9 +273,9 @@ function store(input, old_value) {
                 }
             ).then((response) => {
                 if (response.ok) {
-                    show_success(id);
+                    show_success(attrib_id);
                 } else {
-                    show_fail(id, response.status);
+                    show_fail(attrib_id, response.status);
                 }
             }).catch(alert);
         }
@@ -401,7 +402,12 @@ function store(input, old_value) {
     <tbody>
               ";
         $xs = query(
-            'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` from `form_attributes` as `fa` inner join `attributes` as `a` on `a`.`id` = `fa`.`attribute` where `fa`.`form` = ? order by `fa`.`display_sequence`', 
+            'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
+            from `form_attributes` as `fa` 
+            inner join `attributes` as `a` 
+            on `a`.`id` = `fa`.`attribute` 
+            where `fa`.`form` = ? 
+            order by `fa`.`display_sequence`', 
             's', 
             [$form_choice]
         );
@@ -423,7 +429,7 @@ function store(input, old_value) {
         }
         foreach($xs as $x) {
             $display_seq   = $x['display_sequence'];
-            $field_id      = htmlspecialchars($x['id'],        ENT_QUOTES);
+            $attrib_id     = htmlspecialchars($x['id'],        ENT_QUOTES);
             $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
             $min           = $x['min'];
             $max           = $x['max'];
@@ -432,19 +438,19 @@ function store(input, old_value) {
             $hide_on_entry = ((1 == $x['hide_on_entry']) ? 'checked=checked' : '');
             $enum_list = '';
             if ($x['data_type'] == 'enum') {
-                $enum_list = 'role="listbox" aria-required="true" aria-autocomplete="list" aria-controls="list_' . $field_id . '" list="list_' . $field_id . '"';
+                $enum_list = 'role="listbox" aria-required="true" aria-autocomplete="list" aria-controls="list_' . $attrib_id . '" list="list_' . $attrib_id . '"';
             }
             echo "
         <tr>
             <td>
-                <span hidden class=changed id=changed_{$field_id} title='Changed'>&hellip;</span>
-                <span hidden class=failed id=failed_{$field_id} title='Storing failed'>&otimes;</span>
-                <span hidden class=succeeded id=succeeded_{$field_id} title='Stored successfully'>&radic;</span>
+                <span hidden class=changed id=changed_{$attrib_id} title='Changed'>&hellip;</span>
+                <span hidden class=failed id=failed_{$attrib_id} title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded id=succeeded_{$attrib_id} title='Stored successfully'>&radic;</span>
             </td>
             <th>{$display_seq}</th>
-            <td>{$field_id}</td>
+            <td>{$attrib_id}</td>
             <td>
-                <select name=data_type id=data_type onchange='store(this, \"{$field_id}\", \"{$data_type}\")'>
+                <select name=data_type id=data_type onchange='store(this, \"{$attrib_id}\", \"{$data_type}\")'>
                     <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
                     </optgroup>
@@ -453,11 +459,11 @@ function store(input, old_value) {
                     </optgroup>
                 </select>
             </td>
-            <td><input type=number name=min id=min onchange='store(this, \"{$field_id}\", \"{$min}\")' value='{$min}'/></td>
-            <td><input type=number name=max id=max onchange='store(this, \"{$field_id}\", \"{$max}\")' value='{$max}'/></td>
-            <td><input type=text name=default id=default onchange='store(this, \"{$field_id}\", \"{$default}\")' value='{$default}' {$enum_list} /></td>
-            <td><input type=checkbox name=is_write_once id=is_write_once {$is_write_once} onchange='store(this, \"{$field_id}\", \"{$x['is_write_once']}\")' /></td>
-            <td><input type=checkbox name=hide_on_entry id=hide_on_entry {$hide_on_entry} onchange='store(this, \"{$field_id}\", \"{$x['hide_on_entry']}\")' /></td>
+            <td><input type=number name=min_{$attrib_id} id=min_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$min}\")' value='{$min}'/></td>
+            <td><input type=number name=max_{$attrib_id} id=max_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$max}\")' value='{$max}'/></td>
+            <td><input type=text name=default_{$attrib_id} id=default_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$default}\")' value='{$default}' {$enum_list} /></td>
+            <td><input type=checkbox name=is_write_once_{$attrib_id} id=is_write_once_{$attrib_id} {$is_write_once} onchange='store(this, \"{$attrib_id}\", \"{$x['is_write_once']}\")' /></td>
+            <td><input type=checkbox name=hide_on_entry_{$attrib_id} id=hide_on_entry_{$attrib_id} {$hide_on_entry} onchange='store(this, \"{$attrib_id}\", \"{$x['hide_on_entry']}\")' /></td>
         </tr>
     ";
         }
