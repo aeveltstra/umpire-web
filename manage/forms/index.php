@@ -117,6 +117,11 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <link rel=stylesheet href="/umpire/c/main.css"/>
 <link rel=stylesheet href="/umpire/c/manage-form.css"/>
 <script type="text/javascript">/* <![CDATA[ */
+const failure_notes = new Map();
+failure_notes.set(401, 'Unauthorized: you have to have form manager privileges');
+failure_notes.set(500, 'Database rejected the update.');
+failure_notes.set(409, 'Failed check of old values. The form may have been updated by someone else already. Please reload this screen to see the latest version.');
+
 function hide_changed(input_id) {
     "use strict";
     if (!!input_id) {
@@ -167,7 +172,7 @@ function show_changed(input_id, response_status) {
         }
     }
 }
-function show_fail(input_id, response_status) {
+function show_fail(input_id, response) {
     "use strict";
     if (!!input_id) {
         hide_success(input_id);
@@ -175,6 +180,14 @@ function show_fail(input_id, response_status) {
         const notice = document.getElementById("failed_" + input_id);
         if (!!notice) {
             notice.hidden = false;
+            notice.title = 'Storing Failed: ' + 
+                (
+                    failure_notes.get(response.status) 
+                    || 'Reason Unknown'
+                );
+            if (response.headers.has('x-db-err')) {
+                notice.title += response.headers.get('x-db-err');
+            }
         }
     }
 }
@@ -187,6 +200,7 @@ function store_form_caption(input, old_caption) {
     if (input) {
         const id = input.id;
         if (!!id) {
+            show_changed(id);
             const xs = id.split('_');
             if (xs.length) {
                 const x = xs[xs.length - 1];
@@ -209,7 +223,7 @@ function store_form_caption(input, old_caption) {
                     if (response.ok) {
                         show_success(id);
                     } else {
-                        show_fail(id, response.status);
+                        show_fail(id, response);
                     }
                 }).catch(alert);
             }
@@ -226,6 +240,7 @@ function store_form_redirect(input, old_value) {
     if (input) {
         const id = input.id;
         if (!!id) {
+            show_changed(id);
             const fd = new FormData();
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
             fd.append('old_value', old_value);
@@ -244,7 +259,7 @@ function store_form_redirect(input, old_value) {
                 if (response.ok) {
                     show_success(id);
                 } else {
-                    show_fail(id, response.status);
+                    show_fail(id, response);
                 }
             }).catch(alert);
         }
@@ -258,6 +273,7 @@ function store(input, attrib_id, old_value) {
         evt.preventDefault();
     }
     if (input && attrib_id) {
+        show_changed(attrib_id);
         const property = input.id;
         if (!!property) {
             const fd = new FormData();
@@ -280,7 +296,7 @@ function store(input, attrib_id, old_value) {
                 if (response.ok) {
                     show_success(attrib_id);
                 } else {
-                    show_fail(attrib_id, response.status);
+                    show_fail(attrib_id, response);
                 }
             }).catch(alert);
         }

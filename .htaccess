@@ -5,6 +5,7 @@ deny from all
 Options -Indexes
 DirectoryIndex index.html index.php
 AddDefaultCharset UTF-8
+ErrorDocument 500 default
 
 RewriteEngine On
 RewriteRule ^forms/(.+)/$ forms/index.php?form=$1 [NC,L]

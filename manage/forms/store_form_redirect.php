@@ -3,7 +3,7 @@
  * Save the web address to which the Umpire application has to redirect
  * the user after successful form submission.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0212.0111
+ * @version 2.24.0212.0125
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -70,7 +70,7 @@ if (!empty($form_choice)) {
                             where `id` = ?
                             and `url_after_entry` = ?
                         ',
-                        'ss',
+                        'sss',
                         [
                             $new_form_redirect_from_post,
                             $form_choice,
@@ -79,6 +79,7 @@ if (!empty($form_choice)) {
                     );
                     http_response_code(200);
                 } catch (mysqli_sql_exception $err) {
+                    header('x-db-err: ' . $err);
                     http_response_code(500);
                 }
             } else {
@@ -86,6 +87,28 @@ if (!empty($form_choice)) {
             }
         } else if (!empty($old_form_redirect_from_post)) {
             http_response_code(409);
+        } else {
+            try {
+                $result = db_exec(
+                    'update `forms` 
+                        set `url_after_entry` = ?
+                        where `id` = ?
+                        and (
+                            `url_after_entry` is null
+                            or `url_after_entry` = ''
+                        )
+                    ',
+                    'ss',
+                    [
+                        $new_form_redirect_from_post,
+                        $form_choice
+                    ]
+                );
+                http_response_code(200);
+            } catch (mysqli_sql_exception $err) {
+                header('x-db-err: ' . $err);
+                http_response_code(500);
+            }
         }
     } else {
         http_response_code(422);
