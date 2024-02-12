@@ -2,7 +2,7 @@
 /**
  * Manage Entry Forms for Umpire
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1116.1848
+ * @version 2.24.0211.2314
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -38,7 +38,20 @@ if (isset($_GET['id'])) {
 }
 $is_form_known = false;
 $form_caption = '';
+$form_redirect = '';
 if (!empty($form_choice)) {
+    $get_form_exists = query(
+        'select `id`, `url_after_entry` from `forms` where `id` = ?',
+        's',
+        [$form_choice]
+    );
+    $amount = count($get_form_exists);
+    if ($amount > 0) {
+        $is_form_known = true;
+        if (isset($get_form_exists[0][`url_after_entry`])) {
+            $form_redirect = $get_form_exists[0][`url_after_entry`];
+        }
+    }
     $form_captions = query(
         'select `form`, `caption`, `language` from `form_caption_translations` where `form` = ?',
         's',
@@ -46,7 +59,6 @@ if (!empty($form_choice)) {
     );
     $amount = count($form_captions);
     if ($amount > 0) {
-        $is_form_known = true;
         for ($i = 0; $i < $amount; $i+=1) {
             if ('en' === $form_captions[$i]['language']) {
                 $form_caption = $form_captions[$i]['caption'];
@@ -57,6 +69,7 @@ if (!empty($form_choice)) {
         }
     }
 }
+
 
 function show_enums() {
     $xs = db_read_enumerations('en');
@@ -199,6 +212,40 @@ function store_form_caption(input, old_caption) {
     }
     return false;
 }
+function store_form_redirect(input, old_value) {
+    "use strict";
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    if (input) {
+        const id = input.id;
+        if (!!id) {
+            const fd = new FormData();
+            fd.append('form_id', '<?php echo $form_id_for_show; ?>');
+            fd.append('old_value', old_value);
+            fd.append('new_value', input.value);
+            fd.append('nonce', '<?php echo $form_nonce; ?>');
+            fetch(
+                './store_form_redirect.php',
+                {
+                    method: "POST",
+                    body: fd,
+                    cache: "no-cache",
+                    mode: "same-origin",
+                    credentials: "omit"
+                }
+            ).then((response) => {
+                if (response.ok) {
+                    show_success(id);
+                } else {
+                    show_fail(id, response.status);
+                }
+            }).catch(alert);
+        }
+    }
+    return false;
+}
 function store(input, old_value) {
     "use strict";
     const evt = window.event;
@@ -255,6 +302,7 @@ function store(input, old_value) {
         echo '</ul>';
     } else {
         $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
+        $form_redirect_for_input = htmlspecialchars($form_redirect, ENT_QUOTES);
         echo "
     <h2>Form being edited: {$form_caption_for_show}.</h2>
     <section>
@@ -279,9 +327,16 @@ function store(input, old_value) {
                             <span hidden class=failed id=failed_new_caption_{$t} title='Storing failed'>&otimes;</span>
                             <span hidden class=succeeded id=succeeded_new_caption_{$t} title='Stored successfully'>&radic;</span>
                         </td>
-                        <th>${t}</th>
+                        <th>{$t}</th>
                         <td>
-                            <label for=new_caption_{$t}><input type=text name=new_caption_{$t} id=new_caption_{$t} size=60 maxlength=256 placeholder='{$c}' value='{$c}' onchange='store_form_caption(this, \"{$c}\")' /></label>
+                            <label for=new_caption_{$t}>
+                            <input type=text name=new_caption_{$t} id=new_caption_{$t} 
+                                size=60 
+                                maxlength=256 
+                                placeholder='{$c}' 
+                                value='{$c}' 
+                                onchange='store_form_caption(this, \"{$c}\")' />
+                            </label>
                         </td>
                     </tr>
             ";
@@ -290,7 +345,40 @@ function store(input, old_value) {
         </tbody></table></fieldset></form>
     </section>
     <section>
-    <form id='attriutes_for_form_{$form_id_for_show}'>";
+        <h3>Redirect After Entry</h3>
+        <form><fieldset><legend>Which web page to show after successful form submission?</legend>
+        <table>
+            <thead>
+                <tr>
+                    <th>&nbsp;&nbsp;</th>
+                    <th>Web address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span hidden class=changed id=changed_new_redirect title='Changed'>&hellip;</span>
+                        <span hidden class=failed id=failed_new_redirect title='Storing failed'>&otimes;</span>
+                        <span hidden class=succeeded id=succeeded_new_redirect title='Stored successfully'>&radic;</span>
+                    </td>
+                    <td>
+                        <label for=new_redirect>
+                        <input type=text name=new_redirect id=new_redirect 
+                            size=60 
+                            maxlength=512 
+                            placeholder='/umpire/subscribe/new/' 
+                            value='{$form_redirect_for_input}' 
+                            onchange='store_form_redirect(this, \"{$form_redirect_for_input}\")' 
+                        />
+                        </label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </fieldset></form>
+    </section>
+    <section>
+    <form id='attributes_for_form'>";
 
     show_enums();
 
@@ -303,8 +391,8 @@ function store(input, old_value) {
             <th>Display Sequence</th>
             <th>Identity</th>
             <th>Data Type</th>
-            <th>Minimum Value</th>
-            <th>Maximum Value</th>
+            <th>Minimum</th>
+            <th>Maximum</th>
             <th>Default Value</th>
             <th>Write Once</th>
             <th>Hide on Entry</th>
@@ -320,8 +408,11 @@ function store(input, old_value) {
         $dt_options = '';
         $dts = [
             'date',
-            'enum', 
-            'integer', 
+            'email',
+            'enum',
+            'image',
+            'integer',
+            'location',
             'longtext', 
             'percent',
             'shorttext', 
