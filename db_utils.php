@@ -5,10 +5,10 @@
  * standard queries expected to be used often.
  * 
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0114.2025
+ * @version 2.24.0229.2043
  */
 declare(strict_types=1);
-
+ 
 /* config.php provides the connect_db() function. */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
 mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
@@ -587,6 +587,14 @@ function db_make_user_secret(): string {
     );
 }
 
+/** 
+ * Creates a user in the database, and returns their authentication
+ * credentials as a pair of key and secret. Those get stored in the DB
+ * as well, hashed with a unique salt for every individual.
+ *
+ * @param hashed_candidate: should be the hash of the candidate's
+ *        email address. Use the db_hash() function to hash it.
+ */
 function db_add_user(string $hashed_candidate): ?array {
     $key = db_make_user_key();
     $secret = db_make_user_secret();
@@ -629,5 +637,18 @@ function db_add_user(string $hashed_candidate): ?array {
     return null;
 }
 
+/**
+ * Retrieves where to go next after a successful form entry.
+ * The return may be null, or a URL.
+ */
+function db_get_next_after_form_entry_success(string $form_id): ?string {
+    if (!$form_id) { return null; }
+    $sql = 'select `url_after_entry` from `forms` where `id` = ?';
+    $result = query($sql, 's', [$form_id]);
+    if (count($result) > 0) {
+        return $result[0]['url_after_entry'];
+    }
+    return null;
+}
 
 ?>
