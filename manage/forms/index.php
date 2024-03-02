@@ -117,10 +117,6 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <link rel=stylesheet href="/umpire/c/main.css"/>
 <link rel=stylesheet href="/umpire/c/manage-form.css"/>
 <script type="text/javascript">/* <![CDATA[ */
-const failure_notes = new Map();
-failure_notes.set(401, 'Unauthorized: you have to have form manager privileges');
-failure_notes.set(500, 'Database rejected the update.');
-failure_notes.set(409, 'Failed check of old values. The form may have been updated by someone else already. Please reload this screen to see the latest version.');
 
 function hide_changed(input_id) {
     "use strict";
@@ -180,13 +176,15 @@ function show_fail(input_id, response) {
         const notice = document.getElementById("failed_" + input_id);
         if (!!notice) {
             notice.hidden = false;
-            notice.title = 'Storing Failed: ' + 
-                (
-                    failure_notes.get(response.status) 
-                    || 'Reason Unknown'
-                );
-            if (response.headers.has('x-db-err')) {
-                notice.title += response.headers.get('x-db-err');
+            notice.title = 'Storing Failed';
+            if (response.body) {
+                response.json(data => {
+                    if (!data.success && !!data.errors) {
+                        data.errors.forEach(err => 
+                            notice.title += '. ' + err
+                        );
+                    }
+                }).catch(console.log);
             }
         }
     }

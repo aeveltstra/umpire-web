@@ -3,7 +3,7 @@
  * Stores the form entry. Fields are generated on the fly based on the 
  * fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.24.0201.2147
+ * @version 2.24.0229.2026
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -67,7 +67,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 /**
  * We'll ask the database what fields are available for this form, as to
- * request only those from te POSTed data. If they can't be found, we 
+ * request only those from the POSTed data. If they can't be found, we 
  * halt.
  */
 $expected_fields = db_read_form_entry_fields($form_id, 'en');
@@ -84,14 +84,19 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/form_saving_utils.php';
 
 $result = form_enter_new($form_id, $expected_fields, $_POST);
 $new_case_id = $result['new_case_id'];
+session_remember('new_case_id', strval($new_case_id));
 $fails = $result['fails'];
 
 if (empty($fails)) {
-    header('Location: ./success/');
+    $next = db_get_next_after_form_entry_success($form_id);
+    if ($next) {
+        header('Location: ' . $next);
+    } else {
+        header('Location: ./success/');
+    }
     die();
 }
 
-session_remember('new_case_id', strval($new_case_id));
 
 ?>
 <!DOCTYPE html>
@@ -125,6 +130,6 @@ session_remember('new_case_id', strval($new_case_id));
             }
         ?>
     </ul>
-    <p>Please <a href="javascript:history.back()">try again</a>.</p>
+    <p>Please <a onclick="history.back();return false;" href="../forms/">try again</a>.</p>
 </body>
 </html>
