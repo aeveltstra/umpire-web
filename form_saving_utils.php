@@ -3,14 +3,13 @@
  * Stores a form entry. Fields are generated on
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.24.0201.2124
+ * @version 2.24.0301.2006
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
-
 
 /**
  * DB Utils contains functions to read from and store into
@@ -26,7 +25,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 /**
  * Start with creating a new case id. This is needed later
- * to assign all the fields.
+ * to assign facts to all the dimensions.
  *
  * Returns: the case id, if creation of a new entry succeeded.
  */
@@ -48,21 +47,21 @@ function form_make_case_id(string $form_id): int {
 /** TODO: rework this so it can be enveloped in a transaction, which will
  * avoid creating orphaned case records. */
 function form_store_email(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_value = null;
-    if ($field_value) {
-        $new_value = strval($field_value);
+    if ($fact) {
+        $new_value = strval($fact);
     }
     $sql = 'call sp_store_email(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -71,21 +70,21 @@ function form_store_email(
     return true;
 }
 function form_store_image(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_value = null;
-    if ($field_value) {
-        $new_value = strval($field_value);
+    if ($fact) {
+        $new_value = strval($fact);
     }
     $sql = 'call sp_store_image(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -94,21 +93,21 @@ function form_store_image(
     return true;
 }
 function form_store_integer(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_value = null;
-    if ($field_value) {
-        $new_value = intval($field_value);
+    if ($fact) {
+        $new_value = intval($fact);
     }
     $sql = 'call sp_store_integer(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isis',
@@ -117,21 +116,21 @@ function form_store_integer(
     return true;
 }
 function form_store_longtext(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $sql = 'call sp_store_longtext(?,?,?,?)';
     $new_value = null;
-    if ($field_value) {
-        $new_value = strval($field_value);
+    if ($fact) {
+        $new_value = strval($fact);
     }
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -140,17 +139,17 @@ function form_store_longtext(
     return true;
 }
 function form_store_shorttext(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $sql = 'call sp_store_shorttext(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
-        $field_value,
-        session_recall_user_token()
+        $dimension_id,
+        $fact,
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -159,16 +158,16 @@ function form_store_shorttext(
     return true;
 }
 function form_store_date(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_year = null;
     $new_month = null;
     $new_day = null;
-    if($field_value) {
-        $epoch = strtotime($field_value);
+    if($fact) {
+        $epoch = strtotime($fact);
         $new_year = date('Y', $epoch);
         $new_month = date('m', $epoch);
         $new_day = date('d', $epoch);
@@ -176,11 +175,11 @@ function form_store_date(
     $sql = 'call sp_store_date(?,?,?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_year,
         $new_month,
         $new_day,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -189,21 +188,21 @@ function form_store_date(
     return true;
 }
 function form_store_time(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_value = null;
-    if($field_value) {
-        $new_value = date('g:i a', strtotime($field_value));
+    if($fact) {
+        $new_value = date('g:i a', strtotime($fact));
     }
     $sql = 'call sp_store_time(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -212,17 +211,17 @@ function form_store_time(
     return true;
 }
 function form_store_enumerated(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $sql = 'call sp_store_enumerated(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
-        $field_value,
-        session_recall_user_token()
+        $dimension_id,
+        $fact,
+        $user_token
     ];
     db_exec($sql,
         'isss',
@@ -231,21 +230,21 @@ function form_store_enumerated(
     return true;
 }
 function form_store_percent(
-    string $field_name,
-    ?string $field_value,
+    string $dimension_id,
+    ?string $fact,
     int $case_id,
     string $user_token
 ): bool {
     $new_value = null;
-    if ($field_value) {
-        $new_value = intval($field_value);
+    if ($fact) {
+        $new_value = intval($fact);
     }
     $sql = 'call sp_store_integer(?,?,?,?)';
     $input = [
         $case_id,
-        $field_name,
+        $dimension_id,
         $new_value,
-        session_recall_user_token()
+        $user_token
     ];
     db_exec($sql,
         'isis',
@@ -255,88 +254,88 @@ function form_store_percent(
 }
 
 /**
- * Now we have the case id, we can start assigning the field values. We
- * match a form input to a field, by name. The DB stores each data type in a
+ * Now we have the case id, we can start assigning the dimension facts. We
+ * match a form input to a dimension, by id. The DB stores each data type in a
  * separate table, identifying the value for a case by case id.
  */
 function form_store(
-        string $form_id,
-        int $case_id,
-        string $user_token,
-        string $field_name,
-        string $data_type,
-        $field_value
+    string $form_id,
+    int $case_id,
+    string $user_token,
+    string $dimension_id,
+    string $data_type,
+    $fact
 ): bool {
     $success = false;
     switch ($data_type) {
         case 'email':
             $success = form_store_email(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'image':
             $success = form_store_image(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'integer':
             $success = form_store_integer(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'longtext':
             $success = form_store_longtext(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'shorttext':
             $success = form_store_shorttext(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'date':
             $success = form_store_date(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'time':
             $success = form_store_time(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'enum':
             $success = form_store_enumerated(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
             break;
         case 'percent':
             $success = form_store_percent(
-                $field_name,
-                $field_value,
+                $dimension_id,
+                $fact,
                 $case_id,
                 $user_token
             );
@@ -345,7 +344,39 @@ function form_store(
     return $success;
 }
 
-function form_enter_new(string $form_id, $expected_fields, $posted) {
+/**
+ * Makes it so the user can view their own case entry, and case 
+ * managers can manage it.
+ */
+function form_assign_first_case_users(string $case_id, string $user_token) {
+    $sql = 'call sp_assign_first_case_users(?,?)';
+    $input = [
+        $case_id,
+        $user_token
+    ];
+    db_exec($sql,
+        'ss',
+        $input
+    );
+    return true;
+}
+
+/**
+ * Saves new facts for the passed-in form.
+ * @param form_id: identity of the form. Supply an identity known in 
+ *        the database. 
+ * @param expected_dimensions: an array of dimension names read from the 
+ *        database for the form identified by form_id.
+ * @param posted_facts: the value of PHP's $_POST. We hope that the form
+ *        it generated, was created with the same expected fields, but
+ *        we aren't going to take that for granted.
+ * @return a tuple containing the new entry's case id, and a list of 
+ *        facts that failed to get stored, if any. Each failure is a tuple 
+ *        containing: new case id, dimension id, and fact. It does not 
+ *        provide an error message, in order to hide implementation details
+ *        about the database.
+ */
+function form_enter_new(string $form_id, $expected_dimensions, $posted_facts) {
     /**
      * Yes, creating a new case id here will lead to orphans. We will have to
      * remove those, later. A way to approach this with less orphan creation,
@@ -359,25 +390,27 @@ function form_enter_new(string $form_id, $expected_fields, $posted) {
     $user_token = session_recall_user_token();
     db_log_user_event('registered_form_entry');
 
-    foreach($expected_fields as list(
-        'id' => $field_id,
+    form_assign_first_case_users($form_id, $user_token);
+
+    foreach($expected_dimensions as list(
+        'id' => $dimension_id,
         'data_type' => $data_type
     )) {
-        if (isset($_POST[$field_id])) {
-            $value = $_POST[$field_id];
+        if (isset($posted_facts[$dimension_id])) {
+            $fact = $posted_facts[$dimension_id];
             $success = form_store(
                 $form_id,
                 $new_case_id,
                 $user_token,
-                $field_id,
+                $dimension_id,
                 $data_type,
-                $value
+                $fact
             );
             if (!$success) {
                 $fails[] = [
                     "case" => $new_case_id,
-                    "field" => $field_id,
-                    "value" => $value
+                    "dimension" => $dimension_id,
+                    "fact" => $fact
                 ];
             }
         }
