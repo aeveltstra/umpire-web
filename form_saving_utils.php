@@ -3,7 +3,7 @@
  * Stores a form entry. Fields are generated on
  * the fly based on the fields listed in the database.
  * @author A.E.Veltstra
- * @version 2.24.0301.2006
+ * @version 2.24.0310.1648
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -348,14 +348,14 @@ function form_store(
  * Makes it so the user can view their own case entry, and case 
  * managers can manage it.
  */
-function form_assign_first_case_users(string $case_id, string $user_token) {
+function form_assign_first_case_users(int $case_id, string $user_token) {
     $sql = 'call sp_assign_first_case_users(?,?)';
     $input = [
         $case_id,
         $user_token
     ];
     db_exec($sql,
-        'ss',
+        'is',
         $input
     );
     return true;
@@ -390,7 +390,7 @@ function form_enter_new(string $form_id, $expected_dimensions, $posted_facts) {
     $user_token = session_recall_user_token();
     db_log_user_event('registered_form_entry');
 
-    form_assign_first_case_users($form_id, $user_token);
+    form_assign_first_case_users($new_case_id, $user_token);
 
     foreach($expected_dimensions as list(
         'id' => $dimension_id,
