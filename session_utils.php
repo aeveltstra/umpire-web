@@ -2,7 +2,7 @@
 /**
  * Helper functions for handling sessions.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1129.730
+ * @version 2.24.310.1608
  */
 
 declare(strict_types=1);
@@ -97,7 +97,8 @@ function session_forget_user_token():bool {
  * - user_token, string, optional: should contain the logged-in user's email
  *   address, hashed using the session_make_user_token() function. If any 
  *   other type of value is provided, checks on user privilege levels will 
- *   fail.
+ *   fail. Providing an empty value will make the session forget the user
+ *   token.
  */
 function session_remember_user_token(?string $user_token):bool {
     if(empty($user_token)) {
@@ -142,7 +143,7 @@ function session_make_nonce(string $id):string {
     $time = ceil( time() / ( 60 * 60 * 12) );
     $token = session_recall_user_token();
     if (empty($token)) {
-        $token = 'anonymous_' . random_bytes(24);
+        $token = 'anonymous_' . bin2hex(random_bytes(24));
         session_remember_user_token($token);
     }
     return session_make_hash($time . '|' . $token . '|' . $id);
