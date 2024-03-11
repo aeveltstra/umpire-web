@@ -5,7 +5,7 @@
  * standard queries expected to be used often.
  * 
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0229.2043
+ * @version 2.24.310.2053
  */
 declare(strict_types=1);
  
@@ -356,14 +356,10 @@ function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
     $email_hash = db_hash($email);
     $key_hash = hash($hashing_algo, $key);
     $secret_hash = hash($hashing_algo, $secret);
-    $sql = 'select
-        (count(*) > 0) as `is_known`
-        from `users`
-        where `email_hash` = ?
-        and `key_hash` = ?
-        and `secret_hash` = ?';
     $result = query(
-        $sql, 'sss', [
+        'call sp_is_user_known(?, ?, ?)', 
+        'sss', 
+        [
             $email_hash, 
             $key_hash, 
             $secret_hash
