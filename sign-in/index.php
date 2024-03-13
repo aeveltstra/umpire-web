@@ -2,8 +2,8 @@
 declare(strict_types=1);
 /**
  * Shows the sign-up form.
- * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1024.2211
+ * @author A.E.Veltstra for OmegaJunior Consultancy, LLC
+ * @version 2.24.312.1932
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $did_authenticate = session_did_user_authenticate();
@@ -24,12 +24,12 @@ $form_nonce = session_make_and_remember_nonce(
 <h2>Let us recognize you</h2>
 <form method=post action="authenticate/">
 <fieldset><legend>Gain special access to Umpire.</legend>
+<p><label for=username>Access Key:</label></p>
+<p><input type=text name=username id=username size=60 maxlength=512 /></p>
+<p><label for=password>Secret Pass Phrase:</label></p>
+<p><input type=password name=password id=password size=60 maxlength=512 /></p>
 <p><label for=email>E-mail Address:</label></p>
 <p><input type=email name=email id=email size=60 maxlength=256 /></p>
-<p><label for=key>Access Key:</label></p>
-<p><input type=text name=key id=key size=60 maxlength=512 /></p>
-<p><label for=secret>Secret Pass Phrase:</label></p>
-<p><input type=password name=secret id=secret size=60 maxlength=512 /></p>
 <?php
   if ($did_authenticate) {
     echo "<p class=warning>Warning: you already are logged in. 

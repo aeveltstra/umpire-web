@@ -2,7 +2,7 @@
 /**
  * Attempt to match passed-in user credentials to the users table.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.23.1025.2141
+ * @version 2.24.312.1933
  */
 declare(strict_types=1);
 
@@ -48,13 +48,13 @@ if (isset($_POST['email'])) {
     $is_post_received = true;
 }
 $key = null;
-if (isset($_POST['key'])) {
-    $key = $_POST['key'];
+if (isset($_POST['username'])) {
+    $key = $_POST['username'];
     $is_post_received = true;
 }
 $secret = null;
-if (isset($_POST['secret'])) {
-    $secret = $_POST['secret'];
+if (isset($_POST['password'])) {
+    $secret = $_POST['password'];
     $is_post_received = true;
 }
 if(!$is_post_received) {
