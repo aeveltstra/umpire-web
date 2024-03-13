@@ -2,7 +2,7 @@
 /**
  * Manage Entry Forms for Umpire
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0212.0111
+ * @version 2.24.312.2223
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -168,7 +168,7 @@ function show_changed(input_id, response_status) {
         }
     }
 }
-function show_fail(input_id, response) {
+function show_fail(input_id, data) {
     "use strict";
     if (!!input_id) {
         hide_success(input_id);
@@ -177,14 +177,13 @@ function show_fail(input_id, response) {
         if (!!notice) {
             notice.hidden = false;
             notice.title = 'Storing Failed';
-            if (response.body) {
-                response.json(data => {
-                    if (!data.success && !!data.errors) {
-                        data.errors.forEach(err => 
-                            notice.title += '. ' + err
-                        );
-                    }
-                }).catch(console.log);
+            if (data) {
+                if (!data.success && !!data.errors) {
+                    data.errors.forEach(err => 
+                        notice.title += '. ' + err
+                    );
+                }
+                console.log(data);
             }
         }
     }
@@ -209,19 +208,27 @@ function store_form_caption(input, old_caption) {
                 fd.append('new_caption', input.value);
                 fd.append('nonce', '<?php echo $form_nonce; ?>');
                 fetch(
-                    './store_form_caption.php',
+                    './store_form_caption.php?t=' + Date.now(),
                     {
                         method: "POST",
                         body: fd,
-                        cache: "no-cache",
+                        cache: "no-store",
                         mode: "same-origin",
-                        credentials: "omit"
+                        credentials: "include"
                     }
                 ).then((response) => {
                     if (response.ok) {
-                        show_success(id);
+                        response.json().then(data => {
+                            if (data.success) {
+                                show_success(id);
+                            } else {
+                                show_fail(id, data);
+                            }
+                        }).catch(alert);
                     } else {
-                        show_fail(id, response);
+                        response.json().then(data =>
+                            show_fail(id, data)
+                        );
                     }
                 }).catch(alert);
             }
@@ -245,19 +252,27 @@ function store_form_redirect(input, old_value) {
             fd.append('new_value', input.value);
             fd.append('nonce', '<?php echo $form_nonce; ?>');
             fetch(
-                './store_form_redirect.php',
+                './store_form_redirect.php?t=' + Date.now(),
                 {
                     method: "POST",
                     body: fd,
-                    cache: "no-cache",
+                    cache: "no-store",
                     mode: "same-origin",
-                    credentials: "omit"
+                    credentials: "include"
                 }
             ).then((response) => {
                 if (response.ok) {
-                    show_success(id);
+                    response.json().then(data => {
+                        if (data.success) {
+                            show_success(id);
+                        } else {
+                            show_fail(id, data);
+                        }
+                    }).catch(alert);
                 } else {
-                    show_fail(id, response);
+                    response.json().then(data =>
+                        show_fail(id, data)
+                    ).catch(alert);
                 }
             }).catch(alert);
         }
@@ -286,15 +301,23 @@ function store(input, attrib_id, old_value) {
                 {
                     method: "POST",
                     body: fd,
-                    cache: "no-cache",
+                    cache: "no-store",
                     mode: "same-origin",
-                    credentials: "omit"
+                    credentials: "include"
                 }
             ).then((response) => {
                 if (response.ok) {
-                    show_success(attrib_id);
+                    response.json().then(data => {
+                        if (data.success) {
+                            show_success(attrib_id);
+                        } else {
+                            show_fail(attrib_id, data);
+                        }
+                    }).catch(alert);
                 } else {
-                    show_fail(attrib_id, response);
+                    response.json().then(data => 
+                        show_fail(attrib_id, data)
+                    );
                 }
             }).catch(alert);
         }
