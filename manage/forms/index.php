@@ -180,7 +180,7 @@ function show_fail(input_id, data) {
             if (data) {
                 if (!data.success && !!data.errors) {
                     data.errors.forEach(err => 
-                        notice.title += '. ' + err
+                        notice.title += "  \r\n" + err
                     );
                 }
                 console.log(data);
@@ -188,7 +188,58 @@ function show_fail(input_id, data) {
         }
     }
 }
-function store_form_caption(input, old_caption) {
+
+/**
+ * This function hopes to retrieve an older version of a value
+ * based on the identity of the new value's input field.
+ * It expects that the new input field has its ID starting with
+ * 'new_', and looks for a field for the old value that has 
+ * its ID starting with 'old_'. If such a field is found, its
+ * value is returned. Otherwise, null is returned.
+ */
+function get_old_value(id) {
+    "use strict";
+    if (!id || !id.replace) {
+        return null;
+    }
+    const old_id = id.replace('new_', 'old_');
+    if (old_id == id) {
+        return null;
+    }
+    const old_element = document.getElementById(old_id);
+    if (!old_element || !old_element.value) {
+        return null;
+    }
+    return old_element.value;
+}
+
+/**
+ * Attempts to replace the former old field value 
+ * with the new one, to enable repeated updates.
+ * The function assumes the ID of the elements
+ * involved start with 'new_' and 'old_'. If either
+ * can't be found, this function returns false.
+ * If all goes well, it returns true.
+ */
+function set_new_as_old_value(id) {
+    "use strict";
+    if (!id || !id.replace) {
+        return false;
+    }
+    const old_id = id.replace('new_', 'old_');
+    if (old_id == id) {
+        return false;
+    }
+    const new_element = document.getElementById(id);
+    const old_element = document.getElementById(old_id);
+    if (!new_element || !old_element) {
+        return false;
+    }
+    old_element.value = new_element.value;
+    return true;
+}
+
+function store_form_caption(input) {
     "use strict";
     const evt = window.event;
     if (evt && evt.preventDefault) {
@@ -204,7 +255,7 @@ function store_form_caption(input, old_caption) {
                 const fd = new FormData();
                 fd.append('form_id', '<?php echo $form_id_for_show; ?>');
                 fd.append('language', x);
-                fd.append('old_caption', old_caption);
+                fd.append('old_caption', get_old_value(id));
                 fd.append('new_caption', input.value);
                 fd.append('nonce', '<?php echo $form_nonce; ?>');
                 fetch(
@@ -221,6 +272,7 @@ function store_form_caption(input, old_caption) {
                         response.json().then(data => {
                             if (data.success) {
                                 show_success(id);
+                                set_new_as_old_value(id);
                             } else {
                                 show_fail(id, data);
                             }
@@ -236,7 +288,7 @@ function store_form_caption(input, old_caption) {
     }
     return false;
 }
-function store_form_redirect(input, old_value) {
+function store_form_redirect(input) {
     "use strict";
     const evt = window.event;
     if (evt && evt.preventDefault) {
@@ -248,7 +300,7 @@ function store_form_redirect(input, old_value) {
             show_changed(id);
             const fd = new FormData();
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
-            fd.append('old_value', old_value);
+            fd.append('old_value', get_old_value(id));
             fd.append('new_value', input.value);
             fd.append('nonce', '<?php echo $form_nonce; ?>');
             fetch(
@@ -265,6 +317,7 @@ function store_form_redirect(input, old_value) {
                     response.json().then(data => {
                         if (data.success) {
                             show_success(id);
+                            set_new_as_old_value(id);
                         } else {
                             show_fail(id, data);
                         }
@@ -382,8 +435,9 @@ function store(input, attrib_id, old_value) {
                                 maxlength=256 
                                 placeholder='{$c}' 
                                 value='{$c}' 
-                                onchange='store_form_caption(this, \"{$c}\")' />
+                                onchange='store_form_caption(this)' />
                             </label>
+                            <input type=hidden name=old_caption_{$t} id=old_caption_{$t} value=\"{$c}\"/>
                         </td>
                     </tr>
             ";
@@ -415,9 +469,10 @@ function store(input, attrib_id, old_value) {
                             maxlength=512 
                             placeholder='/umpire/subscribe/new/' 
                             value='{$form_redirect_for_input}' 
-                            onchange='store_form_redirect(this, \"{$form_redirect_for_input}\")' 
+                            onchange='store_form_redirect(this)' 
                         />
                         </label>
+                        <input type=hidden name=old_redirect id=old_redirect value=\"{$form_redirect_for_input}\"/>
                     </td>
                 </tr>
             </tbody>

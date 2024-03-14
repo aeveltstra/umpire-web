@@ -3,7 +3,7 @@
  * Save the title Umpire shows when displaying and mentioning
  * an entry form.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.0312.2022
+ * @version 2.24.313.1907
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -150,10 +150,11 @@ if (!empty($form_choice)) {
                   "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {
+                $e2 = addslashes($err);
                 echo '{
                   "success": false,
                   "errors": [
-                    "{$err}"
+                    "{$e2}"
                    ]
                 }';
             }
