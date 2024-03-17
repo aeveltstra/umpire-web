@@ -3,7 +3,7 @@
  * Save the title Umpire shows when displaying and mentioning
  * an entry form.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.313.1907
+ * @version 2.24.317.1410
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -78,10 +78,14 @@ if (!empty($form_choice)) {
     );
     $is_existing_record_found = (count($get_existing_record) > 0);
     if ($is_existing_record_found) {
-        $existing_record_has_old_value = isset($get_existing_record[0][`caption`]);
+        $existing_record_has_old_value = isset(
+            $get_existing_record[0][`caption`]
+        );
         if ($existing_record_has_old_value) {
             $old_value_from_record = $get_existing_record[0][`caption`];
-            $old_values_match = ($old_value_from_record == $old_caption_from_post);
+            $old_values_match = (
+                $old_value_from_record == $old_caption_from_post
+            );
             if ($old_values_match) {
                 try {
                     $result = db_exec(
@@ -115,7 +119,9 @@ if (!empty($form_choice)) {
                 echo '{
                   "success": false,
                   "errors": [
-                    "Match failed on old values. Maybe someone else changed the caption already. Reload the screen to see changes."
+                    "Match failed on old values.",
+                    "Maybe someone else changed the caption already.",
+                    "Reload the screen to see changes."
                    ]
                 }';
             }
@@ -123,7 +129,9 @@ if (!empty($form_choice)) {
             echo '{
               "success": false,
               "errors": [
-                   "Match failed on old values. Maybe someone else changed the caption already. Reload the screen to see changes."
+                   "Match failed on old values.",
+                   "Maybe someone else changed the caption already.",
+                   "Reload the screen to see changes."
                ]
             }';
         } else {
@@ -163,7 +171,8 @@ if (!empty($form_choice)) {
         echo '{
           "success": false,
           "errors": [
-              "Form not found. Return to the overview and load the form from there."
+              "Form not found.",
+              "Return to the overview and load the form from there."
            ]
         }';
     }
