@@ -49,9 +49,11 @@ if (!empty($form_choice)) {
     );
     $is_form_known = (count($get_form_exists) > 0);
     if ($is_form_known) {
-        $form_record_has_url_after_entry = isset($get_form_exists[0][`url_after_entry`]);
+        $form_record_has_url_after_entry = isset($get_form_exists[0][
+            'url_after_entry'
+        ]);
         if ($form_record_has_url_after_entry) {
-            $form_redirect = $get_form_exists[0][`url_after_entry`];
+            $form_redirect = $get_form_exists[0]['url_after_entry'];
         }
     }
     $form_captions = query(
@@ -92,7 +94,11 @@ function show_enums() {
             $last_id = $attribute_id;
         } else if ($last_id != $attribute_id) {
             if ($m) {
-                $n = '<datalist id="list_' . addslashes($last_id) . '"><label>Or choose: <select>' . $m . '</select></label></datalist>';
+                $n = '<datalist id="list_' . 
+                addslashes($last_id) . 
+                '"><label>Or choose: <select>' . 
+                $m . 
+                '</select></label></datalist>';
                 echo $n;
                 echo "\r\n\t";
             }
