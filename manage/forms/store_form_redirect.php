@@ -117,9 +117,9 @@ if (!empty($form_choice)) {
                 echo '{
                   "success": false,
                   "errors": [
-                      "Match failed on old values. 
-                      Maybe someone else changed the form already. 
-                      Reload the screen to see changes."
+                      "Match failed on old values.",
+                      "Maybe someone else changed the form already.", 
+                      "Reload the screen to see changes."
                    ]
                 }';
             }
