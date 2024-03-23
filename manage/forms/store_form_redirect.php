@@ -3,7 +3,7 @@
  * Save the web address to which the Umpire application has to redirect
  * the user after successful form submission.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.317.1345
+ * @version 2.24.323.1541
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -71,11 +71,11 @@ if (!empty($form_choice)) {
     if ($is_form_found) {
         $is_form_known = true;
         $form_record_has_old_value = isset(
-            $get_form_existing_record[0][`url_after_entry`]
+            $get_form_existing_record[0]['url_after_entry']
         );
         if ($form_record_has_old_value) {
             $old_value_from_record = $get_form_existing_record[0][
-                `url_after_entry`
+                'url_after_entry'
             ];
             $old_values_match = (
                 $old_value_from_record == $old_form_redirect_from_post
@@ -97,6 +97,11 @@ if (!empty($form_choice)) {
                     );
                     echo '{
                       "success": true,
+                      "updated": {
+                        "form": "'. $form_choice .'",
+                        "new": "'. $new_form_redirect_from_post .'",
+                        "old": "'. $old_form_redirect_from_post .'"
+                      },
                       "errors": []
                     }';
                 } catch (mysqli_sql_exception $err) {
@@ -118,18 +123,6 @@ if (!empty($form_choice)) {
                    ]
                 }';
             }
-        } else if (!empty($old_form_redirect_from_post)) {
-            echo '{
-              "success": false,
-              "errors": [
-                   "Match failed on old values.", 
-                   "Your value: <' . $old_form_redirect_from_post 
-                   . '>.",
-                   "Stored value: none.",
-                   "Maybe someone else changed the form already.",
-                   "Reload the screen to see changes."
-               ]
-            }';
         } else {
             try {
                 $result = db_exec(
@@ -149,6 +142,10 @@ if (!empty($form_choice)) {
                 );
                 echo '{
                   "success": true,
+                  "set": {
+                    "form": "'. $form_choice .'",
+                    "new": "'. $new_form_redirect_from_post .'"
+                  },
                   "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {

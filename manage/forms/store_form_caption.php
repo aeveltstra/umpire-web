@@ -3,7 +3,7 @@
  * Save the title Umpire shows when displaying and mentioning
  * an entry form.
  * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.317.1410
+ * @version 2.24.323.1541
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -79,10 +79,10 @@ if (!empty($form_choice)) {
     $is_existing_record_found = (count($get_existing_record) > 0);
     if ($is_existing_record_found) {
         $existing_record_has_old_value = isset(
-            $get_existing_record[0][`caption`]
+            $get_existing_record[0]['caption']
         );
         if ($existing_record_has_old_value) {
-            $old_value_from_record = $get_existing_record[0][`caption`];
+            $old_value_from_record = $get_existing_record[0]['caption'];
             $old_values_match = (
                 $old_value_from_record == $old_caption_from_post
             );
@@ -93,18 +93,21 @@ if (!empty($form_choice)) {
                             set `caption` = ?
                             where `language` = ?
                             and `form` = ?
-                            and `caption` = ?
                         ',
-                        'ssss',
+                        'sss',
                         [
                             $new_caption_from_post,
                             $caption_language,
-                            $form_choice,
-                            $old_caption_from_post
+                            $form_choice
                         ]
                     );
                     echo '{
                       "success": true,
+                      "update": {
+                        "language": "'. $caption_language .'",
+                        "form": "'. $form_choice .'",
+                        "new": "'. $new_caption_from_post .'"
+                      },
                       "errors": []
                     }';
                 } catch (mysqli_sql_exception $err) {
@@ -125,15 +128,6 @@ if (!empty($form_choice)) {
                    ]
                 }';
             }
-        } else if (!empty($old_value_from_record)) {
-            echo '{
-              "success": false,
-              "errors": [
-                   "Match failed on old values.",
-                   "Maybe someone else changed the caption already.",
-                   "Reload the screen to see changes."
-               ]
-            }';
         } else {
             try {
                 $result = db_exec(
@@ -155,6 +149,11 @@ if (!empty($form_choice)) {
                 );
                 echo '{
                   "success": true,
+                  "set": {
+                    "language": "'. $caption_language .'",
+                    "form": "'. $form_choice .'",
+                    "new": "'. $new_caption_from_post .'"
+                  },
                   "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {
