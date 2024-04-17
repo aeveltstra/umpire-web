@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Request new credentials to access Umpire
  * Step 3: send reset to email of known user.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.909.2234
  */
 

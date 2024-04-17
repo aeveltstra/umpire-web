@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Request new credentials to access Umpire
  * Step 2: check whether the passed-in email is a known user,
  * and if so, set a temporary reset key.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.909.2224
  */
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Management menu for Umpire
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1107.2106
  */
 declare(strict_types=1);

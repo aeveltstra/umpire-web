@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /**
  * Request access to Umpire
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1025.2245
  */
 ini_set('display_errors', '1');

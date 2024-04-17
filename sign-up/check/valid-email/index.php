@@ -3,7 +3,7 @@
  * Request credentials to access Umpire.
  * Step 2: check whether the passed-in email is a known user,
  * and if not, create a new user record and send out an email.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1025.2337
  */
  error_reporting(E_ALL);

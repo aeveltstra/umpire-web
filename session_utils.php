@@ -1,7 +1,7 @@
 <?php
 /**
  * Helper functions for handling sessions.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.310.1608
  */
 

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /**
  * Shows the sign-up form.
- * @author A.E.Veltstra for OmegaJunior Consultancy, LLC
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>, LLC
  * @version 2.24.312.1932
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';

@@ -1,7 +1,7 @@
 <?php
 /**
  * Approve and reject access for multiple users at a time.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1106.2035
  */
 declare(strict_types=1);

@@ -2,7 +2,7 @@
 /**
  * Request credentials to access Umpire
  * Step 3: send the access request to the admin.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.0202.0907
  */
  error_reporting(E_ALL);

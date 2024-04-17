@@ -2,7 +2,7 @@
 /**
  * Save the web address to which the Umpire application has to redirect
  * the user after successful form submission.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.323.1541
  */
 declare(strict_types=1);
@@ -47,6 +47,19 @@ if (isset($_POST['nonce'])) {
 $form_choice = '';
 if (isset($_POST['form_id'])) {
     $form_choice = $_POST['form_id'];
+}
+
+if (!$posted_form_nonce 
+    || (!$session_form_nonce==$posted_form_nonce) 
+    || !session_is_nonce_valid('manage_entry_form')
+) {
+    echo '{
+        "success": false,
+        "errors": [
+            "Failed to validate form. Please reload."
+        ]
+    }';
+    die();
 }
 
 $old_form_redirect_from_post = '';

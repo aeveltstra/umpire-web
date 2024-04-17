@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /**
  * Shows the form with applications for special access.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1104.1347
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';

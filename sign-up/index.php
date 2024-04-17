@@ -1,7 +1,7 @@
 <?php
 /**
  * Account creation form.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1024.2214
  */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';

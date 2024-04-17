@@ -1,10 +1,9 @@
 <?php
 /**
- * Save the title Umpire shows when displaying and mentioning
- * an entry form.
- *
+ * Save the field properties for an Umpireform.
+ * the user after successful form submission.
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.323.1541
+ * @version 2.24.413.1657
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -12,8 +11,8 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 if (!session_did_user_authenticate()) {
     echo '{
@@ -63,72 +62,67 @@ if (!$posted_form_nonce
     die();
 }
 
-$old_caption_from_post = '';
-if (isset($_POST['old_caption'])) {
-    $old_caption_from_post = $_POST['old_caption'];
+$old_form_redirect_from_post = '';
+if (isset($_POST['old_redirect'])) {
+    $old_form_redirect_from_post = $_POST['old_redirect'];
 }
 
-$new_caption_from_post = '';
-if (isset($_POST['new_caption'])) {
-    $new_caption_from_post = $_POST['new_caption'];
-}
-
-$caption_language = '';
-if (isset($_POST['language'])) {
-    $caption_language = $_POST['language'];
+$new_form_redirect_from_post = '';
+if (isset($_POST['new_redirect'])) {
+    $new_form_redirect_from_post = $_POST['new_redirect'];
 }
 
 if (!empty($form_choice)) {
-    $get_existing_record = query(
-        'select `caption` 
-            from `form_caption_translations` 
-            where `language` = ?
-            and `form` = ?',
-        'ss',
-        [
-            $caption_language,
-            $form_choice
-        ]
+    $get_form_existing_record = query(
+        'select `id`, `url_after_entry` 
+            from `forms` 
+            where `id` = ?',
+        's',
+        [$form_choice]
     );
-    $is_existing_record_found = (count($get_existing_record) > 0);
-    if ($is_existing_record_found) {
-        $existing_record_has_old_value = isset(
-            $get_existing_record[0]['caption']
+    $is_form_found = (count($get_form_existing_record) > 0);
+    if ($is_form_found) {
+        $is_form_known = true;
+        $form_record_has_old_value = isset(
+            $get_form_existing_record[0]['url_after_entry']
         );
-        if ($existing_record_has_old_value) {
-            $old_value_from_record = $get_existing_record[0]['caption'];
+        if ($form_record_has_old_value) {
+            $old_value_from_record = $get_form_existing_record[0][
+                'url_after_entry'
+            ];
             $old_values_match = (
-                $old_value_from_record == $old_caption_from_post
+                $old_value_from_record == $old_form_redirect_from_post
             );
             if ($old_values_match) {
                 try {
                     $result = db_exec(
-                        'update `form_caption_translations` 
-                            set `caption` = ?
-                            where `language` = ?
-                            and `form` = ?
+                        'update `forms` 
+                            set `url_after_entry` = ?
+                            where `id` = ?
+                            and `url_after_entry` = ?
                         ',
                         'sss',
                         [
-                            $new_caption_from_post,
-                            $caption_language,
-                            $form_choice
+                            $new_form_redirect_from_post,
+                            $form_choice,
+                            $old_value_from_record
                         ]
                     );
                     echo '{
                       "success": true,
-                      "update": {
-                        "language": "'. $caption_language .'",
+                      "updated": {
                         "form": "'. $form_choice .'",
-                        "new": "'. $new_caption_from_post .'"
+                        "new": "'. $new_form_redirect_from_post .'",
+                        "old": "'. $old_form_redirect_from_post .'"
                       },
                       "errors": []
                     }';
                 } catch (mysqli_sql_exception $err) {
+                    $e2 = addslashes($err);
                     echo '{
                       "success": false,
                       "errors": [
-                        "{$err}"
+                        "{$e2}"
                        ]
                     }';
                 }
@@ -136,37 +130,34 @@ if (!empty($form_choice)) {
                 echo '{
                   "success": false,
                   "errors": [
-                    "Match failed on old values.",
-                    "Maybe someone else changed the caption already.",
-                    "Reload the screen to see changes."
+                      "Match failed on old values.",
+                      "Maybe someone else changed the form already.", 
+                      "Reload the screen to see changes."
                    ]
                 }';
             }
         } else {
             try {
                 $result = db_exec(
-                    'update `form_caption_translations` 
-                        set `caption` = ?
-                        where `language` = ?
-                        and `form` = ?
+                    'update `forms` 
+                        set `url_after_entry` = ?
+                        where `id` = ?
                         and (
-                            `caption` is null
-                            or `caption` = \'\'
+                            `url_after_entry` is null
+                            or `url_after_entry` = \'\'
                         )
                     ',
-                    'sss',
+                    'ss',
                     [
-                        $new_caption_from_post,
-                        $caption_language,
+                        $new_form_redirect_from_post,
                         $form_choice
                     ]
                 );
                 echo '{
                   "success": true,
                   "set": {
-                    "language": "'. $caption_language .'",
                     "form": "'. $form_choice .'",
-                    "new": "'. $new_caption_from_post .'"
+                    "new": "'. $new_form_redirect_from_post .'"
                   },
                   "errors": []
                 }';

@@ -4,7 +4,7 @@
  * Has a few abstractions for running custom queries, also defines a few 
  * standard queries expected to be used often.
  * 
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.310.2053
  */
 declare(strict_types=1);

@@ -1,7 +1,7 @@
 <?php
 /**
  * Attempt to match passed-in user credentials to the users table.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.312.1933
  */
 declare(strict_types=1);

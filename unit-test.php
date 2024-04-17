@@ -4,7 +4,7 @@
  *  outside of their normal application. This allows us to fine-
  *  tune their working without interfering with the regular flow
  *  of the programs.
- *  @author A.E.Veltstra for OmegaJunior Consultancy,
+ *  @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>,
 		LLC
  *  @version 2.23.1227.2133
  */

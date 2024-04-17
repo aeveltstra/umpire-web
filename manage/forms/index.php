@@ -1,16 +1,17 @@
 <?php
 /**
  * Manage Entry Forms for Umpire
- * @author A.E.Veltstra for OmegaJunior Consultancy
- * @version 2.24.312.2223
+ *
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version 2.24.324.1807
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 if (!session_did_user_authenticate()) {
     session_remember('return_to', '/umpire/manage/forms/');
@@ -49,9 +50,11 @@ if (!empty($form_choice)) {
     );
     $is_form_known = (count($get_form_exists) > 0);
     if ($is_form_known) {
-        $form_record_has_url_after_entry = isset($get_form_exists[0][
+        $form_record_has_url_after_entry = isset(
+            $get_form_exists[0][
             'url_after_entry'
-        ]);
+            ]
+        );
         if ($form_record_has_url_after_entry) {
             $form_redirect = $get_form_exists[0]['url_after_entry'];
         }
@@ -77,15 +80,21 @@ if (!empty($form_choice)) {
     }
 }
 
-
-function show_enums() {
+/**
+ * Displays enumerated values as HTML data lists, so they can become the
+ * accepted input for text input fields.
+ * 
+ * @return nothing
+ */
+function show_enums()
+{
     $xs = db_read_enumerations('en');
     if (!is_array($xs)) {
         return;
     }
     $last_id = '';
     $m = '';
-    foreach($xs as list(
+    foreach ($xs as list(
         'attribute_id' => $attribute_id,
         'enum_value' => $enum_value,
         'caption' => $caption
@@ -306,8 +315,8 @@ function store_form_redirect(input) {
             show_changed(id);
             const fd = new FormData();
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
-            fd.append('old_value', get_old_value(id));
-            fd.append('new_value', input.value);
+            fd.append('old_redirect', get_old_value(id));
+            fd.append('new_redirect', input.value);
             fd.append('nonce', '<?php echo $form_nonce; ?>');
             fetch(
                 './store_form_redirect.php?t=' + Date.now(),
@@ -388,28 +397,28 @@ function store(input, attrib_id, old_value) {
 <body>
     <h1>Manage Umpire Entry Forms</h1>
 <?php
-    if (!$is_form_known) {
-        echo '<h2>Choose which form to edit:</h2><ul>';
-        $rows = query(
-            'select `form`, `caption` 
+if (!$is_form_known) {
+    echo '<h2>Choose which form to edit:</h2><ul>';
+    $rows = query(
+        'select `form`, `caption` 
                 from `form_caption_translations` 
                 where `language` = \'en\''
-        );
+    );
 
-        foreach($rows as $row) {
-            $id_for_show = htmlspecialchars(
-                $row['form'], ENT_QUOTES
-            );
-            $caption_for_show = htmlspecialchars(
-                $row['caption'], ENT_QUOTES
-            );
-            echo "<li><a href='?id={$id_for_show}'>{$caption_for_show}</a></li>";
-        }
-        echo '</ul>';
-    } else {
-        $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
-        $form_redirect_for_input = htmlspecialchars($form_redirect, ENT_QUOTES);
-        echo "
+    foreach ($rows as $row) {
+        $id_for_show = htmlspecialchars(
+            $row['form'], ENT_QUOTES
+        );
+        $caption_for_show = htmlspecialchars(
+            $row['caption'], ENT_QUOTES
+        );
+        echo "<li><a href='?id={$id_for_show}'>{$caption_for_show}</a></li>";
+    }
+    echo '</ul>';
+} else {
+    $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
+    $form_redirect_for_input = htmlspecialchars($form_redirect, ENT_QUOTES);
+    echo "
     <h2>Form being edited: {$form_caption_for_show}.</h2>
     <section>
         <h3>Change Form Captions</h3>
@@ -423,158 +432,226 @@ function store(input, attrib_id, old_value) {
                 </tr>
             </thead>
             <tbody>";
-        foreach ($form_captions as $translation) {
-            $c = htmlspecialchars($translation['caption'], ENT_QUOTES);
-            $t = htmlspecialchars($translation['language'], ENT_QUOTES);
-            echo "
-                    <tr>
-                        <td>
-                            <span hidden class=changed id=changed_new_caption_{$t} title='Changed'>&hellip;</span>
-                            <span hidden class=failed id=failed_new_caption_{$t} title='Storing failed'>&otimes;</span>
-                            <span hidden class=succeeded id=succeeded_new_caption_{$t} title='Stored successfully'>&radic;</span>
-                        </td>
-                        <th>{$t}</th>
-                        <td>
-                            <label for=new_caption_{$t}>
-                            <input type=text name=new_caption_{$t} id=new_caption_{$t} 
-                                size=60 
-                                maxlength=256 
-                                placeholder='{$c}' 
-                                value='{$c}' 
-                                onchange='store_form_caption(this)' />
-                            </label>
-                            <input type=hidden name=old_caption_{$t} id=old_caption_{$t} value=\"{$c}\"/>
-                        </td>
-                    </tr>
-            ";
-        }
+    foreach ($form_captions as $translation) {
+        $c = htmlspecialchars($translation['caption'], ENT_QUOTES);
+        $t = htmlspecialchars($translation['language'], ENT_QUOTES);
         echo "
-        </tbody></table></fieldset></form>
-    </section>
-    <section>
-        <h3>Redirect After Entry</h3>
-        <form><fieldset><legend>Which web page to show after successful form submission?</legend>
-        <table>
-            <thead>
-                <tr>
-                    <th>&nbsp;&nbsp;</th>
-                    <th>Web address</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <span hidden class=changed id=changed_new_redirect title='Changed'>&hellip;</span>
-                        <span hidden class=failed id=failed_new_redirect title='Storing failed'>&otimes;</span>
-                        <span hidden class=succeeded id=succeeded_new_redirect title='Stored successfully'>&radic;</span>
-                    </td>
-                    <td>
-                        <label for=new_redirect>
-                        <input type=text name=new_redirect id=new_redirect 
-                            size=60 
-                            maxlength=512 
-                            placeholder='/umpire/subscribe/new/' 
-                            value='{$form_redirect_for_input}' 
-                            onchange='store_form_redirect(this)' 
-                        />
-                        </label>
-                        <input type=hidden name=old_redirect id=old_redirect value=\"{$form_redirect_for_input}\"/>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        </fieldset></form>
-    </section>
-    <section>
-    <form id='attributes_for_form'>";
+<tr>
+    <td>
+        <span hidden class=changed 
+        id=changed_new_caption_{$t} 
+        title='Changed'>&hellip;</span>
+        <span hidden class=failed 
+        id=failed_new_caption_{$t} 
+        title='Storing failed'>&otimes;</span>
+        <span hidden class=succeeded 
+        id=succeeded_new_caption_{$t} 
+        title='Stored successfully'>&radic;</span>
+    </td>
+    <th>{$t}</th>
+    <td>
+        <label for=new_caption_{$t}>
+        <input type=text 
+            name=new_caption_{$t} 
+            id=new_caption_{$t} 
+            size=60 
+            maxlength=256 
+            placeholder='{$c}' 
+            value='{$c}' 
+            onchange='store_form_caption(this)' />
+        </label>
+        <input type=hidden 
+        name=old_caption_{$t} 
+        id=old_caption_{$t} 
+        value=\"{$c}\"/>
+    </td>
+</tr>
+            ";
+    }
+    echo "
+    </tbody></table></fieldset></form>
+</section>
+<section>
+    <h3>Redirect After Entry</h3>
+    <form><fieldset><legend>Which web page to show after successful 
+        form submission?</legend>
+    <table>
+        <thead>
+            <tr>
+                <th>&nbsp;&nbsp;</th>
+                <th>Web address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <span hidden class=changed 
+                    id=changed_new_redirect 
+                    title='Changed'>&hellip;</span>
+                    <span hidden class=failed 
+                    id=failed_new_redirect 
+                    title='Storing failed'>&otimes;</span>
+                    <span hidden class=succeeded 
+                    id=succeeded_new_redirect 
+                    title='Stored successfully'>&radic;</span>
+                </td>
+                <td>
+                    <label for=new_redirect>
+                    <input type=text 
+                        name=new_redirect 
+                        id=new_redirect 
+                        size=60 
+                        maxlength=512 
+                        placeholder='/umpire/subscribe/new/' 
+                        value='{$form_redirect_for_input}' 
+                        onchange='store_form_redirect(this)' 
+                    />
+                    </label>
+                    <input type=hidden 
+                    name=old_redirect 
+                    id=old_redirect 
+                    value=\"{$form_redirect_for_input}\"/>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </fieldset></form>
+</section>
+<section>
+<form id='attributes_for_form'>";
 
     show_enums();
 
-    echo "<fieldset><legend>These attributes are assigned currently:</legend>
+    echo "
+<fieldset><legend>These attributes are assigned currently:</legend>
 
-    <table>
-    <thead>
-        <tr>
-            <th>&nbsp;&nbsp;</th>
-            <th>Display Sequence</th>
-            <th>Identity</th>
-            <th>Data Type</th>
-            <th>Minimum</th>
-            <th>Maximum</th>
-            <th>Default Value</th>
-            <th>Write Once</th>
-            <th>Hide on Entry</th>
-        </tr>
-    </thead>
-    <tbody>
-              ";
-        $xs = query(
-            'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
+<table>
+<thead>
+    <tr>
+        <th>&nbsp;&nbsp;</th>
+        <th>Display Sequence</th>
+        <th>Identity</th>
+        <th>Data Type</th>
+        <th>Minimum</th>
+        <th>Maximum</th>
+        <th>Default Value</th>
+        <th>Write Once</th>
+        <th>Hide on Entry</th>
+    </tr>
+</thead>
+<tbody>
+            ";
+    $xs = query(
+        'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
                 from `form_attributes` as `fa` 
                 inner join `attributes` as `a` 
                 on `a`.`id` = `fa`.`attribute` 
                 where `fa`.`form` = ? 
                 order by `fa`.`display_sequence`', 
-            's', 
-            [$form_choice]
+        's', 
+        [$form_choice]
+    );
+    $dt_options = '';
+    $dts = [
+        'date',
+        'email',
+        'enum',
+        'image',
+        'integer',
+        'location',
+        'longtext', 
+        'percent',
+        'shorttext', 
+        'time'
+    ];
+    foreach ($dts as $dt) {
+        $dt_options .= "<option>{$dt}</option>";
+    }
+    foreach ($xs as $x) {
+        $display_seq   = $x['display_sequence'];
+        $attrib_id     = htmlspecialchars($x['id'],        ENT_QUOTES);
+        $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
+        $min           = $x['min'];
+        $max           = $x['max'];
+        $default       = htmlspecialchars($x['default'],   ENT_QUOTES);
+        $is_write_once = (
+            (1 == $x['is_write_once']) 
+            ? 'checked=checked' 
+            : ''
         );
-        $dt_options = '';
-        $dts = [
-            'date',
-            'email',
-            'enum',
-            'image',
-            'integer',
-            'location',
-            'longtext', 
-            'percent',
-            'shorttext', 
-            'time'
-        ];
-        foreach($dts as $dt) {
-            $dt_options .= "<option>{$dt}</option>";
+        $hide_on_entry = (
+            (1 == $x['hide_on_entry']) 
+            ? 'checked=checked' 
+            : ''
+        );
+        $enum_list = '';
+        if ($x['data_type'] == 'enum') {
+            $enum_list = 'role="listbox" 
+            aria-required="true" 
+            aria-autocomplete="list" 
+            aria-controls="list_' . $attrib_id . '" 
+            list="list_' . $attrib_id . '"';
         }
-        foreach($xs as $x) {
-            $display_seq   = $x['display_sequence'];
-            $attrib_id     = htmlspecialchars($x['id'],        ENT_QUOTES);
-            $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
-            $min           = $x['min'];
-            $max           = $x['max'];
-            $default       = htmlspecialchars($x['default'],   ENT_QUOTES);
-            $is_write_once = ((1 == $x['is_write_once']) ? 'checked=checked' : '');
-            $hide_on_entry = ((1 == $x['hide_on_entry']) ? 'checked=checked' : '');
-            $enum_list = '';
-            if ($x['data_type'] == 'enum') {
-                $enum_list = 'role="listbox" aria-required="true" aria-autocomplete="list" aria-controls="list_' . $attrib_id . '" list="list_' . $attrib_id . '"';
-            }
-            echo "
+        echo "
         <tr>
             <td>
-                <span hidden class=changed id=changed_{$attrib_id} title='Changed'>&hellip;</span>
-                <span hidden class=failed id=failed_{$attrib_id} title='Storing failed'>&otimes;</span>
-                <span hidden class=succeeded id=succeeded_{$attrib_id} title='Stored successfully'>&radic;</span>
+                <span hidden class=changed 
+                id=changed_{$attrib_id} 
+                title='Changed'>&hellip;</span>
+                <span hidden class=failed 
+                id=failed_{$attrib_id} 
+                title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded 
+                id=succeeded_{$attrib_id} 
+                title='Stored successfully'>&radic;</span>
             </td>
             <th>{$display_seq}</th>
             <td>{$attrib_id}</td>
-            <td>
-                <select name=data_type id=data_type onchange='store(this, \"{$attrib_id}\", \"{$data_type}\")'>
-                    <optgroup label='Currently Stored'>
+            <td><select 
+                name=data_type 
+                id=data_type 
+                onchange='store(this, \"{$attrib_id}\", \"{$data_type}\")'>
+                <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
-                    </optgroup>
-                    <optgroup label='Options'>
+                </optgroup>
+                <optgroup label='Options'>
                     {$dt_options}
-                    </optgroup>
-                </select>
-            </td>
-            <td><input type=number name=min_{$attrib_id} id=min_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$min}\")' value='{$min}'/></td>
-            <td><input type=number name=max_{$attrib_id} id=max_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$max}\")' value='{$max}'/></td>
-            <td><input type=text name=default_{$attrib_id} id=default_{$attrib_id} onchange='store(this, \"{$attrib_id}\", \"{$default}\")' value='{$default}' {$enum_list} /></td>
-            <td><input type=checkbox name=is_write_once_{$attrib_id} id=is_write_once_{$attrib_id} {$is_write_once} onchange='store(this, \"{$attrib_id}\", \"{$x['is_write_once']}\")' /></td>
-            <td><input type=checkbox name=hide_on_entry_{$attrib_id} id=hide_on_entry_{$attrib_id} {$hide_on_entry} onchange='store(this, \"{$attrib_id}\", \"{$x['hide_on_entry']}\")' /></td>
+                </optgroup>
+            </select></td>
+            <td><input type=number 
+                name=min_{$attrib_id} 
+                id=min_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\", \"{$min}\")'
+                value='{$min}'
+            /></td>
+            <td><input type=number 
+                name=max_{$attrib_id} 
+                id=max_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\", \"{$max}\")' 
+                value='{$max}'
+            /></td>
+            <td><input type=text 
+                name=default_{$attrib_id} 
+                id=default_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\", \"{$default}\")' 
+                value='{$default}' {$enum_list} 
+            /></td>
+            <td><input type=checkbox 
+                name=is_write_once_{$attrib_id} 
+                id=is_write_once_{$attrib_id} 
+                {$is_write_once} 
+                onchange='store(this, \"{$attrib_id}\", \"{$x['is_write_once']}\")'
+            /></td>
+            <td><input type=checkbox 
+                name=hide_on_entry_{$attrib_id} 
+                id=hide_on_entry_{$attrib_id} 
+                {$hide_on_entry} 
+                onchange='store(this, \"{$attrib_id}\", \"{$x['hide_on_entry']}\")' 
+            /></td>
         </tr>
     ";
-        }
     }
+}
 ?>
     </tbody></table></fieldset></form>
 </body>

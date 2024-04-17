@@ -1,7 +1,7 @@
 <?php
 /**
  * Deny access to a user who has requested it.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1015.1816
  */
 declare(strict_types=1);

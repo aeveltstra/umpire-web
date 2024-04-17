@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Request new credentials to access Umpire
  * Step 1: check whether the passed-in email is considered valid.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.909.2224
  */
 

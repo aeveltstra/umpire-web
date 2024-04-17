@@ -2,7 +2,7 @@
 /**
  * Conveys that the user signed in successfully, and offers next
  * actions.
- * @author A.E.Veltstra for OmegaJunior Consultancy
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.0202.1143
  */
 declare(strict_types=1);
