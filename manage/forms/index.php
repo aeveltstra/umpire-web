@@ -608,8 +608,8 @@ if (!$is_form_known) {
             <th>{$display_seq}</th>
             <td>{$attrib_id}</td>
             <td><select 
-                name=data_type 
-                id=data_type 
+                name=data_type_{$attrib_id}
+                id=data_type_{$attrib_id}
                 onchange='store(this, \"{$attrib_id}\", \"{$data_type}\")'>
                 <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
