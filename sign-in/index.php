@@ -5,8 +5,10 @@ declare(strict_types=1);
  * 
  * PHP Version 7.5.3.
  * 
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.312.1932
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.312.1932
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $did_authenticate = session_did_user_authenticate();
