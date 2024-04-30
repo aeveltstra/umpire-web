@@ -667,13 +667,22 @@ function db_add_user(string $hashed_candidate): ?array
  */
 function db_get_next_after_form_entry_success(string $form_id): ?string
 {
-    if (!$form_id) { return null; 
+    if (!$form_id) { 
+        return null; 
     }
     $sql = 'select `url_after_entry` from `forms` where `id` = ?';
     $result = query($sql, 's', [$form_id]);
     if (count($result) > 0) {
         return $result[0]['url_after_entry'];
     }
+    return null;
+}
+
+/**
+ * 
+ */
+function db_make_authentication_reset_key(string $user_email): ?string
+{
     return null;
 }
 
