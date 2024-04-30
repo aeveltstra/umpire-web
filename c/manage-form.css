@@ -24,7 +24,7 @@
    }
 }
 
-
+section{margin-top:2.5em}
 table{background-color:var(--manage-form-table-bg);border-radius:5pt}
 th,td{padding:4pt;text-align:left;vertical-align:bottom}
 input,select{min-width:7em;width:100%}

@@ -1,9 +1,11 @@
 <?php
 /**
  * Manage Entry Forms for Umpire
+ * 
+ * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.324.1807
+ * @version 2.24.429.1737
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -130,7 +132,7 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="/umpire/c/main.css"/>
-<link rel=stylesheet href="/umpire/c/manage-form.css"/>
+<link rel=stylesheet href="/umpire/c/manage-form.css?2.24.429.1737"/>
 <script type="text/javascript">/* <![CDATA[ */
 
 function hide_changed(input_id) {
@@ -347,7 +349,7 @@ function store_form_redirect(input) {
     }
     return false;
 }
-function store(input, attrib_id, old_value) {
+function store(input, attrib_id) {
     "use strict";
     const evt = window.event;
     if (evt && evt.preventDefault) {
@@ -361,7 +363,7 @@ function store(input, attrib_id, old_value) {
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
             fd.append('attribute', attrib_id);
             fd.append('property', property);
-            fd.append('old_value', old_value);
+            fd.append('old_value', get_old_value(property));
             fd.append('new_value', input.value);
             fd.append('nonce', '<?php echo $form_nonce; ?>');
             fetch(
@@ -377,6 +379,7 @@ function store(input, attrib_id, old_value) {
                 if (response.ok) {
                     response.json().then(data => {
                         if (data.success) {
+                            set_new_as_old_value(attrib_id);
                             show_success(attrib_id);
                         } else {
                             show_fail(attrib_id, data);
@@ -419,7 +422,8 @@ if (!$is_form_known) {
     $form_caption_for_show = htmlspecialchars($form_caption, ENT_QUOTES);
     $form_redirect_for_input = htmlspecialchars($form_redirect, ENT_QUOTES);
     echo "
-    <h2>Form being edited: {$form_caption_for_show}.</h2>
+    <h2>Form being edited: <q>{$form_caption_for_show}</q>.</h2>
+    <p>Note: changes happen immediately after leaving a field.</p>
     <section>
         <h3>Change Form Captions</h3>
         <form><fieldset><legend>Each language has its own caption:</legend>
@@ -473,6 +477,8 @@ if (!$is_form_known) {
 </section>
 <section>
     <h3>Redirect After Entry</h3>
+    <p>Leave empty to show a generic receipt.</p>
+    <p>Make sure the page to show actually exists.</p>
     <form><fieldset><legend>Which web page to show after successful 
         form submission?</legend>
     <table>
@@ -523,8 +529,11 @@ if (!$is_form_known) {
     show_enums();
 
     echo "
-<fieldset><legend>These attributes are assigned currently:</legend>
-
+<h3>Change Form Fields</h3>
+<p>Note: fields are shared among forms. Changing one will 
+change it on all forms. The exception is Display Sequence: that is 
+applied to each form separately.</p>
+<fieldset><legend>These fields are assigned currently.</legend>
 <table>
 <thead>
     <tr>
@@ -608,45 +617,70 @@ if (!$is_form_known) {
             <th>{$display_seq}</th>
             <td>{$attrib_id}</td>
             <td><select 
-                name=data_type_{$attrib_id}
-                id=data_type_{$attrib_id}
-                onchange='store(this, \"{$attrib_id}\", \"{$data_type}\")'>
+                name=new_data_type_{$attrib_id}
+                id=new_data_type_{$attrib_id}
+                onchange='store(this, \"{$attrib_id}\")'>
                 <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
                 </optgroup>
                 <optgroup label='Options'>
                     {$dt_options}
                 </optgroup>
-            </select></td>
-            <td><input type=number 
-                name=min_{$attrib_id} 
-                id=min_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\", \"{$min}\")'
-                value='{$min}'
+            </select>
+            <input type=hidden 
+                name=old_data_type_{$attrib_id}
+                id=old_data_type_{$attrib_id}
+                value=\"{$data_type}\"
             /></td>
             <td><input type=number 
-                name=max_{$attrib_id} 
-                id=max_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\", \"{$max}\")' 
+                name=new_min_{$attrib_id} 
+                id=new_min_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")'
+                value='{$min}'
+            /><input type=hidden 
+                name=old_min_{$attrib_id}
+                id=old_min_{$attrib_id}
+                value=\"{$min}\"
+            /></td>
+            <td><input type=number 
+                name=new_max_{$attrib_id} 
+                id=new_max_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")' 
                 value='{$max}'
+            /><input type=hidden 
+                name=old_max_{$attrib_id}
+                id=old_max_{$attrib_id}
+                value=\"{$max}\"
             /></td>
             <td><input type=text 
-                name=default_{$attrib_id} 
-                id=default_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\", \"{$default}\")' 
+                name=new_default_{$attrib_id} 
+                id=new_default_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")' 
                 value='{$default}' {$enum_list} 
+            /><input type=hidden 
+                name=old_default_{$attrib_id}
+                id=old_default_{$attrib_id}
+                value=\"{$default}\"
             /></td>
             <td><input type=checkbox 
-                name=is_write_once_{$attrib_id} 
-                id=is_write_once_{$attrib_id} 
+                name=new_is_write_once_{$attrib_id} 
+                id=new_is_write_once_{$attrib_id} 
                 {$is_write_once} 
-                onchange='store(this, \"{$attrib_id}\", \"{$x['is_write_once']}\")'
+                onchange='store(this, \"{$attrib_id}\")'
+            /><input type=hidden 
+                name=old_is_write_once_{$attrib_id} 
+                id=old_is_write_once_{$attrib_id} 
+                {$is_write_once} 
             /></td>
             <td><input type=checkbox 
-                name=hide_on_entry_{$attrib_id} 
-                id=hide_on_entry_{$attrib_id} 
+                name=new_hide_on_entry_{$attrib_id} 
+                id=new_hide_on_entry_{$attrib_id} 
                 {$hide_on_entry} 
-                onchange='store(this, \"{$attrib_id}\", \"{$x['hide_on_entry']}\")' 
+                onchange='store(this, \"{$attrib_id}\")' 
+            /><input type=hidden 
+                name=old_hide_on_entry_{$attrib_id} 
+                id=old_hide_on_entry_{$attrib_id} 
+                {$hide_on_entry} 
             /></td>
         </tr>
     ";
