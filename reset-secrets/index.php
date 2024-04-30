@@ -11,7 +11,6 @@ declare(strict_types=1);
  * @version  2.24.430.1939
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-$did_authenticate = session_did_user_authenticate();
 $form_nonce = session_make_and_remember_nonce(
     'authentication_reset_form'
 );
