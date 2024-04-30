@@ -4,28 +4,32 @@
  * Has a few abstractions for running custom queries, also defines a few 
  * standard queries expected to be used often.
  * 
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.310.2053
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.310.2053
  */
 declare(strict_types=1);
  
 /* config.php provides the connect_db() function. */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
 mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
 
 /**
  * Runs an sql query on the database and returns the result as single value.
  *
- * Parameters:
- * - sql: should be the structured query statement to run.
- *        Note: the underlying database is MySQL, using the InnoDb storage 
- *        engine. Use the MySQL dialect. Craft the statement to return a 
- *        single value. Otherwise, expect errors and crashes.
+ * @param $sql should be the structured query statement to run.
+ *             Note: the underlying database is MySQL, using the InnoDb 
+ *             storage engine. Use the MySQL dialect. Craft the statement
+ *             to return a single value. Otherwise, expect errors and 
+ *             crashes.
  *
- * Returns:
- * The only value that the SQL statement can return.
+ * @return The only value that the SQL statement can return.
  */
-function scalar(?string $sql) {
+function scalar(?string $sql)
+{
     if (empty($sql)) {
         return null;
     }
@@ -43,26 +47,33 @@ function scalar(?string $sql) {
  * dicts. Each row in the list is a row in the query's resultset. Field 
  * names are used as dict names.
  *
- * Parameters:
- * - sql: should be the structured query statement to run.
- *        Note: the underlying database is MySQL, using the InnoDb storage 
- *        engine. Use the MySQL dialect.
+ * @param $sql   should be the structured query statement to run.
+ *               Note: the underlying database is MySQL, using the InnoDb 
+ *               storage engine. Use the MySQL dialect.
+ * @param $types should be the SQL data types specified in the way
+ *               expected by mysqli.bind_param(), as a literal string 
+ *               with single-character data type indicators. Use if $sql
+ *               contains ?-parameters, otherwise omit.
+ * @param $vals  should be the values passed into mysqli.bind_param(),
+ *               to supply for the ?-parameters specified in $sql. If 
+ *               none supplied, omit.
  *
- * Returns:
- * Either null, or a list of tuples (associative array). Each tuple is a row
- * of the query result, with the keys of its  key-value pairs named after 
- * the field names specified in the SQL statement.
+ * @return Either null, or a list of tuples (associative array). Each 
+ *         tuple is a row of the query result, with the keys of its key-
+ *         value pairs named after the field names specified in the SQL 
+ *         statement.
  */
-function query(?string $sql, ?string $param_types = null, ?array $params = null): ?array {
+function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
+{
     if (empty($sql)) {
         return null;
     }
-    if (empty($param_types) || empty($params)) {
+    if (empty($types) || empty($vals)) {
         $mysqli = connect_db();
         $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-    return db_exec($sql, $param_types, $params);
+    return db_exec($sql, $types, $vals);
 }
 
 /**
@@ -89,15 +100,16 @@ function query(?string $sql, ?string $param_types = null, ?array $params = null)
  * is a row of the query result, with the keys of its key-value pairs named 
  * after the field names specified in the SQL statement.
  */
-function db_exec(?string $dml, ?string $param_types = null, ?array $params = null): array {
+function db_exec(?string $dml, ?string $types = null, ?array $params = null): array
+{
     if (empty($dml)) {
         return [];
     }
     $mysqli = connect_db();
     $ps = $mysqli->prepare($dml);
-    if (!empty($param_types) && !empty($params)) {
+    if (!empty($types) && !empty($params)) {
         /* automatically bind all parameters */
-        $ps->bind_param($param_types, ...$params);
+        $ps->bind_param($types, ...$params);
     }
     $ps->execute();
     $result = $ps->get_result();
@@ -123,7 +135,8 @@ function db_exec(?string $dml, ?string $param_types = null, ?array $params = nul
  * Return:
  * True if subscribing succeeded.
  */
-function db_subscribe(int $case_id, string $email): bool {
+function db_subscribe(int $case_id, string $email): bool
+{
     $params = [$case_id, $email];
     $mysqli = connect_db();
     $mysqli->query("set @success = 0");
@@ -166,7 +179,8 @@ function db_subscribe(int $case_id, string $email): bool {
  *      'caption' => $txt
  * )) { echo "$id - $val ($txt)"; }
  */
-function db_read_enumerations(string $language_code): array {
+function db_read_enumerations(string $language_code): array
+{
     $sql = "select `attribute_id`, 
             `enum_value`, 
             `caption` 
@@ -180,6 +194,7 @@ function db_read_enumerations(string $language_code): array {
 /**
  * Reads the database fields and their attributes, so they can be used in 
  * the strtr() function to render HTML form fields.
+ *
  * @return a list of tuples. Every field is a tuple, with the field 
  * attributes being the tuple elements. The list is sorted by display 
  * sequence. Like so:
@@ -193,7 +208,8 @@ function db_read_enumerations(string $language_code): array {
  * statement. It throws an SQL exception pretending it needs to re-prepare
  * the statement. Avoiding views seems to fix it.
  */
-function db_read_form_entry_fields(string $form_id) {
+function db_read_form_entry_fields(string $form_id)
+{
     $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, 
             `max`, `default`, `is_write_once` FROM (
                 select `f`.`form` AS `form`,
@@ -228,7 +244,8 @@ function db_read_form_entry_fields(string $form_id) {
  * Sha512 is SHA-2 with 512 bit strength. The hash function encodes it in
  * hexadecimal, lower-cased.
  */
-function db_hash(string $candidate): string {
+function db_hash(string $candidate): string
+{
     return hash(
         'sha512', 
         $candidate
@@ -250,7 +267,8 @@ function db_hash(string $candidate): string {
  * Returns:
  * True if the user is recognized by the passed-in email hash.
  */
-function db_is_email_hash_known(?string $email_hash): bool {
+function db_is_email_hash_known(?string $email_hash): bool
+{
     if (empty($email_hash)) {
         return false;
     }
@@ -272,7 +290,8 @@ function db_is_email_hash_known(?string $email_hash): bool {
  * Returns:
  * True if the user is recognized by the passed-in email address.
  */
-function db_is_email_known(?string $email): bool {
+function db_is_email_known(?string $email): bool
+{
     if (empty($email)) {
         return false;
     }
@@ -298,7 +317,8 @@ function db_is_email_known(?string $email): bool {
  * - hashing_algo: the name of the algorithm used to hash tokens,
  * - hashing_version: the version of the hashing algorithm.
  */
-function get_hashing_algo_for_user_by_email(?string $email):?array {
+function get_hashing_algo_for_user_by_email(?string $email):?array
+{
     if (empty($email)) {
         return [];
     }
@@ -334,9 +354,9 @@ function get_hashing_algo_for_user_by_email(?string $email):?array {
  *     wrong user name and password.
  * -5: Something went wrong and we don't know what.
  */
-function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
-    if (
-        empty($email)
+function db_is_user_known(?string $email, ?string $key, ?string $secret):int
+{
+    if (empty($email)
         || empty($key)
         || empty($secret)
     ) {
@@ -385,14 +405,16 @@ function db_is_user_known(?string $email, ?string $key, ?string $secret):int {
  * Logs the specified event for the authenticated user.
  * If the user did not authenticate, this function will abort.
  */
-function db_log_user_event(string $name):bool {
+function db_log_user_event(string $name):bool
+{
     include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
     if(!session_did_user_authenticate()) {
         return false;
     }
     $authenticated_email_hash = session_recall_user_token();
     $values = [$authenticated_email_hash, $name];
-    db_exec('call sp_log_user_event_by_value(?, ?)',
+    db_exec(
+        'call sp_log_user_event_by_value(?, ?)',
         'ss',
         $values
     );
@@ -458,7 +480,8 @@ function db_may_authenticated_user_reject_access(
  * address. The function will check whether the current user has the 
  * privilege to accept an access application.
  */
-function db_accept_access(?string $current_user_hash, ?string $accept_email):bool {
+function db_accept_access(?string $current_user_hash, ?string $accept_email):bool
+{
     if(!db_may_authenticated_user_reject_access($current_user_hash)) {
         return false;
     }
@@ -485,7 +508,8 @@ function db_accept_access(?string $current_user_hash, ?string $accept_email):boo
  * address. The function will check whether the current user has the 
  * privilege to reject an access application.
  */
-function db_reject_access(?string $current_user_hash, ?string $reject_email):bool {
+function db_reject_access(?string $current_user_hash, ?string $reject_email):bool
+{
     if(!db_may_authenticated_user_reject_access($current_user_hash)) {
         return false;
     }
@@ -501,19 +525,21 @@ function db_reject_access(?string $current_user_hash, ?string $reject_email):boo
         $ps->execute();
         $result = $mysqli->query('select @success as `is_successful`;');
         $result = $result->fetch_all(MYSQLI_ASSOC);
-      return ('1' == $result[0]['is_successful']);
+        return ('1' == $result[0]['is_successful']);
     } catch (mysqli_sql_exception $e) {
         return false;
     }
 }
 
-function db_make_user_key(): string {
+function db_make_user_key(): string
+{
     return bin2hex(
         random_bytes(64)
     );
 }
 
-function db_make_user_secret(): string {
+function db_make_user_secret(): string
+{
     $word_list = [
         'horse',
         'green',
@@ -591,7 +617,8 @@ function db_make_user_secret(): string {
  * @param hashed_candidate: should be the hash of the candidate's
  *        email address. Use the db_hash() function to hash it.
  */
-function db_add_user(string $hashed_candidate): ?array {
+function db_add_user(string $hashed_candidate): ?array
+{
     $key = db_make_user_key();
     $secret = db_make_user_secret();
     $hashing_algo = 'sha512';
@@ -618,7 +645,8 @@ function db_add_user(string $hashed_candidate): ?array {
     $mysqli = connect_db();
     $ps = $mysqli->prepare($sql);
     /* automatically bind all parameters */
-    $ps->bind_param('ssssi', 
+    $ps->bind_param(
+        'ssssi', 
         $hashed_candidate,
         $key_hash,
         $secret_hash,
@@ -637,8 +665,10 @@ function db_add_user(string $hashed_candidate): ?array {
  * Retrieves where to go next after a successful form entry.
  * The return may be null, or a URL.
  */
-function db_get_next_after_form_entry_success(string $form_id): ?string {
-    if (!$form_id) { return null; }
+function db_get_next_after_form_entry_success(string $form_id): ?string
+{
+    if (!$form_id) { return null; 
+    }
     $sql = 'select `url_after_entry` from `forms` where `id` = ?';
     $result = query($sql, 's', [$form_id]);
     if (count($result) > 0) {
