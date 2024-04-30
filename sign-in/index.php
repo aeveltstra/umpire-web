@@ -2,10 +2,13 @@
 declare(strict_types=1);
 /**
  * Shows the sign-up form.
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>, LLC
+ * 
+ * PHP Version 7.5.3.
+ * 
+ * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.24.312.1932
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $did_authenticate = session_did_user_authenticate();
 $form_nonce = session_make_and_remember_nonce(
     'authentication_form'
@@ -22,7 +25,7 @@ $form_nonce = session_make_and_remember_nonce(
 <body>
 <h1>Sign in - Umpire</h1>
 <h2>Let us recognize you</h2>
-<form method=post action="authenticate/">
+<form method=post action="./authenticate/">
 <fieldset><legend>Gain special access to Umpire.</legend>
 <p><label for=username>Access Key:</label></p>
 <p><input type=text name=username id=username size=60 maxlength=512 /></p>
@@ -31,20 +34,22 @@ $form_nonce = session_make_and_remember_nonce(
 <p><label for=email>E-mail Address:</label></p>
 <p><input type=email name=email id=email size=60 maxlength=256 /></p>
 <?php
-  if ($did_authenticate) {
+if ($did_authenticate) {
     echo "<p class=warning>Warning: you already are logged in. 
     Pressing this button will log you out first.</p>\r\n";
-  }
-  if ($form_nonce) {
+}
+if ($form_nonce) {
     echo "<input type=hidden name=nonce value='$form_nonce' />\r\n";
-  }
+}
 ?>
 <p><label><input type=submit value="Sign in"/></label></p>
 </fieldset>
 </form>
 <form method=get action="/umpire/reset-secrets/">
 <fieldset><legend>Forgot your secrets?</legend>
-<p>Note: Umpire operatives CANNOT retrieve your access key or pass phrase, and thus CANNOT email them to you. If you forgot, you will have to reset them.</p>
+<p>Note: Umpire operatives CANNOT retrieve your access key or pass 
+  phrase, and thus CANNOT email them to you. If you forgot, you will have
+  to reset them.</p>
 <p><label><input type=submit value="Reset Secrets"/></label></p>
 </fieldset>
 </form>
