@@ -28,10 +28,10 @@ if (!isset($_POST['nonce'])) {
  * Session Utils contain functions to read from and store into
  * session variables, and creates related things like nonces.
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 $form_id = 'authentication_form';
-if(!session_is_nonce_valid($form_id)) {
+if (!session_is_nonce_valid($form_id)) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -57,7 +57,7 @@ if (isset($_POST['password'])) {
     $secret = $_POST['password'];
     $is_post_received = true;
 }
-if(!$is_post_received) {
+if (!$is_post_received) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -66,7 +66,7 @@ if(!$is_post_received) {
  * DB Utils contains functions to read from and store into 
  * the database, like is_user_known().
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 $is_user_known = db_is_user_known($email, $key, $secret);
 if (1 !== $is_user_known) {
