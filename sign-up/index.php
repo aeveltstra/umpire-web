@@ -56,9 +56,9 @@ if ($form_nonce) {
         <p><input type=email name=email id=email value="" size=60 /></p>
 <?php
 if ($did_authenticate) {
-    echo "<p class=warning>Warning: you appear to be logged 
-            in. Please explain why you would need a second user account?
-            </p>\r\n";
+    echo "<p><label for=reason class=warning><strong>Warning:</strong> 
+            you appear to be logged in. Please explain why you would need
+            a second user account:</label></p>\r\n";
 } else {
     echo "<p><label for=reason>My reason for wanting access:</label></p>";
 }
