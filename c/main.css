@@ -19,6 +19,8 @@
        --btn-bg: #06e;
        --btn-hover-bg: #04d;
        --btn-hover-color: #fff;
+       --warning-bg: #fc9;
+       --warning-color: #000;
        color-scheme: light;
    }
 }
@@ -44,6 +46,8 @@
        --btn-bg: #06e;
        --btn-hover-bg: #04d;
        --btn-hover-color: #fff;
+       --warning-bg: #961;
+       --warning-color: #ddd;
        color-scheme: dark;
    }
 }
@@ -62,3 +66,4 @@ input:focus,select:focus,textarea:focus,input:active,select:active,textarea:acti
 input[type=submit],input[type=button],input[type=reset],button{min-height:22pt;min-width:7em;font-weight:bold;background-color:var(--btn-bg);color:var(--btn-color);border-style:outset;padding:0.5em 1.5em}
 input[type=submit]:hover,input[type=button]:hover,input[type=reset]:hover,button:hover{background-color:var(--btn-hover-bg);color:var(--btn-hover-color)}
 a[href]{color:var(--a-href-color)}
+label.warning{display:block;background-color:var(--warning-bg);color:var(--warning-color);margin:-4pt;padding:4pt;border-radius:3pt}
