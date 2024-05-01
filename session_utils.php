@@ -4,8 +4,10 @@
  * 
  * PHP Version 7.5.3
  * 
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.310.1608
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.430.2010
  */
 
 declare(strict_types=1);
@@ -126,8 +128,8 @@ function session_remember_user_token(?string $user_token):bool
 }
 
 /**
- * Determine whether the user authenticated. Set the by calling the
- *  function session_remember_user_token(token).
+ * Determine whether the user authenticated. Set it by calling the
+ * function session_remember_user_token(token).
  */
 function session_did_user_authenticate():bool
 {
@@ -143,20 +145,22 @@ function session_did_user_authenticate():bool
 
 /**
  * Create a nonce to determine that, for instance, a form submission has  
- *  been received from the correct form, and not from elsewhere.
- *  These tokens will be valid for a single user, a single identity, for the
- *  duration of 12 hours. We use 12 hours because some forms are expected to
- *  take a long time to fill out. Maybe we should make that variable per 
- *  form?
+ * been received from the correct form, and not from elsewhere.
+ * 
+ * These tokens will be valid for a single user, a single identity, for
+ * the duration of 12 hours. We use 12 hours because some forms are 
+ * expected to take a long time to fill out. Maybe we should make that 
+ * variable per form?
+ * 
+ * This has been modeled after wp_create_nonce().
+ * 
+ * We need this function separate from the storage function, because the 
+ * nonce validation function uses it separately.
  *
- *  This has been modeled after wp_create_nonce().
- *
- *  We need this function separate from the storage function, because the 
- *  nonce validation function uses it separately.
- *
- *  Parameters:
- *  - id, string, required: custom identifier you use to determine which
- *    nonce to read / inspect.
+ * @param $id string, required: custom identifier you use to determine 
+ *            which nonce to read / inspect.
+ * 
+ * @return the created nonce.
  */
 function session_make_nonce(string $id):string
 {
@@ -170,10 +174,19 @@ function session_make_nonce(string $id):string
 }
 
 /**
- * Stores a nonce in the session variable identified by id.
- * Use this for instance to prevent cross-site request forgery also known as
- * CSRF. Use the session_make_and_remember_nonce(id) function, as a
- * convenience method. 
+ * Stores a nonce in the session variable identified by id. Use this for 
+ * instance to prevent cross-site request forgery also known as CSRF. 
+ * Use the session_make_and_remember_nonce(id) function, as a convenience
+ * method. 
+ * 
+ * @param $id    should be the form identifier. Choose this when generating
+ *               the nonce for the form, and use it when checking it or
+ *               forgetting it.
+ * @param $nonce should be the nonce generated earlier, to store for the
+ *               form identified by $id. Use the function 
+ *               session_make_nonce() to generate the nonce.
+ * 
+ * @return Boolean true if remembering the nonce for that form succeeded.
  */
 function session_remember_nonce(string $id, string $nonce):bool
 {
@@ -181,8 +194,18 @@ function session_remember_nonce(string $id, string $nonce):bool
 }
 
 /**
- * Removes a session nonce stored earlier. Do this to prevent reposting of
- * the same form, after validating a nonce seen earlier.
+ * Removes a session nonce stored earlier. Do this to prevent reposting 
+ * of the same form, after validating a nonce seen earlier. 
+ * 
+ * One of the reasons to do this, is to make DDOS attempts slightly more 
+ * complex, as bots will need to go back to the entry form to retrieve a 
+ * new nonce. Another is to reduce CSRF attempts.
+ * 
+ * @param $id should be the form identifier. Choose this when generating
+ *            the nonce for the form, and use it when checking it or
+ *            forgetting it.
+ * 
+ * @return Boolean true if the form nonce was forgotten successfully.
  */
 function session_forget_nonce(string $id):bool
 {
@@ -193,6 +216,16 @@ function session_forget_nonce(string $id):bool
  * Create and save a nonce for a specific use into a session variable
  * identified by id. Use this for instance to determine that a form
  * submission is received from the expected form, and not from elsewhere.
+ * 
+ * One of the reasons to do this, is to make DDOS attempts slightly more 
+ * complex, as bots will need to go back to the entry form to retrieve a 
+ * new nonce. Another is to reduce CSRF attempts.
+ * 
+ * @param $id should be the form identifier. Choose this when generating
+ *            the nonce for the form, and use it when checking it or
+ *            forgetting it.
+ * 
+ * @return the created nonce.
  */
 function session_make_and_remember_nonce(string $id):string
 {
@@ -205,6 +238,13 @@ function session_make_and_remember_nonce(string $id):string
 
 /**
  * Retrieve the nonce identified by id, from the session storage.
+ * 
+ * @param $id should be the form identifier. Choose this when generating
+ *            the nonce for the form, and use it when checking it or
+ *            forgetting it.
+ * 
+ * @return the nonce created and remembered earlier. Could be empty if 
+ *         no nonce was remembered with the passed-in $id.
  */
 function session_recall_nonce(string $id):string
 {
@@ -212,11 +252,17 @@ function session_recall_nonce(string $id):string
 }
 
 /**
- * Determine whether the nonce stored for the identity is valid. It will be
- * invalid if no nonce was found for that identity, if one was found but
- * doesn't match, or if one was found but timed out.
+ * Determine whether the nonce stored for the identity is valid. It will 
+ * be invalid if no nonce was found for that identity, if one was found 
+ * but doesn't match, or if one was found but timed out.
  * 
  * This has been modeled after wp_verify_nonce().
+ * 
+ * @param $id should be the form identifier. Choose this when generating
+ *            the nonce for the form, and use it when checking it or
+ *            forgetting it.
+ * 
+ * @return Boolean true if the nonce is valid.
  */
 function session_is_nonce_valid(string $id):bool
 {
