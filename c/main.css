@@ -15,9 +15,9 @@
        --fld-inactive-bg: #eaeaea;
        --fld-inactive-color: #111;
        --a-href-color: #06e;
-       --btn-color: #ccc;
+       --btn-color: #eee;
        --btn-bg: #06e;
-       --btn-hover-bg: #17f;
+       --btn-hover-bg: #04d;
        --btn-hover-color: #fff;
        color-scheme: light;
    }
@@ -42,7 +42,7 @@
        --a-href-color: #59b;
        --btn-color: #eee;
        --btn-bg: #06e;
-       --btn-hover-bg: #17f;
+       --btn-hover-bg: #04d;
        --btn-hover-color: #fff;
        color-scheme: dark;
    }
