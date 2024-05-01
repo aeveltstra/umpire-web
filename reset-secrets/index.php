@@ -37,7 +37,7 @@ $form_nonce = session_make_and_remember_nonce(
 if ($form_nonce) {
     echo "<input type=hidden name=nonce value='";
     echo $form_nonce;
-    echo "'/>"
+    echo "'/>";
 }
 ?>
 </p>
