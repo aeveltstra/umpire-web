@@ -395,6 +395,19 @@ function store(input, attrib_id) {
     }
     return false;
 }
+
+/**
+ * Shows or hides the enum management link depending on whether the 
+ * input has the value 'enum'.
+ */
+function show_enum_mgr(input, attrib) {
+    "use strict";
+    if (!input || !attrib) return;
+    const e = document.getElementById('set_enums_' + attrib);
+    if (!!e) {
+        e.hidden = (input.value !== 'enum');
+    }
+}
 /* ]]> */</script>
 </head>
 <body>
@@ -594,7 +607,9 @@ applied to each form separately.</p>
             : ''
         );
         $enum_list = '';
+        $enum_mgr_hidden = 'hidden';
         if ($x['data_type'] == 'enum') {
+            $enum_mgr_hidden = '';
             $enum_list = 'role="listbox" 
             aria-required="true" 
             aria-autocomplete="list" 
@@ -619,7 +634,8 @@ applied to each form separately.</p>
             <td><select 
                 name=new_data_type_{$attrib_id}
                 id=new_data_type_{$attrib_id}
-                onchange='store(this, \"{$attrib_id}\")'>
+                onchange='store(this, \"{$attrib_id}\");
+                    show_enum_mgr(this, \"{$attrib_id}\");'>
                 <optgroup label='Currently Stored'>
                     <option selected=selected>{$data_type}</option>
                 </optgroup>
@@ -631,7 +647,12 @@ applied to each form separately.</p>
                 name=old_data_type_{$attrib_id}
                 id=old_data_type_{$attrib_id}
                 value=\"{$data_type}\"
-            /></td>
+            />
+            <a $enum_mgr_hidden 
+                title='Change enumerations'
+                id=set_enums_{$attrib_id}
+                href='../enum_values/{$attrib_id}/'>Set</a>
+            </td>
             <td><input type=number 
                 name=new_min_{$attrib_id} 
                 id=new_min_{$attrib_id} 
