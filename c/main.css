@@ -14,10 +14,10 @@
        --fld-inactive-border-style: solid;
        --fld-inactive-bg: #eaeaea;
        --fld-inactive-color: #111;
-       --a-href-color: #06e;
+       --a-href-color: #04d;
        --btn-color: #eee;
-       --btn-bg: #06e;
-       --btn-hover-bg: #04d;
+       --btn-bg: #04d;
+       --btn-hover-bg: #03c;
        --btn-hover-color: #fff;
        --warning-bg: #fc9;
        --warning-color: #000;
@@ -43,8 +43,8 @@
        --fld-inactive-color: #ccc;
        --a-href-color: #59b;
        --btn-color: #eee;
-       --btn-bg: #06e;
-       --btn-hover-bg: #04d;
+       --btn-bg: #04d;
+       --btn-hover-bg: #03c;
        --btn-hover-color: #fff;
        --warning-bg: #961;
        --warning-color: #ddd;
