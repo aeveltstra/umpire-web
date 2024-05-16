@@ -31,7 +31,7 @@ $form_nonce = session_make_and_remember_nonce(
 <title>Respond to Access Requests - Umpire</title>
 <meta name=description content="Decide whether you want to accept or reject their applications."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="main.css"/>
 </head>
 <body>
 <h1>Respond to Access Requests - Umpire</h1>

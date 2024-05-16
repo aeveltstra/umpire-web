@@ -11,7 +11,7 @@ $nonce = session_make_and_remember_nonce('subscribe');
 <meta name=description content="Do you want to subscribe to updates?"/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../../../../c/main.css"/>
 </head>
 <body>
 

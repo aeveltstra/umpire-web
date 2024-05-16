@@ -92,7 +92,7 @@ $page_title = $form_caption . ' - Statistics for this form - Umpire';
     <title><?php echo $page_title; ?></title>
     <meta name=description content="Overview of stored records and versions"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel=stylesheet href="/umpire/c/main.css"/>
+    <link rel=stylesheet href="../../../c/main.css"/>
 </head>
 <body>
     <h1><?php echo $page_title; ?></h1>

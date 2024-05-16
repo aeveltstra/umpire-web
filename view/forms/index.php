@@ -60,7 +60,7 @@ db_log_user_event('viewed_existing_forms');
     <title>View Entry Forms - Umpire</title>
     <meta name=description content="These forms exist"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel=stylesheet href="/umpire/c/main.css"/>
+    <link rel=stylesheet href="../../c/main.css"/>
 </head>
 <body>
     <h1>View Entry Forms - Umpire</h1>

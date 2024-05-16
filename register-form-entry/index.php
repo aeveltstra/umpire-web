@@ -104,11 +104,12 @@ if (empty($fails)) {
 <head>
     <meta charset="utf-8" />
     <title>We ran into a snag, mate - Umpire</title>
-    <meta name=description content="Something went wrong while we tried to register your entry."/>
+    <meta name=description 
+        content="Something went wrong while we tried to register your entry."/>
     <meta name=author value="OmegaJunior Consultancy, LLC" />
     <meta name=viewport content="width=device-width, initial-scale=1.0" />
-    <link rel=stylesheet href="/umpire/c/main.css"/>
-    <link rel=stylesheet href="/umpire/c/manage-form.css"/>
+    <link rel=stylesheet href="../../c/main.css"/>
+    <link rel=stylesheet href="../../c/manage-form.css"/>
 </head>
 <body>
     <h1>We ran into a snag, mate - Umpire</h1>
@@ -117,7 +118,7 @@ if (empty($fails)) {
     <ul>
         <?php 
             $template = '<li>%1$s: %2$s</li>';
-            foreach($fails as list(
+            foreach ($fails as list(
                 'case' => $case_id,
                 'field' => $field_id,
                 'value' => $field_value

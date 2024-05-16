@@ -28,10 +28,10 @@ if (!isset($_POST['nonce'])) {
  * Session Utils contain functions to read from and store into
  * session variables, and creates related things like nonces.
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 $form_id = 'subscribe';
-if(!session_is_nonce_valid($form_id)) {
+if (!session_is_nonce_valid($form_id)) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -52,7 +52,7 @@ if (isset($_POST['case'])) {
     $case_id = $_POST['case'];
     $is_post_received = true;
 }
-if(!$is_post_received) {
+if (!$is_post_received) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -78,7 +78,7 @@ if ($is_valid) {
  * DB Utils contains functions to read from and store into 
  * the database, like is_user_known().
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 $is_subscribed = db_subscribe(intval($case_id), $email);
 if ($is_subscribed) {

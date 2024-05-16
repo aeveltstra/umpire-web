@@ -10,7 +10,7 @@ $new_case_id = session_recall('new_case_id');
 <meta name=description content="Where to next?"/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../../../c/main.css"/>
 </head>
 <body>
 

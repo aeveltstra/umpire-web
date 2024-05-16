@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 session_forget_nonce('sign_up_form');
 $form_nonce = session_make_and_remember_nonce('sign_up_form');
 $add_user_email_invalid = session_recall('add_user_email_invalid');
@@ -13,7 +13,7 @@ $add_user_reason_tainted = session_recall('add_user_reason_tainted');
 <title>Error: invalid e-mail - Sign up - Umpire</title>
 <meta name=description content="That does not look like a valid e-mail address."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../../../c/main.css"/>
 </head>
 <body>
 <h1>Error: invalid e-mail - Sign up - Umpire</h1>

@@ -38,7 +38,7 @@ if (empty($held_privileges)) {
 <meta name=description content="Make decisions about Umpire configurations and user subscriptions"/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="main.css"/>
 </head>
 <body>
     <h1>Manage Umpire</h1>

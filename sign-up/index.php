@@ -19,7 +19,7 @@ $form_nonce = session_make_and_remember_nonce('sign_up_form');
 <title>Sign up - Umpire</title>
 <meta name=description content="Ask us to create an account for you"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../c/main.css"/>
 </head>
 <body>
 <h1>Sign up - Umpire</h1>

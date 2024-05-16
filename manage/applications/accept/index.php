@@ -70,7 +70,7 @@ if (!$success) {
 <meta name=description content="The application to access Umpire has been accepted successfully."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="main.css"/>
 </head>
 <body>
     <h1>Successfully Accepted Application</h1>

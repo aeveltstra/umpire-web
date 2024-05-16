@@ -18,7 +18,7 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 <meta name=description content="Welcome back!" />
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="main.css"/>
 </head>
 <body>
 

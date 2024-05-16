@@ -286,7 +286,7 @@ function show_form_entry_fields(string $form_id, string $lang)
     <title><?php echo $page_title; ?></title>
     <meta name=description content="Please share as many details as available">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel=stylesheet href="/umpire/c/main.css">
+    <link rel=stylesheet href="../c/main.css">
 </head>
 <body>
     <header>
@@ -294,14 +294,14 @@ function show_form_entry_fields(string $form_id, string $lang)
         <h2>Please share as many details as available</h2>
     </header>
     <main>
-    <form action="/umpire/register-form-entry/" method=post>
+    <form action="../register-form-entry/" method=post>
         <?php
             show_enums('en');
         ?>
         <fieldset>
             <legend>Terms and conditions</legend>
             <p><label><input type=checkbox name=agree> I accept </label><a
-            href="/umpire/terms/">the terms and conditions.</a></p>
+            href="../terms/">the terms and conditions.</a></p>
         </fieldset>
         <?php
             show_form_entry_fields($prefixed_form_id, 'en');

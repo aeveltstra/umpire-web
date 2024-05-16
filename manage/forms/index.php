@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.429.1737
+ * @version 2.24.508.2054
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -82,46 +82,6 @@ if (!empty($form_choice)) {
     }
 }
 
-/**
- * Displays enumerated values as HTML data lists, so they can become the
- * accepted input for text input fields.
- * 
- * @return nothing
- */
-function show_enums()
-{
-    $xs = db_read_enumerations('en');
-    if (!is_array($xs)) {
-        return;
-    }
-    $last_id = '';
-    $m = '';
-    foreach ($xs as list(
-        'attribute_id' => $attribute_id,
-        'enum_value' => $enum_value,
-        'caption' => $caption
-    )) {
-        if (empty($last_id)) {
-            $last_id = $attribute_id;
-        } else if ($last_id != $attribute_id) {
-            if ($m) {
-                $n = '<datalist id="list_' . 
-                addslashes($last_id) . 
-                '"><label>Or choose: <select>' . 
-                $m . 
-                '</select></label></datalist>';
-                echo $n;
-                echo "\r\n\t";
-            }
-            $last_id = $attribute_id;
-            $m = '';
-        }
-        $v1 = addslashes($enum_value);
-        $c2 = htmlspecialchars($caption);
-        $m .= '<option value="' . $v1 . '">' . $c2 . '</option>';
-    }
-}
-
 $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 ?>
 <!DOCTYPE html>
@@ -131,8 +91,8 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <meta name=description content="Determine which form to configure."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
-<link rel=stylesheet href="/umpire/c/manage-form.css?2.24.429.1737"/>
+<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="manage-form.css?2.24.429.1737"/>
 <script type="text/javascript">/* <![CDATA[ */
 
 function hide_changed(input_id) {
@@ -536,11 +496,8 @@ if (!$is_form_known) {
     </table>
     </fieldset></form>
 </section>
-<section>
-<form id='attributes_for_form'>";
-
-    show_enums();
-
+<section>";
+    //<form id='attributes_for_form' onsubmit='return false;'>";
     echo "
 <h3>Change Form Fields</h3>
 <p>Note: fields are shared among forms. Changing one will 
@@ -589,13 +546,29 @@ applied to each form separately.</p>
     foreach ($dts as $dt) {
         $dt_options .= "<option>{$dt}</option>";
     }
+    $enum_choosers = [];
     foreach ($xs as $x) {
+        $id = $x['id'];
+        $attrib_id = htmlspecialchars($id, ENT_QUOTES);
+        $enum_choosers[$id] = "
+            <select id='enum_chooser_{$attrib_id}'>
+                <optgroup label='Current choice:'>
+                    <option>Current</option>
+                </optgroup>
+                <optgroup label='Other choices:'>
+                    <option>Other</option>
+                </optgroup>
+            </select>
+        ";
+    }
+    foreach ($xs as $x) {
+        $id = $x['id'];
         $display_seq   = $x['display_sequence'];
-        $attrib_id     = htmlspecialchars($x['id'],        ENT_QUOTES);
+        $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
         $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
         $min           = $x['min'];
         $max           = $x['max'];
-        $default       = htmlspecialchars($x['default'],   ENT_QUOTES);
+        $default       = htmlspecialchars($x['default'], ENT_QUOTES);
         $is_write_once = (
             (1 == $x['is_write_once']) 
             ? 'checked=checked' 
@@ -610,11 +583,6 @@ applied to each form separately.</p>
         $enum_mgr_hidden = 'hidden';
         if ($x['data_type'] == 'enum') {
             $enum_mgr_hidden = '';
-            $enum_list = 'role="listbox" 
-            aria-required="true" 
-            aria-autocomplete="list" 
-            aria-controls="list_' . $attrib_id . '" 
-            list="list_' . $attrib_id . '"';
         }
         echo "
         <tr>
@@ -636,23 +604,19 @@ applied to each form separately.</p>
                 id=new_data_type_{$attrib_id}
                 onchange='store(this, \"{$attrib_id}\");
                     show_enum_mgr(this, \"{$attrib_id}\");'>
-                <optgroup label='Currently Stored'>
+                <optgroup label='Current choice:'>
                     <option selected=selected>{$data_type}</option>
                 </optgroup>
-                <optgroup label='Options'>
+                <optgroup label='Other choices:'>
                     {$dt_options}
                 </optgroup>
-            </select>
-            <input type=hidden 
+            </select><input type=hidden 
                 name=old_data_type_{$attrib_id}
                 id=old_data_type_{$attrib_id}
                 value=\"{$data_type}\"
-            />
-            <a $enum_mgr_hidden 
-                title='Change enumerations'
-                id=set_enums_{$attrib_id}
-                href='../enum_values/{$attrib_id}/'>Set</a>
-            </td>
+            /><div id='set_enums_{$attrib_id}'
+                $enum_mgr_hidden
+            >{$enum_choosers[$id]}</div></td>
             <td><input type=number 
                 name=new_min_{$attrib_id} 
                 id=new_min_{$attrib_id} 
@@ -708,6 +672,6 @@ applied to each form separately.</p>
     }
 }
 ?>
-    </tbody></table></fieldset></form>
+    </tbody></table></fieldset>
 </body>
 </html>

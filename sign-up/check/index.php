@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /**
  * Request access to Umpire
+ * 
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1025.2245
  */
@@ -26,7 +27,7 @@ if (!isset($_POST['nonce'])) {
     die();
 }
 
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $form_id = 'sign_up_form';
 $is_form_nonce_valid = session_is_nonce_valid($form_id);
 session_forget_nonce($form_id);

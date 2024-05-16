@@ -3,6 +3,7 @@
  * Request credentials to access Umpire.
  * Step 2: check whether the passed-in email is a known user,
  * and if not, create a new user record and send out an email.
+ * 
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
  * @version 2.23.1025.2337
  */
@@ -10,11 +11,11 @@
 
 
 /**
- * db_utils.php contains db functionality like query(sql) and 
+ * The db_utils.php contains db functionality like query(sql) and 
  * db_exec(sql, params_typestring, params).
  */
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 
 $email = session_recall('add_user_email_valid');
 $reason = session_recall('add_user_reason_tainted');
@@ -68,7 +69,7 @@ $form_nonce = session_make_and_remember_nonce('access_request_form');
 <title>E-mail Address Accepted - Umpire</title>
 <meta name="description" value="Save this info. It will be shown only once."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../../../../c/main.css"/>
 </head>
 <body>
 <h1>E-mail Address Accepted - Umpire</h1>
@@ -94,9 +95,9 @@ $form_nonce = session_make_and_remember_nonce('access_request_form');
     </fieldset>
     <fieldset><legend>Last step (step 2 of 2):</legend>
 <?php
-    if ($form_nonce) {
-        echo "        <input type=hidden value='${form_nonce}' id='nonce' />\r\n";
-    }
+if ($form_nonce) {
+    echo "        <input type=hidden value='${form_nonce}' id='nonce' />\r\n";
+}
 ?>
         <p><label><input type=submit value="Apply for Access"/></label></p>
     </fieldset>

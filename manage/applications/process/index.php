@@ -111,7 +111,7 @@ if (!empty($xs_r)) {
 <meta name=description content="The applications to access Umpire have been processed."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="main.css"/>
 </head>
 <body>
     <h1>Done Processing Applications</h1>

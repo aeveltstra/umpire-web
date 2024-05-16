@@ -70,7 +70,7 @@ db_log_user_event('viewed_statistics');
     <title>View Statistics - Umpire</title>
     <meta name=description content="Business Intelligence Insights for Data Analysis"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel=stylesheet href="/umpire/c/main.css"/>
+    <link rel=stylesheet href="../../c/main.css"/>
 </head>
 <body>
     <h1>View Statistics - Umpire</h1>
@@ -80,7 +80,7 @@ db_log_user_event('viewed_statistics');
     if ($we_have_any_forms) {
         echo '<h3>Forms</h3>' . "\r\n\t";
         echo "<p>The system holds $count_forms_found forms: </p>\r\n\t<ul>\r\n";
-        foreach($forms_and_entries as list(
+        foreach ($forms_and_entries as list(
             'id' => $form_id,
             'caption' => $caption,
             'entry_count' => $entry_count

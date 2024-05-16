@@ -11,7 +11,7 @@ $nonce = session_make_and_remember_nonce('subscribe');
 <meta name=description content="Receive emails for every change."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="/umpire/c/main.css"/>
+<link rel=stylesheet href="../../c/main.css"/>
 </head>
 <body>
 
@@ -20,7 +20,7 @@ $nonce = session_make_and_remember_nonce('subscribe');
     <p>This is your case ID: <?php echo $last_case_id; ?>.</p>
     <p>Please keep this with your records for future reference.</p>
     <h2>Do you want to receive an email for every change?</h2>
-    <form action="/umpire/subscribe/" method=post><fieldset><legend>Yes, please!</legend>
+    <form action="../subscribe/" method=post><fieldset><legend>Yes, please!</legend>
         <p><label><input type=checkbox name=agree/> I agree to the</label> <a href="../terms/">terms and conditions</a></p>
         <p><label for=email>Send notifications to this email address:</label></p>
         <p><input type=email size=60 maxlength=256 id=email name=email /></p>
