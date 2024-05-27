@@ -7,7 +7,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.430.2010
+ * @version  2.24.526.2203
  */
 
 declare(strict_types=1);
@@ -16,8 +16,12 @@ session_start();
 
 /**
  * Hash any value using the same algorithm every time. 
+ * 
+ * @param $v should be the data to hash
+ * 
+ * @return the hash of the passed-in data.
  */
-function session_make_hash(string $v):string
+function session_make_hash(string $v): string
 {
     return hash(
         'sha512', 
@@ -27,8 +31,11 @@ function session_make_hash(string $v):string
 
 /**
  * Use this if running PHP on a server shared on the same server. 
+ * 
+ * @return a unique, salted/seeded identifier that sets apart our app
+ * from others that run on the same server.
  */
-function session_recall_app_name():string
+function session_recall_app_name(): string
 {
     $session_umpire_app_random_seed = 'bvd67iBVDRUJ04926494720IUYTFvdfg';
     $session_umpire_app_name = 'Umpire_' . $session_umpire_app_random_seed . '_';
@@ -37,10 +44,14 @@ function session_recall_app_name():string
 
 /**
  * Wraps around destroying session variables to include the specific
- * application name, which reduces the chance other of PHP instances on the 
- * same iron server to delete session variables of the same name.
+ * application name, which reduces the chance other of PHP instances on 
+ * the same iron server to delete session variables of the same name.
+ * 
+ * @param $k should name the key to forget.
+ * 
+ * @return True if forgotten successfully.
  */
-function session_forget(?string $k):bool
+function session_forget(?string $k): bool
 {
     if (empty($k)) {
         return true;
@@ -52,10 +63,15 @@ function session_forget(?string $k):bool
 
 /** 
  * Wraps around setting session variables to include the specific
- * application name, which reduces the chance other of PHP instances on the 
- * same iron server to write session variables of the same name.
+ * application name, which reduces the chance other of PHP instances on 
+ * the same iron server to write session variables of the same name.
+ * 
+ * @param $k should name the key as which to remember the $v value.
+ * @param $v should be the value to remember at the $k key.
+ * 
+ * @return True if remembered successfully.
  */
-function session_remember(string $k, ?string $v):bool
+function session_remember(string $k, ?string $v): bool
 {
     if (empty($v)) {
         return session_forget($k);
@@ -69,6 +85,13 @@ function session_remember(string $k, ?string $v):bool
  * Wraps around session variables to include the specific application 
  * name, which reduces the chance of other PHP instances on the same iron 
  * server to read session variables of the same name.
+ * 
+ * @param $k should name the key that identifies the information to pull 
+ *           up from the session memory.
+ * 
+ * @return empty string if no key $k was found in the session memory.
+ * May also be empty if the data found at key $k is empty. Otherwise,
+ * the remembered value. Never null.
  */
 function session_recall(string $k):string
 {
@@ -79,6 +102,15 @@ function session_recall(string $k):string
     return '';
 }
 
+/**
+ * Generates a user token based on their email address.
+ * 
+ * @param $email should be the user's email address. Note the function
+ *               will work if this isn't an email address, but we cannot
+ *               guarantee that follow-up functions will work as expected.
+ * 
+ * @return the user token generated based on the passed-in $email address.
+ */
 function session_make_user_token(string $email): string
 {
     return session_make_hash($email);

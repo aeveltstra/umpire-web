@@ -1,18 +1,23 @@
 <?php
 /**
  * Management menu for Umpire
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.23.1107.2106
+ * 
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.526.2123
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
 
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 if (!session_did_user_authenticate()) {
     session_remember('return_to', '/umpire/manage/');
-    header('Location: /umpire/sign-in/');
+    header('Location: ../sign-in/');
     die();
 }
 
@@ -29,16 +34,16 @@ if (empty($held_privileges)) {
     die();
 }
 
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8" />
 <title>Manage Umpire</title>
-<meta name=description content="Make decisions about Umpire configurations and user subscriptions"/>
+<meta name=description 
+    content="Make decisions about Umpire configurations and user subscriptions"/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../c/main.css"/>
 </head>
 <body>
     <h1>Manage Umpire</h1>
@@ -47,9 +52,9 @@ if (empty($held_privileges)) {
     ?>
     <p>Would you like to manage:</p>
     <ul>
-        <li><a href="forms/">entry forms</a>?</li>
-        <li><a href="../subscriptions/">user subscriptions</a>?</li>
-        <li><a href="../applications/">access applications</a>?</li>
+        <li><a href="./forms/">entry forms</a>?</li>
+        <li><a href="./subscriptions/">user subscriptions</a>?</li>
+        <li><a href="./applications/">access applications</a>?</li>
     </ul>
 </body>
 </html>

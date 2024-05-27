@@ -1,4 +1,11 @@
 <?php 
+/**
+ * A form that allows a form submitter to subscribe to changes to their
+ * entry.
+ * 
+ * @author  A.E.Veltstra for OmegaJunior Consultancy LLC <omegajunior@protonmail.com>
+ * @version 2.24.526.1928
+ */
 declare(strict_types=1);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $last_case_id = session_recall('new_case_id');
@@ -28,10 +35,10 @@ $nonce = session_make_and_remember_nonce('subscribe');
         <input type=hidden hidden name=case value='<?php echo $last_case_id; ?>' />
         <input type=hidden hidden name=nonce value='<?php echo $nonce; ?>'/>
     </fieldset></form>
-    <form action="/umpire/" method=get><fieldset><legend>No, thanks!</legend>
+    <form action="../../" method=get><fieldset><legend>No, thanks!</legend>
         <p><label><input type=submit value="I'm fine with not receiving updates."/></label></p>
     </fieldset></form>
 <?php } ?>
-<p>Return to <a href="/umpire/">the home page</a>.</p>
+<p>Return to <a href="../../">the home page</a>.</p>
 </body>
 </html>

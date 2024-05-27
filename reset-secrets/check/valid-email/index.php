@@ -21,7 +21,7 @@ $is_known = db_is_email_known($reset_email_valid);
 if ($is_known) {
     $reset_key = db_make_authentication_reset_key($reset_email_valid);
     session_remember('known_email', $reset_email_valid);
-    session_rememember('reset_key', $reset_key);
+    session_remember('reset_key', $reset_key);
     header('Location: ./send/');
     die();
 } else {

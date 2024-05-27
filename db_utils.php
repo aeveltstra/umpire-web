@@ -9,13 +9,18 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.310.2053
+ * @version  2.24.536.2010
  */
 declare(strict_types=1);
  
 /* config.php provides the connect_db() function. */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
-mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
+
+// We do NOT want to treat the warnings as errors, which is the default,
+// so we set our desired reporting style explicitly. The reason is that
+// it will echo the authentication credentials to the public when the DB
+// connection fails. That is NEVER what we want.
+mysqli_report(MYSQLI_REPORT_ALL);
 
 /**
  * Runs an sql query on the database and returns the result as single value.
@@ -33,7 +38,15 @@ function scalar(?string $sql)
     if (empty($sql)) {
         return null;
     }
-    $mysqli = connect_db();
+    $mysqli = null;
+    try {
+        $mysqli = connect_db();
+    } catch (Exception $x) {
+        throw new Exception('Failed to connect to database.', 0, $x);
+    }
+    if (is_null($mysqli)) {
+        return null;
+    }
     $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
     $row = $result->fetch_assoc();
     if (empty($row)) {
@@ -69,7 +82,19 @@ function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
         return null;
     }
     if (empty($types) || empty($vals)) {
-        $mysqli = connect_db();
+        $mysqli = null;
+        try {
+            $mysqli = connect_db();
+        } catch (Exception $x) {
+            throw new Exception(
+                'Failed to connect to the database.',
+                0,
+                $x
+            );
+        }
+        if (!($mysqli instanceof mysqli)) {
+            return [];
+        }
         $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
@@ -95,7 +120,7 @@ function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
  *        mark in the dml. If a wrong amount of parameters is given, the
  *        procedure will fail.
  *
- * Returns:
+ * @return 
  * Either an empty list, or a list of tuples (associative array). Each tuple
  * is a row of the query result, with the keys of its key-value pairs named 
  * after the field names specified in the SQL statement.
@@ -105,7 +130,19 @@ function db_exec(?string $dml, ?string $types = null, ?array $params = null): ar
     if (empty($dml)) {
         return [];
     }
-    $mysqli = connect_db();
+    $mysqli = null;
+    try {
+        $mysqli = connect_db();
+    } catch (Exception $x) {
+        throw new Exception(
+            'Failed to connect to database.',
+            0,
+            $x
+        );
+    }
+    if (is_null($mysqli)) {
+        return [];
+    }
     $ps = $mysqli->prepare($dml);
     if (!empty($types) && !empty($params)) {
         /* automatically bind all parameters */
@@ -128,28 +165,48 @@ function db_exec(?string $dml, ?string $types = null, ?array $params = null): ar
 /**
  * Subscribes an email address to updates to a case.
  * 
- * Parameters:
- * - case_id: identifies the profile / case to subscribe to.
- * - email address: the email address to notify of case changes.
+ * @param $case_id identifies the profile / case to subscribe to.
+ * @param $email   the email address to notify of case changes.
  *
- * Return:
- * True if subscribing succeeded.
+ * @return True if subscribing succeeded.
  */
 function db_subscribe(int $case_id, string $email): bool
 {
+    global $support_email;
     $params = [$case_id, $email];
-    $mysqli = connect_db();
+    $mysqli = null;
+    try {
+        $mysqli = connect_db();
+    } catch (Excpetion $x) {
+        throw new Exception(
+            'Failed to connect to database.',
+            0,
+            $x
+        );
+    }
+    if (is_null($mysqli)) {
+        return false;
+    }
     $mysqli->query("set @success = 0");
     $sql = 'call sp_subscribe(?, ?, @success)';
     $ps = $mysqli->prepare($sql);
     $ps->bind_param('is', ...$params);
-    mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ALL);
     try {
         $ps->execute();
         $result = $mysqli->query('select @success as `is_successful`;');
         $result = $result->fetch_all(MYSQLI_ASSOC);
         return ('1' == $result[0]['is_successful']);
     } catch (mysqli_sql_exception $e)  {
+        error_log(
+            'Failed to subscribe user with email '
+            . addslashes($email)
+            . ' to case '
+            . addslashes($case_id)
+            . ', because: '
+            . addslashes($e->getMessage()),
+            1,
+            $support_email  
+        );
         return false;
     }
     return false;
@@ -159,11 +216,11 @@ function db_subscribe(int $case_id, string $email): bool
  * Reads the enumerations from the database. They are stored as separate 
  * values for each attribute, with a language code.
  *
- * Parameters:
- * - language_code: a 2-letter ISO language code that determines which
- *                  translation to retrieve. For instance: 'en'.
+ * @param $language_code should be a 2-letter ISO language code that 
+ *                       determines which translation to retrieve. For 
+ *                       instance: 'en'.
  *
- * Returns: a list of tuples, each of which has the following fields:
+ * @return a list of tuples, each of which has the following fields:
  * - attribute_id: identifies the attribute to enumerate,
  * - enum_value: an enumerated value for the attribute, which gets stored
  *               in the database.
@@ -181,6 +238,7 @@ function db_subscribe(int $case_id, string $email): bool
  */
 function db_read_enumerations(string $language_code): array
 {
+    global $support_email;
     $sql = "select `attribute_id`, 
             `enum_value`, 
             `caption` 
@@ -188,7 +246,20 @@ function db_read_enumerations(string $language_code): array
             where `language_code` = ? 
             order by `attribute_id`, 
             `caption`";
-    return query($sql, 's', [$language_code]);
+    try {
+        return query($sql, 's', [$language_code]);
+    } catch (Exception $x) {
+        error_log(
+            'Failed to read field enumerations from the database, '
+            . 'for language code '
+            . addslashes($language_code)
+            . ', because: '
+            . addslashes($x->getMessage()),
+            1,
+            $support_email  
+        );
+    }
+    return [];
 }
 
 /**
@@ -208,8 +279,9 @@ function db_read_enumerations(string $language_code): array
  * statement. It throws an SQL exception pretending it needs to re-prepare
  * the statement. Avoiding views seems to fix it.
  */
-function db_read_form_entry_fields(string $form_id)
+function db_read_form_entry_fields(string $form_id): array
 {
+    global $support_email;
     $sql = 'SELECT `id`, `data_type`, `caption`, `hint`, `min`, 
             `max`, `default`, `is_write_once` FROM (
                 select `f`.`form` AS `form`,
@@ -236,13 +308,30 @@ function db_read_form_entry_fields(string $form_id)
             where `form` = ? 
             and `language_code` = ? 
             order by `display_sequence` asc'; 
-    return query($sql, 'ss', [$form_id, 'en']);
+    try {
+        return query($sql, 'ss', [$form_id, 'en']);
+    } catch (Exception $x) {
+        error_log(
+            'Failed to read form fields from the database, '
+            . 'for form '
+            . addslashes($form_id)
+            . ', because: '
+            . addslashes($x->getMessage()),
+            1,
+            $support_email  
+        );
+    }
+    return [];
 }
 
 /**
  * The current version of PHP, 7.4, returns a hash of 128 chars for sha512.
  * Sha512 is SHA-2 with 512 bit strength. The hash function encodes it in
  * hexadecimal, lower-cased.
+ * 
+ * @param $candidate should be the data to hash.
+ * 
+ * @return the calculated hash of the passed-in data.
  */
 function db_hash(string $candidate): string
 {
@@ -259,13 +348,11 @@ function db_hash(string $candidate): string
  * whether they still are known. They could have been deleted, for instance,
  * in the meantime between authenticating and taking some other action.)
  * 
- * Parameters: 
- * - email_hash, string: the hash of the email address to check for 
- *   existence. Use the db_hash function in this module to hash the email 
- *   address.
+ * @param $email_hash the hash of the email address to check for 
+ *                    existence. Use the db_hash function in this module
+ *                    to hash the email address.
  * 
- * Returns:
- * True if the user is recognized by the passed-in email hash.
+ * @return True if the user is recognized by the passed-in email hash.
  */
 function db_is_email_hash_known(?string $email_hash): bool
 {
@@ -284,11 +371,9 @@ function db_is_email_hash_known(?string $email_hash): bool
 /**
  * Whether an email address is known for an existing user of the system.
  * 
- * Parameters: 
- * - email, string: the email address to check for existence.
+ * @param $email the email address to check for existence.
  * 
- * Returns:
- * True if the user is recognized by the passed-in email address.
+ * @return True if the user is recognized by the passed-in email address.
  */
 function db_is_email_known(?string $email): bool
 {
@@ -305,19 +390,17 @@ function db_is_email_known(?string $email): bool
  * authenticate the user who owns that email address.
  * 
  * Note: at the time of storing this information, the hashing algorithm
- * of PHP 7.4 is assumed. Its hash function encodes the hash as lower-cased
- * hexadecimal.
+ * of PHP 7.4 is assumed. Its hash function encodes the hash as lower-
+ * cased hexadecimal.
  * 
- * Parameters
- * - email: should be the email hoped to have been registered
+ * @param $email should be the email hoped to have been registered
  *
- * Returns
- * An empty array in case no user was found with that email address, or an 
- * array for that user, containing these fields:
+ * @return An empty array in case no user was found with that email 
+ * address, or an array for that user, containing these fields:
  * - hashing_algo: the name of the algorithm used to hash tokens,
  * - hashing_version: the version of the hashing algorithm.
  */
-function get_hashing_algo_for_user_by_email(?string $email):?array
+function get_hashing_algo_for_user_by_email(?string $email): ?array
 {
     if (empty($email)) {
         return [];
@@ -337,7 +420,7 @@ function get_hashing_algo_for_user_by_email(?string $email):?array
  * provided information using the same hashing algorithm as used by the 
  * system when it stored the user's credentials last time.
  * 
- * Returns: an integer that indicates whether the user is known, or whether 
+ * @return an integer that indicates whether the user is known, or whether 
  * anything went wrong while checking for that.
  * Known values:
  * 1:  The user is known and the passed-in key and secret match.
@@ -354,8 +437,11 @@ function get_hashing_algo_for_user_by_email(?string $email):?array
  *     wrong user name and password.
  * -5: Something went wrong and we don't know what.
  */
-function db_is_user_known(?string $email, ?string $key, ?string $secret):int
-{
+function db_is_user_known(
+    ?string $email, 
+    ?string $key, 
+    ?string $secret
+): int {
     if (empty($email)
         || empty($key)
         || empty($secret)
@@ -404,11 +490,15 @@ function db_is_user_known(?string $email, ?string $key, ?string $secret):int
 /**
  * Logs the specified event for the authenticated user.
  * If the user did not authenticate, this function will abort.
+ * 
+ * @param $name should name the event to log.
+ * 
+ * @return True if authentication succeeded.
  */
-function db_log_user_event(string $name):bool
+function db_log_user_event(string $name): bool
 {
     include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-    if(!session_did_user_authenticate()) {
+    if (!session_did_user_authenticate()) {
         return false;
     }
     $authenticated_email_hash = session_recall_user_token();
@@ -421,10 +511,23 @@ function db_log_user_event(string $name):bool
     return true;
 }
 
+/**
+ * Determines which of the passed-in privileges is assigned to the user.
+ * Privileges are stored and assigned to users in the Umpire database.
+ * This function passes the question on to a database-specific function.
+ * 
+ * @param $user_token    identifies the currently authenticated user,
+ *                       based on their user session.
+ * @param ...$privileges lists (by name) the things hoped to be allowed
+ *                       for he passed-in user.
+ * 
+ * @return Hopefully an array of only those privileges from the ones 
+ * passed in, that are assigned to the user.
+ */
 function db_which_of_these_privileges_does_user_hold(
     ?string $user_token,
     ?string ...$privileges
-) {
+): ?array {
     if (empty($user_token) || empty($privileges)) {
         return false;
     }
@@ -447,7 +550,7 @@ function db_which_of_these_privileges_does_user_hold(
 
 function db_is_user_admin(
     ?string $session_user_token
-):bool {
+): bool {
     if (empty($session_user_token)) {
         return false;
     }
@@ -465,13 +568,13 @@ function db_is_user_admin(
 
 function db_may_authenticated_user_accept_access(
     ?string $session_user_token
-):bool {
+): bool {
     return db_is_user_admin($session_user_token);
 }
 
 function db_may_authenticated_user_reject_access(
     ?string $session_user_token
-):bool {
+): bool {
     return db_is_user_admin($session_user_token);
 }
 
@@ -480,8 +583,10 @@ function db_may_authenticated_user_reject_access(
  * address. The function will check whether the current user has the 
  * privilege to accept an access application.
  */
-function db_accept_access(?string $current_user_hash, ?string $accept_email):bool
-{
+function db_accept_access(
+    ?string $current_user_hash, 
+    ?string $accept_email
+): bool {
     if(!db_may_authenticated_user_reject_access($current_user_hash)) {
         return false;
     }
@@ -508,9 +613,11 @@ function db_accept_access(?string $current_user_hash, ?string $accept_email):boo
  * address. The function will check whether the current user has the 
  * privilege to reject an access application.
  */
-function db_reject_access(?string $current_user_hash, ?string $reject_email):bool
-{
-    if(!db_may_authenticated_user_reject_access($current_user_hash)) {
+function db_reject_access(
+    ?string $current_user_hash,
+    ?string $reject_email
+): bool {
+    if (!db_may_authenticated_user_reject_access($current_user_hash)) {
         return false;
     }
     $reject_email_hash = db_hash($reject_email);
@@ -614,8 +721,12 @@ function db_make_user_secret(): string
  * credentials as a pair of key and secret. Those get stored in the DB
  * as well, hashed with a unique salt for every individual.
  *
- * @param hashed_candidate: should be the hash of the candidate's
- *        email address. Use the db_hash() function to hash it.
+ * @param $hashed_candidate should be the hash of the candidate's
+ *                          email address. Use the db_hash() function to 
+ *                          hash it.
+ * 
+ * @return A tuple of the user's new key and secrect (in that order), if
+ *         all goes well. May be empty. Otherwise, null.
  */
 function db_add_user(string $hashed_candidate): ?array
 {
@@ -663,7 +774,8 @@ function db_add_user(string $hashed_candidate): ?array
 
 /**
  * Retrieves where to go next after a successful form entry.
- * The return may be null, or a URL.
+ * 
+ * @return a URL. May be null.
  */
 function db_get_next_after_form_entry_success(string $form_id): ?string
 {

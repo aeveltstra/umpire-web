@@ -22,7 +22,7 @@ $form_nonce = session_make_and_remember_nonce(
 <title>Sign in - Umpire</title>
 <meta name=description content="Tell us how to recognize you"/>
 <meta name=viewport content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../c/main.css"/>
 </head>
 <body>
 <h1>Sign in - Umpire</h1>
@@ -47,7 +47,7 @@ if ($form_nonce) {
 <p><label><input type=submit value="Sign in"/></label></p>
 </fieldset>
 </form>
-<form method=get action="/umpire/reset-secrets/">
+<form method=get action="../reset-secrets/">
 <fieldset><legend>Forgot your secrets?</legend>
 <p>Note: Umpire operatives CANNOT retrieve your access key or pass 
   phrase, and thus CANNOT email them to you. If you forgot, you will have
@@ -55,7 +55,7 @@ if ($form_nonce) {
 <p><label><input type=submit value="Reset Secrets"/></label></p>
 </fieldset>
 </form>
-<form method=get action="/umpire/sign-up/">
+<form method=get action="../sign-up/">
 <fieldset><legend>Don't have an account yet?</legend>
 <p><label><input type=submit value="Sign up"/></label></p>
 </fieldset>

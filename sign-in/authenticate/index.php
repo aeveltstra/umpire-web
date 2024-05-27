@@ -17,11 +17,11 @@ declare(strict_types=1);
  * The process requires to be invoked using HTTP POST.
  */
 if (!isset($_SERVER['REQUEST_METHOD'])) {
-    http_response_code(400);
+    header('Location: ./error-wrong-form/');
     die();
 }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(400);
+    header('Location: ./error-wrong-form/');
     die();
 }
 if (!isset($_POST['nonce'])) {

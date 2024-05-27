@@ -3,8 +3,12 @@
  * Lists form entries. The fields are generated on the fly
  * based on the fields listed in the database.
  *
- * @author  A.E.Veltstra for Omega Junior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.0202.1753
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for Omega Junior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.526.2116
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -21,7 +25,7 @@ if (isset($_GET[$expected_query_param])) {
     $given_form_id = $_GET[$expected_query_param];
 }
 if (!$given_form_id) {
-    header('Location: /view/forms/');
+    header('Location: ../forms/');
     die();
 }
 
@@ -40,7 +44,7 @@ $does_form_exist = (
     && $ask_whether_form_exists[0]['it_exists'] == 1
 );
 if (!$does_form_exist) {
-    header('Location: /umpire/view/forms/');
+    header('Location: ../forms/');
     die();
 }
 $ask_for_form_caption = query(

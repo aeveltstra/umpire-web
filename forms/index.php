@@ -24,7 +24,7 @@ if (isset($_GET[$expected_query_param])) {
     $given_form_id = $_GET[$expected_query_param];
 }
 if (!$given_form_id) {
-    header('Location: /forms/');
+    header('Location: ../forms/');
     die();
 }
 
@@ -43,7 +43,7 @@ $does_form_exist = (
     && $ask_whether_form_exists[0]['it_exists'] == 1
 );
 if (!$does_form_exist) {
-    header('Location: /umpire/forms/');
+    header('Location: ../forms/');
     die();
 }
 $ask_for_form_caption = query(
@@ -286,7 +286,7 @@ function show_form_entry_fields(string $form_id, string $lang)
     <title><?php echo $page_title; ?></title>
     <meta name=description content="Please share as many details as available">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel=stylesheet href="../c/main.css">
+    <link rel=stylesheet href="../../c/main.css">
 </head>
 <body>
     <header>

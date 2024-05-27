@@ -21,7 +21,7 @@ $form_nonce = session_make_and_remember_nonce(
 <title>Forgot password - Umpire</title>
 <meta name=description content="You don't know how to log in anymore."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../c/main.css"/>
 </head> 
 <body>
 <h1>Forgot password - Umpire</h1>
