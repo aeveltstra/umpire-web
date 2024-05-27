@@ -42,6 +42,7 @@ if (isset($_GET['id'])) {
 $is_form_known = false;
 $form_caption = '';
 $form_redirect = '';
+$languages_missing_from_form_captions = [];
 if (!empty($form_choice)) {
     $get_form_exists = query(
         'select `id`, `url_after_entry` 
@@ -64,7 +65,8 @@ if (!empty($form_choice)) {
     $form_captions = query(
         'select `form`, `caption`, `language` 
             from `form_caption_translations` 
-            where `form` = ?',
+            where `form` = ?
+            order by 3',
         's',
         [$form_choice]
     );
@@ -80,6 +82,17 @@ if (!empty($form_choice)) {
             $form_caption = $form_captions[0]['caption'];
         }
     }
+    $languages_missing_from_form_captions = query(
+        'select `code` from `language_codes`
+            where not exists ( 
+                select 1 from `form_caption_translations` 
+                where `language` = `code`
+                and form = ?
+            )
+            order by 1',
+        's',
+        [$form_choice]
+    );
 }
 
 $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
@@ -92,7 +105,7 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="../../c/main.css"/>
-<link rel=stylesheet href="manage-form.css?2.24.429.1737"/>
+<link rel=stylesheet href="../../c/manage-form.css?2.24.527.1609"/>
 <script type="text/javascript">/* <![CDATA[ */
 
 function hide_changed(input_id) {
@@ -368,7 +381,6 @@ if (!$is_form_known) {
                 from `form_caption_translations` 
                 where `language` = \'en\''
     );
-
     foreach ($rows as $row) {
         $id_for_show = htmlspecialchars(
             $row['form'], ENT_QUOTES
@@ -433,8 +445,30 @@ if (!$is_form_known) {
 </tr>
             ";
     }
-    echo "
-    </tbody></table></fieldset></form>
+    echo "</tbody>";
+    if (count($languages_missing_from_form_captions) > 0) {
+        $add_language_options = '';
+        foreach ($languages_missing_from_form_captions as $x) {
+            $add_language_options .= '<option>' . addslashes($x['code'])
+            . '</option>' . "\r\n\t";
+        }
+        echo "<tfoot>
+            <td></td>
+            <th><select id=add_caption_for_language
+                name=add_caption_for_language>
+                {$add_language_options}
+                </select></th>
+            <td><label><input type=submit 
+                id=add_caption_to_form
+                name=add_caption_to_form
+                value='+'
+                title='Add new caption for chosen language'
+                /> Add new caption for chosen language
+            </label></td>
+        </tfoot>
+        ";
+    }
+    echo "</table></fieldset></form>
 </section>
 <section>
     <h3>Redirect After Entry</h3>
