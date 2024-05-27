@@ -91,7 +91,7 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <meta name=description content="Determine which form to configure."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../../c/main.css"/>
 <link rel=stylesheet href="manage-form.css?2.24.429.1737"/>
 <script type="text/javascript">/* <![CDATA[ */
 
@@ -356,18 +356,6 @@ function store(input, attrib_id) {
     return false;
 }
 
-/**
- * Shows or hides the enum management link depending on whether the 
- * input has the value 'enum'.
- */
-function show_enum_mgr(input, attrib) {
-    "use strict";
-    if (!input || !attrib) return;
-    const e = document.getElementById('set_enums_' + attrib);
-    if (!!e) {
-        e.hidden = (input.value !== 'enum');
-    }
-}
 /* ]]> */</script>
 </head>
 <body>
@@ -496,9 +484,7 @@ if (!$is_form_known) {
     </table>
     </fieldset></form>
 </section>
-<section>";
-    //<form id='attributes_for_form' onsubmit='return false;'>";
-    echo "
+<section>
 <h3>Change Form Fields</h3>
 <p>Note: fields are shared among forms. Changing one will 
 change it on all forms. The exception is Display Sequence: that is 
@@ -546,21 +532,6 @@ applied to each form separately.</p>
     foreach ($dts as $dt) {
         $dt_options .= "<option>{$dt}</option>";
     }
-    $enum_choosers = [];
-    foreach ($xs as $x) {
-        $id = $x['id'];
-        $attrib_id = htmlspecialchars($id, ENT_QUOTES);
-        $enum_choosers[$id] = "
-            <select id='enum_chooser_{$attrib_id}'>
-                <optgroup label='Current choice:'>
-                    <option>Current</option>
-                </optgroup>
-                <optgroup label='Other choices:'>
-                    <option>Other</option>
-                </optgroup>
-            </select>
-        ";
-    }
     foreach ($xs as $x) {
         $id = $x['id'];
         $display_seq   = $x['display_sequence'];
@@ -597,13 +568,21 @@ applied to each form separately.</p>
                 id=succeeded_{$attrib_id} 
                 title='Stored successfully'>&radic;</span>
             </td>
-            <th>{$display_seq}</th>
+            <th><input type=number
+                name=new_display_seq_{$attrib_id}
+                id=new_display_seq_{$attrib_id}
+                onchange='store(this, \"{$attrib_id}\");'
+                value=\"{$display_seq}\"
+            /><input type=hidden
+                name=old_display_seq_{$attrib_id}
+                id=old_display_seq_{$attrib_id}
+                value=\"{$display_seq}\"
+            /></th>
             <td>{$attrib_id}</td>
             <td><select 
                 name=new_data_type_{$attrib_id}
                 id=new_data_type_{$attrib_id}
-                onchange='store(this, \"{$attrib_id}\");
-                    show_enum_mgr(this, \"{$attrib_id}\");'>
+                onchange='store(this, \"{$attrib_id}\");'>
                 <optgroup label='Current choice:'>
                     <option selected=selected>{$data_type}</option>
                 </optgroup>
@@ -614,9 +593,7 @@ applied to each form separately.</p>
                 name=old_data_type_{$attrib_id}
                 id=old_data_type_{$attrib_id}
                 value=\"{$data_type}\"
-            /><div id='set_enums_{$attrib_id}'
-                $enum_mgr_hidden
-            >{$enum_choosers[$id]}</div></td>
+            /></td>
             <td><input type=number 
                 name=new_min_{$attrib_id} 
                 id=new_min_{$attrib_id} 

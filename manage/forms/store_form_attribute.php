@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.413.1657
+ * @version 2.24.527.1415
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -140,6 +140,16 @@ if (!empty($form_choice)) {
         $dt = '';
         $is_form_specific = false;
         switch ($prop) {
+        case 'new_display_seq':
+            $sql = 'update `form_attributes`
+                    set `display_sequence` = ?
+                    where `display_sequence` = ?
+                    and `attribute` = ?
+                    and `form` = ?
+                    ';
+            $dt = 'iiss'; 
+            $is_form_specific = true;
+            break;
         case 'new_data_type':
             $sql = 'update `attributes` set `data_type` = ? 
                     where `data_type` = ? and `id` = ?';
