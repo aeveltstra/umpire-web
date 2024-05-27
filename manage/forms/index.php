@@ -229,6 +229,24 @@ function set_new_as_old_value(id) {
     return true;
 }
 
+function get_picked_added_language() {
+    "use strict";
+    const x = document.getElementById('add_caption_lang_pick');
+    if (!!x && !!x.value) {
+        return x.value;
+    }
+    return '';
+}
+
+function get_added_caption() {
+    "use strict";
+    const x = document.getElementById('added_caption');
+    if (!!x && !!x.value) {
+        return x.value;
+    }
+    return '';
+}
+
 function store_form_caption(input) {
     "use strict";
     const evt = window.event;
@@ -241,13 +259,20 @@ function store_form_caption(input) {
             show_changed(id);
             const xs = id.split('_');
             if (xs.length) {
-                const x = xs[xs.length - 1];
+                let x = xs[xs.length - 1];
+                if ('lang' == x) {
+                  x = get_picked_added_language();
+                }
                 const fd = new FormData();
-                fd.append('form_id', '<?php echo $form_id_for_show; ?>');
+                fd.append('form_id', '<?php echo addslashes($form_id_for_show); ?>');
                 fd.append('language', x);
-                fd.append('old_caption', get_old_value(id));
-                fd.append('new_caption', input.value);
-                fd.append('nonce', '<?php echo $form_nonce; ?>');
+                if ('new' == xs[0]) {
+                    fd.append('new_caption', input.value);
+                    fd.append('old_caption', get_old_value(id));
+                } else if ('add' == xs[0]) {
+                    fd.append('new_caption', get_added_caption());
+                }
+                fd.append('nonce', '<?php echo addslashes($form_nonce); ?>');
                 fetch(
                     './store_form_caption.php?t=' + Date.now(),
                     {
@@ -437,11 +462,12 @@ if (!$is_form_known) {
             value='{$c}' 
             onchange='store_form_caption(this)' />
         </label>
-        <input type=hidden 
+    </td>
+    <td><input type=hidden 
         name=old_caption_{$t} 
         id=old_caption_{$t} 
-        value=\"{$c}\"/>
-    </td>
+        value=\"{$c}\"
+    /></td>
 </tr>
             ";
     }
@@ -453,18 +479,36 @@ if (!$is_form_known) {
             . '</option>' . "\r\n\t";
         }
         echo "<tfoot>
-            <td></td>
-            <th><select id=add_caption_for_language
-                name=add_caption_for_language>
+            <td>
+                <span hidden class=changed 
+                id=changed_add_caption_lang 
+                title='Changed'>&hellip;</span>
+                <span hidden class=failed 
+                id=failed_add_caption_lang
+                title='Adding failed'>&otimes;</span>
+                <span hidden class=succeeded 
+                id=succeeded_add_caption_lang
+                title='Added successfully'>&radic;</span>
+            </td>
+            <th><select id=add_caption_lang_pick
+                name=add_caption_lang_pick>
                 {$add_language_options}
                 </select></th>
+            <td><input type=text
+                id=added_caption
+                name=added_caption
+                size=60
+                maxsize=256
+                value='' 
+                placeholder='New caption for chosen language'
+            /></td>
             <td><label><input type=submit 
-                id=add_caption_to_form
-                name=add_caption_to_form
+                id=add_caption_lang
+                name=add_caption_lang
+                onclick='store_form_caption(this);'
                 value='+'
                 title='Add new caption for chosen language'
-                /> Add new caption for chosen language
-            </label></td>
+                />&nbsp;Add</label></td>
         </tfoot>
         ";
     }

@@ -1,10 +1,11 @@
 <?php
 /**
- * Save the title Umpire shows when displaying and mentioning
- * an entry form.
+ * Save the title Umpire shows when displaying and mentioning an entry form.
  *
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.323.1541
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.323.1541
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -125,10 +126,11 @@ if (!empty($form_choice)) {
                       "errors": []
                     }';
                 } catch (mysqli_sql_exception $err) {
+                    $e2 = addslashes($err->getMessage());
                     echo '{
                       "success": false,
                       "errors": [
-                        "{$err}"
+                        "' . $e2 . '"
                        ]
                     }';
                 }
@@ -171,23 +173,48 @@ if (!empty($form_choice)) {
                   "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {
-                $e2 = addslashes($err);
+                $e2 = addslashes($err->getMessage());
                 echo '{
                   "success": false,
                   "errors": [
-                    "{$e2}"
+                    "' . $e2 . '"
                    ]
                 }';
             }
         }
     } else {
-        echo '{
-          "success": false,
-          "errors": [
-              "Form not found.",
-              "Return to the overview and load the form from there."
-           ]
-        }';
+        try {
+            $result = db_exec(
+                'insert into `form_caption_translations` 
+                    (`caption`, `language`, `form`)
+                    values 
+                    (?, ?, ?)
+                ',
+                'sss',
+                [
+                    $new_caption_from_post,
+                    $caption_language,
+                    $form_choice
+                ]
+            );
+            echo '{
+              "success": true,
+              "set": {
+                "language": "'. $caption_language .'",
+                "form": "'. $form_choice .'",
+                "new": "'. $new_caption_from_post .'"
+              },
+              "errors": []
+            }';
+        } catch (mysqli_sql_exception $err) {
+            $e2 = addslashes($err->getMessage());
+            echo '{
+              "success": false,
+              "errors": [
+                "' . $e2 . '"
+               ]
+            }';
+        }
     }
 }
 ?>

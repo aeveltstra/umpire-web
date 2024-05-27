@@ -241,11 +241,11 @@ if (!empty($form_choice)) {
                     "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {
-                $e2 = addslashes($err);
+                $e2 = addslashes($err->getMessage());
                 echo '{
                     "success": false,
                     "errors": [
-                        "{$e2}"
+                        "' . $e2 . '"
                     ]
                 }';
             }
