@@ -26,9 +26,10 @@
 
 section{margin-top:2.5em}
 table{background-color:var(--manage-form-table-bg);border-radius:5pt}
-th,td{padding:4pt;text-align:left;vertical-align:bottom}
-input,select{min-width:7em;width:100%}
+th,td{padding:4pt;text-align:left;vertical-align:middle}
+input[type=text],select{min-width:7em;width:100%}
 input[type=checkbox]{min-width:auto}
+input[type=number]{min-width:4em}
 .changed{background-color:var(--content-changed-bg);color:var(--content-changed-fg);padding:3pt;border-radius:3pt}
 .failed{background-color:var(--storing-failed-bg);color:var(--storing-failed-fg);padding:3pt;border-radius:3pt}
 .succeeded{background-color:var(--storing-succeeded-bg);color:var(--storing-succeeded-fg);padding:3pt;border-radius:3pt}
