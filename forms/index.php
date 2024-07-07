@@ -8,7 +8,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.501.2230
+ * @version  2.24.707.1520
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -301,7 +301,7 @@ function show_form_entry_fields(string $form_id, string $lang)
         <fieldset>
             <legend>Terms and conditions</legend>
             <p><label><input type=checkbox name=agree> I accept </label><a
-            href="../terms/">the terms and conditions.</a></p>
+            href="../../terms/">the terms and conditions.</a></p>
         </fieldset>
         <?php
             show_form_entry_fields($prefixed_form_id, 'en');
