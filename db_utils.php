@@ -9,7 +9,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.536.2010
+ * @version  2.24.620.1808
  */
 declare(strict_types=1);
  
@@ -582,12 +582,21 @@ function db_may_authenticated_user_reject_access(
  * Allows further access to a user, identified by the passed-in email
  * address. The function will check whether the current user has the 
  * privilege to accept an access application.
+ * 
+ * @param $current_user_hash should be the hashed email address of the
+ *                           user who performs the acceptance. Usually an
+ *                           administrator. Use db_hash() to hash it.
+ * @param $accept_email      should be the email address to be accepted.
+ *                           This will be hashed by db_hash() before it
+ *                           gets sent to the DB.
+ * 
+ * @return True if the acceptance was successful.
  */
 function db_accept_access(
     ?string $current_user_hash, 
     ?string $accept_email
 ): bool {
-    if(!db_may_authenticated_user_reject_access($current_user_hash)) {
+    if (!db_may_authenticated_user_accept_access($current_user_hash)) {
         return false;
     }
     $accept_email_hash = db_hash($accept_email);
@@ -612,6 +621,15 @@ function db_accept_access(
  * Deny further access to a user, identified by the passed-in email
  * address. The function will check whether the current user has the 
  * privilege to reject an access application.
+ * 
+ * @param $current_user_hash should be the hashed email address of the
+ *                           user who performs the rejection. Usually an
+ *                           administrator. Use db_hash() to hash it.
+ * @param $reject_email      should be the email address to be rejected.
+ *                           This will be hashed by db_hash() before it
+ *                           gets sent to the DB.
+ * 
+ * @return True if the rejection was successful.
  */
 function db_reject_access(
     ?string $current_user_hash,
@@ -621,7 +639,7 @@ function db_reject_access(
         return false;
     }
     $reject_email_hash = db_hash($reject_email);
-    $params = [$current_user_hash, $reject_email];
+    $params = [$current_user_hash, $reject_email_hash];
     $mysqli = connect_db();
     $mysqli->query("set @success = 0");
     $sql = 'call sp_reject_access_application(?, ?, @success)';
@@ -702,7 +720,7 @@ function db_make_user_secret(): string
         'astrophysics'
     ];
     $result = array();
-    foreach(
+    foreach (
         array_rand(
             $word_list, 
             7
@@ -721,9 +739,8 @@ function db_make_user_secret(): string
  * credentials as a pair of key and secret. Those get stored in the DB
  * as well, hashed with a unique salt for every individual.
  *
- * @param $hashed_candidate should be the hash of the candidate's
- *                          email address. Use the db_hash() function to 
- *                          hash it.
+ * @param $hashed_candidate should be the hash of the candidate's email 
+ *                          address. Use the db_hash() function to hash.
  * 
  * @return A tuple of the user's new key and secrect (in that order), if
  *         all goes well. May be empty. Otherwise, null.
@@ -775,6 +792,9 @@ function db_add_user(string $hashed_candidate): ?array
 /**
  * Retrieves where to go next after a successful form entry.
  * 
+ * @param $form_id should identify the form for which to retrieve
+ *                 where to go next.
+ * 
  * @return a URL. May be null.
  */
 function db_get_next_after_form_entry_success(string $form_id): ?string
@@ -791,11 +811,55 @@ function db_get_next_after_form_entry_success(string $form_id): ?string
 }
 
 /**
+ * Creates a reset key in the user database, ties it to the user, and 
+ * returns it. Use this when the user lost their authentication keys and 
+ * needs a reset. This reset key must be made available to the user. It
+ * has a short life: the user must respond within 30 minutes. If they
+ * manage to do so, they authenticated successfully and could, for
+ * instance, be allowed to reset their authentication credentials.
  * 
+ * @param $user_email should identify the user by their email address.
+ *                    It will be hashed before getting sent to the DB.
  */
 function db_make_authentication_reset_key(string $user_email): ?string
 {
+    if (empty($user_email)) {
+        return null;
+    }
+    $email_hash = db_hash($user_email);
+    $mysqli = connect_db();
+    $mysqli->query("set @reset_key = ''");
+    $sql = 'call sp_make_user_auth_reset_key(?, @reset_key)';
+    $ps = $mysqli->prepare($sql);
+    $params = [$email_hash];
+    $ps->bind_param('s', ...$params);
+    $ps->execute();
+    $result = $mysqli->query('select @reset_key as `reset_key`;');
+    $result = $result->fetch_all(MYSQLI_ASSOC);
+    if (isset($result[0]) && isset($result[0]['reset_key'])) {
+        return $result[0]['reset_key'];
+    }
     return null;
+}
+
+/**
+ * Determines whether or not the user may reset their authentication
+ * credentials. Usual restrictions include time and frequency of 
+ * previous resets.
+ */
+function db_may_user_reset_authentication(string $user_email): bool
+{
+    if (empty($user_email)) {
+        return null;
+    }
+    $email_hash = db_hash($user_email);
+    $sql = 'call sp_may_user_reset_own_authentication(?);';
+    $result = query($sql, 's', [$email_hash]);
+    return (
+        isset($result[0]) 
+        && isset($result[0]['is_allowed'])
+        && true == $result[0]['is_allowed']
+    );
 }
 
 ?>
