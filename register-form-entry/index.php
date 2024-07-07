@@ -2,9 +2,15 @@
 /**
  * Stores the form entry. Fields are generated on the fly based on the 
  * fields listed in the database.
- * @author A.E.Veltstra
- * @version 2.24.0229.2026
+ * 
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.0229.2026
  */
+
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -116,21 +122,22 @@ if (empty($fails)) {
     <h2>Something went wrong while we tried to register your entry.</h2>
     <h3>The following fields failed to have their values stored:</h3>
     <ul>
-        <?php 
-            $template = '<li>%1$s: %2$s</li>';
-            foreach ($fails as list(
-                'case' => $case_id,
-                'field' => $field_id,
-                'value' => $field_value
-            )) {
-                echo sprintf(
-                    $template,
-                    addslashes($field_id),
-                    addslashes(strval($field_value))
-                );
-            }
-        ?>
+<?php
+$template = '<li>%1$s: %2$s</li>';
+foreach ($fails as list(
+    'case' => $case_id,
+    'field' => $field_id,
+    'value' => $field_value
+)) {
+    echo sprintf(
+        $template,
+        addslashes($field_id),
+        addslashes(strval($field_value))
+    );
+}
+?>
     </ul>
-    <p>Please <a onclick="history.back();return false;" href="../forms/">try again</a>.</p>
+    <p>Please <a onclick="history.back();return false;" 
+        href="../forms/">try again</a>.</p>
 </body>
 </html>

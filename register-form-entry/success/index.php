@@ -1,4 +1,15 @@
 <?php 
+/**
+ * Shows that the form entry was stored successfully.
+ * 
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.707.1621
+ */
+
 declare(strict_types=1);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
 $new_case_id = session_recall('new_case_id');
@@ -17,9 +28,14 @@ $new_case_id = session_recall('new_case_id');
 <h1>Entry registered successfully - Umpire</h1>
 <?php if (!empty($new_case_id)) { ?>
     <p>This is your case ID: <?php echo $new_case_id; ?>.</p>
-    <p>Please keep this with your records. You will need it if you want to talk to us about it.</p>
+    <p>Please keep this with your records. 
+        You will need it if you want to talk to us about it.</p>
 <?php } ?>
 <h2>Where to next?</h2>
-<p>Would you like to return to <a href="/umpire/">the home page</a>, or <a href="/umpire/forms/">submit a new case</a>? Or maybe you want to view our <a href="/umpire/view/statistics/">statistics</a>?</p>
+<p>Would you like to return to <a href="/umpire/">the home page</a>, 
+    or <a href="/umpire/forms/">submit a new case</a>? 
+    Or maybe you want to view our 
+    <a href="/umpire/view/statistics/">statistics</a>?
+</p>
 </body>
 </html>
