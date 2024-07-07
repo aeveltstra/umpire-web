@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.620.2157
+ * @version  2.24.707.1527
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/config.php';
