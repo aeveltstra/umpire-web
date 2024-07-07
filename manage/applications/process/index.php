@@ -1,9 +1,15 @@
 <?php
 /**
  * Approve and reject access for multiple users at a time.
- * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.23.1106.2035
+ * 
+ * PHP Version 7.5.3
+ * 
+ * @category Administrative
+ * @package  Umpire
+ * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
+ * @version  2.24.707.1600
  */
+
 declare(strict_types=1);
 error_reporting(E_ALL);
 
@@ -24,8 +30,8 @@ if (!isset($_POST['nonce'])) {
     die();
 }
 
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 $form_id = 'access_applications_form';
 if (!session_is_nonce_valid($form_id)) {
     header('Location: ./error-wrong-form/');
@@ -62,7 +68,7 @@ $user_may_accept = db_may_authenticated_user_accept_access(
 $user_may_reject = db_may_authenticated_user_reject_access(
     $current_user
 );
-if (!$user_may_accept && !$user_may_reject)  {
+if (!$user_may_accept && !$user_may_reject) {
     session_remember('accept_emails', $accept_emails);
     session_remember('reject_emails', $reject_emails);
     session_remember('return_to', '/umpire/applications/');
@@ -79,28 +85,48 @@ if (!empty($reject_emails)) {
     $xs_r = preg_split("/\R/", $reject_emails);
 }
 if (!empty($xs_a)) {
-    $xs_a = array_map(function ($x) use (&$current_user) {
-        $x = filter_var($x, FILTER_VALIDATE_EMAIL);
-        if (false === $x || empty($x)) { return null; }
-        $success = db_accept_access($current_user, $x);
-        if ($success) { return $x; }
-        return null;
-    }, $xs_a);
-    $xs_a = array_filter($xs_a, function($x) {
-        return (!empty($x));
-    });
+    $xs_a = array_map(
+        function ($x) use (&$current_user) {
+            $x = filter_var($x, FILTER_VALIDATE_EMAIL);
+            if (false === $x || empty($x)) { 
+                return null;
+            }
+            $success = db_accept_access($current_user, $x);
+            if ($success) {
+                return $x;
+            }
+            return null;
+        },
+        $xs_a
+    );
+    $xs_a = array_filter(
+        $xs_a, 
+        function ($x) {
+            return (!empty($x));
+        }
+    );
 }
 if (!empty($xs_r)) {
-    $xs_r = array_map(function ($x) use (&$current_user) {
-        $x = filter_var($x, FILTER_VALIDATE_EMAIL);
-        if (false === $x || empty($x)) { return null; }
-        $success = db_reject_access($current_user, $x);
-        if ($success) { return $x; }
-        return null;
-    }, $xs_r);
-    $xs_r = array_filter($xs_r, function($x) {
-        return (!empty($x));
-    });
+    $xs_r = array_map(
+        function ($x) use (&$current_user) {
+            $x = filter_var($x, FILTER_VALIDATE_EMAIL);
+            if (false === $x || empty($x)) { 
+                return null; 
+            }
+            $success = db_reject_access($current_user, $x);
+            if ($success) { 
+                return $x; 
+            }
+            return null;
+        }, 
+        $xs_r
+    );
+    $xs_r = array_filter(
+        $xs_r, 
+        function ($x) {
+            return (!empty($x));
+        }
+    );
 }
 
 ?>
@@ -108,33 +134,40 @@ if (!empty($xs_r)) {
 <html lang="en">
 <head><meta charset="utf-8" />
 <title>Done Processing Applications</title>
-<meta name=description content="The applications to access Umpire have been processed."/>
+<meta name=description 
+    content="The applications to access Umpire have been processed."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../../../c/main.css"/>
 </head>
 <body>
     <h1>Done Processing Applications</h1>
     <h2>The applications to access Umpire has been processed.</h2>
     <?php
-        if (empty($xs_a)) {
-            echo "<p>No email addresses were accepted.</p>\r\n";
-        } else {
-            echo "<p>E-mail addresses of accepted applications:</p><ul>\r\n";
-            array_walk($xs_a, function($x) {
+    if (empty($xs_a)) {
+        echo "<p>No email addresses were accepted.</p>\r\n";
+    } else {
+        echo "<p>E-mail addresses of accepted applications:</p><ul>\r\n";
+        array_walk(
+            $xs_a, 
+            function ($x) {
                 echo '<li>', htmlspecialchars($x), '</li>', "\r\n";
-            });
-            echo "</ul>\r\n";
-        }
-        if (empty($xs_r)) {
-            echo "<p>No email addresses were rejected.</p>\r\n";
-        } else {
-            echo "<p>E-mail addresses of rejected applications:</p><ul>\r\n";
-            array_walk($xs_r, function($x) {
+            }
+        );
+        echo "</ul>\r\n";
+    }
+    if (empty($xs_r)) {
+        echo "<p>No email addresses were rejected.</p>\r\n";
+    } else {
+        echo "<p>E-mail addresses of rejected applications:</p><ul>\r\n";
+        array_walk(
+            $xs_r, 
+            function ($x) {
                 echo '<li>', htmlspecialchars($x), '</li>', "\r\n";
-            });
-            echo "</ul>\r\n";
-        }
+            }
+        );
+        echo "</ul>\r\n";
+    }
     ?>
     <p>Would you like to manage other <a href="../">access applications</a>?</p>
 </body>

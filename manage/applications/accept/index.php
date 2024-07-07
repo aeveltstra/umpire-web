@@ -2,12 +2,12 @@
 /**
  * Approve access to a user who has requested it.
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.23.1105.2010
+ * @version 2.24.707.1545
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-include_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
 /**
  * This script expects to receive input from querystring.
@@ -67,21 +67,21 @@ if (!$success) {
 <html lang="en">
 <head><meta charset="utf-8" />
 <title>Successfully Accepted Application</title>
-<meta name=description content="The application to access Umpire has been accepted successfully."/>
+<meta name=description content="The request to access Umpire was accepted."/>
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
-<link rel=stylesheet href="main.css"/>
+<link rel=stylesheet href="../../../../c/main.css"/>
 </head>
 <body>
     <h1>Successfully Accepted Application</h1>
     <h2>The application to access Umpire has been accepted successfully.</h2>
     <?php
-        if (!empty($valid_email)) {
-            echo '<p>E-mail address of the accepted application: ',
-                htmlspecialchars($valid_email),
-                '.</p>';
-        }
+    if (!empty($valid_email)) {
+        echo '<p>E-mail address of the accepted application: ',
+            htmlspecialchars($valid_email),
+            '.</p>';
+    }
     ?>
-    <p>Would you like to manage other <a href="../">access applications</a>?</p>
+    <p>Would you like to manage other <a href="../../">access applications</a>?</p>
 </body>
 </html>
