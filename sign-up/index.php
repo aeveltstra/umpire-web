@@ -34,10 +34,10 @@ $form_nonce = session_make_and_remember_nonce('sign_up_form');
     <li>Exporting our case lists as a spreadsheet;</li>
     <li>And more!</li>
 </ul>
-<p>Your request WILL be reviewed by one of our operatives. Access will 
-    NOT be granted automatically. Argue your need to gain access to our 
-    system. Please bear in mind our operatives are volunteers. They'll 
-    get around to your request as soon as possible.</p>
+<p>Your request <strong>will</strong> be reviewed by one of our operatives. 
+    Access <strong>won't</strong> be granted automatically. Argue your
+    need to gain access to our system. Please bear in mind our operatives
+    are volunteers. They'll get around to your request as soon as possible.</p>
 <form method=post action="check/">
 <?php
 if ($form_nonce) {
