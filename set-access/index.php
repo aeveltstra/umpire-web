@@ -33,7 +33,7 @@ if (isset($_GET[$reset_key_variable])) {
 }
 if (empty($email) || empty($reset_key)) {
     if (empty($email)) {
-        header('Location: ./error-missing-required-input/');
+        header('Location: ./error-missing-input/');
         die();
     }
 }
@@ -44,7 +44,7 @@ $valid_email = filter_var(
 );
 
 if (false === $valid_email) {
-    header('Location: ./error-missing-required-input/');
+    header('Location: ./error-missing-input/');
     die();
 }
 
