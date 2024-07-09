@@ -9,7 +9,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.620.1808
+ * @version  2.24.708.2055
  */
 declare(strict_types=1);
  
@@ -106,24 +106,22 @@ function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
  * returned by connect_db(), automatically assigning the parameters if 
  * present. 
  *
- * Parameters:
- * - dml: should be the data manipulation statement to run. Can run SQL too.
- *        Note: the underlying database is MySQL, using the InnoDb storage 
- *        engine. Use the MySQL dialect.
- * - param_types:
- *        May be type hints for a mysqli prepared statement. If not passing 
- *        in parameters, omit this argument. Default: null.
- * - params:
- *        May be the values to pass into the mysqli statement that gets 
- *        prepared based on the passed-in dml. Parameters are positional: 
- *        the same position in this array is expected to replace a question 
- *        mark in the dml. If a wrong amount of parameters is given, the
- *        procedure will fail.
+ * @param $dml    should be the data manipulation statement to run. Can 
+ *                run SQL too. Note: the underlying database is MySQL, 
+ *                using the InnoDb storage engine. Use the MySQL dialect.
+ * @param $types  may be type hints for a mysqli prepared statement. If 
+ *                not passing in parameters, omit this argument. Default:
+ *                null.
+ * @param $params may be the values to pass into the mysqli statement 
+ *                that gets prepared based on the passed-in dml. Para-
+ *                meters are positional: the same position in this array 
+ *                is expected to replace a question mark in the dml. If 
+ *                a wrong amount of parameters is given, the procedure 
+ *                will fail.
  *
- * @return 
- * Either an empty list, or a list of tuples (associative array). Each tuple
- * is a row of the query result, with the keys of its key-value pairs named 
- * after the field names specified in the SQL statement.
+ * @return Either an empty list, or a list of tuples (associative array).
+ * Each tuple is a row of the query result, with the keys of its key-
+ * value pairs named after the field names specified in the SQL statement.
  */
 function db_exec(?string $dml, ?string $types = null, ?array $params = null): array
 {
@@ -860,6 +858,48 @@ function db_may_user_reset_authentication(string $user_email): bool
         && isset($result[0]['is_allowed'])
         && true == $result[0]['is_allowed']
     );
+}
+
+/**
+ * Resets the access key and secret for a user, if the provided email
+ * and reset key match one known by the database and not yet expired,
+ * and various other security mechanisms handled in the database.
+ * Usual restrictions include time and frequency of previous resets.
+ * 
+ * @param $email     should identify the user who is attempting to reset
+ *                   their authentication credentials.
+ * @param $reset_key should specify a key sent to the user's email, 
+ *                   and stored for that user in the database.
+ * 
+ * @return A tuple of the user's new key and secrect (in that order), if
+ *         all goes well. May be empty. Otherwise, null.
+ */
+function db_reset_auth_key_for_user_if_valid($email, $reset_key): ?array
+{
+    if (empty($user_email)) {
+        return null;
+    }
+    $access_key = db_make_user_key();
+    $access_secret = db_make_user_secret();
+    $email_hash = db_hash($user_email);
+    $sql = 'call sp_store_access_keys_if_allowed(?, ?, ?, ?);';
+    $result = query(
+        $sql, 
+        'ssss', 
+        [
+            $email_hash,
+            $reset_key,
+            $access_key,
+            $access_secret
+        ]
+    );
+    if (isset($result[0]) 
+        && isset($result[0]['got_stored'])
+        && true == $result[0]['got_stored']
+    ) {
+        return [$access_key, $access_secret];
+    }
+    return null;
 }
 
 ?>
