@@ -876,12 +876,12 @@ function db_may_user_reset_authentication(string $user_email): bool
  */
 function db_reset_auth_key_for_user_if_valid($email, $reset_key): ?array
 {
-    if (empty($user_email)) {
+    if (empty($email)) {
         return null;
     }
     $access_key = db_make_user_key();
     $access_secret = db_make_user_secret();
-    $email_hash = db_hash($user_email);
+    $email_hash = db_hash($email);
     $sql = 'call sp_store_access_keys_if_allowed(?, ?, ?, ?);';
     $result = query(
         $sql, 
