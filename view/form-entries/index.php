@@ -8,13 +8,32 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for Omega Junior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.526.2116
+ * @version  2.24.712.0050
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+
+if (!session_did_user_authenticate()) {
+    session_remember('return_to', '/umpire/view/form-entries/');
+    header('Location: ../../sign-in/');
+    die();
+}
+
+$current_user = session_recall_user_token();
+$held_privileges = db_which_of_these_privileges_does_user_hold(
+    $current_user,
+    'may_see_all_cases'
+);
+if (empty($held_privileges)) {
+    session_remember('return_to', '/umpire/view/form-entries/');
+    header('Location: ../../access-denied/'); 
+    die();
+}
 
 /**
  * We expect a form id as the form query parameter.
@@ -62,49 +81,15 @@ if (isset($ask_for_form_caption[0])
     $form_caption = $given_form_id;
 }
 
-$stats = [];
-$amount_of_form_entries = 0;
-$ask_for_entries_for_form = query(
-    "select count(*) as `amount_of_entries`,
-        (
-            select count(*) 
-            from `form_attributes` 
-            where `form` = ?
-        ) as `amount_of_form_attributes`,
-        (
-            select count(*) 
-            from `integer_values` 
-            where `case_id` in (
-                select `entry_id` from `entries` 
-                where `form` = ?
-            )
-        ) as `estimated_amount_of_form_attribute_versions`
-        from `entries` 
-        where `form` = ?
-        group by `form`
-    ",
-    'sss',
+$entries = query(
+    "call sp_get_form_entries_with_fields(?, ?)",
+    'ss',
     [
         $prefixed_form_id,
-        $prefixed_form_id,
-        $prefixed_form_id
+	'en'
     ]
 );
-if (isset($ask_for_entries_for_form[0])) {
-    $stat_labels = [
-        "amount_of_entries",
-        "amount_of_form_attributes",
-        "estimated_amount_of_form_attribute_versions"
-    ];
-    $stats = [];
-    foreach ($stat_labels as $label) {
-        $stat = ["label"=>$label, "value"=>0];
-        if (isset($ask_for_entries_for_form[0][$label])) {
-            $stat['value'] = $ask_for_entries_for_form[0][$label];
-        }
-        $stats[] = $stat;
-    }
-}
+
 
 $page_title = $form_caption . ' - Form Entries - Umpire';
 
@@ -120,15 +105,22 @@ $page_title = $form_caption . ' - Form Entries - Umpire';
 <body>
     <h1><?php echo $page_title; ?></h1>
     <h2>Overview of stored records</h2>
-<?php 
-if ($stats) {
-    echo "<ul>";
-    foreach ($stats as $stat) {
-        echo "<li>$stat[label]: $stat[value]</li>";
+<?php
+
+if ($entries) {
+    echo "<table>\r\n<tr><th>Case ID</th><th>Field</th><th>Value</th><th>Entered at</th><th>By user</th></tr>";
+    while ($entry = array_shift($entries)) {
+        echo "<tr>
+        <th>{$entry['case_id']}</th>
+	<th>{$entry['translation']}</th>
+	<td>{$entry['value']}</td>
+	<td>{$entry['at']}</td>
+	<td>{$entry['user']}</td>
+        </tr>\r\n";
     }
-    echo "</ul>";
+    echo "</table>\r\n";
 } else {
-    echo "<p>No statistics available for this form.</p>";
+    echo "<p>No entries available for this form.</p>";
 }
 ?>
 </body>

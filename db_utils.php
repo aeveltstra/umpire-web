@@ -881,6 +881,16 @@ function db_reset_auth_key_for_user_if_valid($email, $reset_key): ?array
     }
     $access_key = db_make_user_key();
     $access_secret = db_make_user_secret();
+    $hashing_algo = 'sha512';
+    $hashing_version = 1;
+    $key_hash = hash(
+        $hashing_algo,
+        $access_key
+    );
+    $secret_hash = hash(
+        $hashing_algo,
+        $access_secret
+    );
     $email_hash = db_hash($email);
     $sql = 'call sp_store_access_keys_if_allowed(?, ?, ?, ?);';
     $result = query(
@@ -889,10 +899,13 @@ function db_reset_auth_key_for_user_if_valid($email, $reset_key): ?array
         [
             $email_hash,
             $reset_key,
-            $access_key,
-            $access_secret
+            $key_hash,
+            $secret_hash
         ]
     );
+    echo var_dump($result);
+    return [$access_key, $access_secret];
+
     if (isset($result[0]) 
         && isset($result[0]['got_stored'])
         && true == $result[0]['got_stored']
