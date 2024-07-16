@@ -4,94 +4,158 @@
  * based on the fields listed in the database.
  *
  * PHP Version 7.5.3
- * 
+ *
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for Omega Junior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.712.0050
+ * @version  2.24.714.1444
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/umpire/session_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/umpire/db_utils.php';
 
-if (!session_did_user_authenticate()) {
+if (false === session_did_user_authenticate()) {
     session_remember('return_to', '/umpire/view/form-entries/');
-    header('Location: ../../sign-in/');
+    header('Location: ../../../sign-in/');
     die();
 }
 
-$current_user = session_recall_user_token();
+$current_user    = session_recall_user_token();
 $held_privileges = db_which_of_these_privileges_does_user_hold(
     $current_user,
     'may_see_all_cases'
 );
-if (empty($held_privileges)) {
+if (true === empty($held_privileges)) {
     session_remember('return_to', '/umpire/view/form-entries/');
-    header('Location: ../../access-denied/'); 
+    header('Location: ./access-denied/');
     die();
 }
 
-/**
+/*
  * We expect a form id as the form query parameter.
+ * It is passed in as a query parameter by a local .htaccess
+ * setting, that transforms the user-friendly web address
+ * to one expected by this script.
  */
 $expected_query_param = 'form';
-$given_form_id = '';
-if (isset($_GET[$expected_query_param])) {
+$given_form_id        = '';
+if (true === isset($_GET[$expected_query_param])) {
     $given_form_id = $_GET[$expected_query_param];
 }
-if (!$given_form_id) {
+
+if ('' === $given_form_id) {
     header('Location: ../forms/');
     die();
 }
 
-$form_id_prefix = 'enter_';
-$prefixed_form_id = $form_id_prefix . $given_form_id;
+$form_id_prefix   = 'enter_';
+$prefixed_form_id = $form_id_prefix.$given_form_id;
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/umpire/db_utils.php';
 $ask_whether_form_exists = query(
     'select 1 as `it_exists` from `forms` where `id` = ?',
     's',
     [$prefixed_form_id]
 );
-$does_form_exist = (
+$does_form_exist         = (
     isset($ask_whether_form_exists[0])
     && isset($ask_whether_form_exists[0]['it_exists'])
-    && $ask_whether_form_exists[0]['it_exists'] == 1
+    && 1 == $ask_whether_form_exists[0]['it_exists']
 );
-if (!$does_form_exist) {
+if (false === $does_form_exist) {
     header('Location: ../forms/');
     die();
 }
+
 $ask_for_form_caption = query(
-    "select `caption` from `form_caption_translations` 
-     where `form` = ? and `language` = 'en'",
+    "select `caption`
+     from `form_caption_translations`
+     where `form` = ?
+     and `language` = 'en'",
     's',
     [$prefixed_form_id]
 );
 if (isset($ask_for_form_caption[0])
     && isset($ask_for_form_caption[0]['caption'])
-    && $ask_for_form_caption[0]['caption'] != ''
+    && '' !== $ask_for_form_caption[0]['caption']
 ) {
     $form_caption = $ask_for_form_caption[0]['caption'];
 } else {
     $form_caption = $given_form_id;
 }
 
-$entries = query(
-    "call sp_get_form_entries_with_fields(?, ?)",
-    'ss',
+// Make sure we display a page full of results at a time.
+$page      = 0;
+$page_size = 50;
+if (isset($_GET['p'])) {
+    $requested_page = $_GET['p'];
+    if (is_numeric($requested_page) && $requested_page > 1) {
+        $page = $requested_page - 1;
+    }
+}
+
+if (isset($_GET['pp'])) {
+    $requested_page_size = $_GET['pp'];
+    if (is_numeric($requested_page_size) && $requested_page_size > 10) {
+        $page_size = $requested_page_size;
+    }
+}
+
+
+$entries = [];
+
+$entry_ids = query(
+    'select entry_id
+     from entries 
+     where form = ?
+     order by entry_id desc
+     limit ?, ?',
+    'sii',
     [
         $prefixed_form_id,
-	'en'
+        $page,
+        $page_size
     ]
 );
 
 
-$page_title = $form_caption . ' - Form Entries - Umpire';
+$must_render_entries = true;
+if (is_null($entry_ids)
+    || 0 === count($entry_ids)
+    || false === isset($entry_ids[0]['entry_id'])
+) {
+    $must_render_entries = false;
+} else {
+    // We need to read which attributes to expect from the form.
+    $attributes = query(
+        'select `attribute` 
+         from `form_attributes` 
+         where `form` = ?',
+        's',
+        [$prefixed_form_id],
+    );
+    if (is_null($attributes)
+        || 0 === count($attributes)
+        || false === isset($attributes[0]['attribute'])
+    ) {
+        $must_render_entries = false;
+    } else {
+        $entries = query(
+            "call sp_get_form_entries_with_fields(?, ?)",
+            'ss',
+            [
+                $prefixed_form_id,
+                'en',
+            ]
+        );
+    }
+}
+
+$page_title = $form_caption.' - Form Entries - Umpire';
 
 ?>
 <!DOCTYPE html>
@@ -107,17 +171,45 @@ $page_title = $form_caption . ' - Form Entries - Umpire';
     <h2>Overview of stored records</h2>
 <?php
 
-if ($entries) {
-    echo "<table>\r\n<tr><th>Case ID</th><th>Field</th><th>Value</th><th>Entered at</th><th>By user</th></tr>";
-    while ($entry = array_shift($entries)) {
-        echo "<tr>
-        <th>{$entry['case_id']}</th>
-	<th>{$entry['translation']}</th>
-	<td>{$entry['value']}</td>
-	<td>{$entry['at']}</td>
-	<td>{$entry['user']}</td>
-        </tr>\r\n";
+if ((0 < count($entries)) && (true === $must_render_entries)) {
+    echo '<table><thead><tr><th>Case ID</th><th>Entered at</th><th>By user</th>';
+    foreach ($attributes as $record) {
+        if (isset($record['attribute'])) {
+            $id = $record['attribute'];
+            echo "<th>{$id}</th>";
+        } else {
+            echo '<th>Field</th>';
+        }
     }
+
+    echo '</tr></thead>';
+    $last_entry_id = '';
+    while ($entry = array_shift($entries)) {
+        $current_entry_id = $entry['entry_id'];
+        if ($current_entry_id !== $last_entry_id) {
+            echo "<thead><th>{$current_entry_id}</th></thead><tbody>";
+        }
+
+        echo "<tr>
+        <th></th>
+        <td>{$entry['at']}</td>
+        <td>{$entry['user']}</td>";
+        foreach ($attributes as $attrib) {
+            $a = $attrib['attribute'];
+            if (isset($entry[$a])) {
+                echo '<td>'.$entry[$a].'</td>';
+            } else {
+                echo '<td></td>';
+            }
+        }
+
+        echo "</tr>\r\n";
+        if ($current_entry_id !== $last_entry_id) {
+            echo "</tbody>";
+            $last_entry_id = $current_entry_id;
+        }
+    }
+
     echo "</table>\r\n";
 } else {
     echo "<p>No entries available for this form.</p>";
