@@ -29,7 +29,7 @@ $held_privileges = db_which_of_these_privileges_does_user_hold(
     $current_user,
     'may_see_all_cases'
 );
-if (true === empty($held_privileges)) {
+if ([] === $held_privileges) {
     session_remember('return_to', '/umpire/view/form-entries/');
     header('Location: ./access-denied/');
     die();
@@ -41,6 +41,7 @@ if (true === empty($held_privileges)) {
  * setting, that transforms the user-friendly web address
  * to one expected by this script.
  */
+
 $expected_query_param = 'form';
 $given_form_id        = '';
 if (true === isset($_GET[$expected_query_param])) {
@@ -118,13 +119,13 @@ $entry_ids = query(
     [
         $prefixed_form_id,
         $page,
-        $page_size
+        $page_size,
     ]
 );
 
 
 $must_render_entries = true;
-if (is_null($entry_ids)
+if (null === $entry_ids
     || 0 === count($entry_ids)
     || false === isset($entry_ids[0]['entry_id'])
 ) {
@@ -138,7 +139,7 @@ if (is_null($entry_ids)
         's',
         [$prefixed_form_id],
     );
-    if (is_null($attributes)
+    if (null === $attributes
         || 0 === count($attributes)
         || false === isset($attributes[0]['attribute'])
     ) {
@@ -172,7 +173,7 @@ $page_title = $form_caption.' - Form Entries - Umpire';
 <?php
 
 if ((0 < count($entries)) && (true === $must_render_entries)) {
-    echo '<table><thead><tr><th>Case ID</th><th>Entered at</th><th>By user</th>';
+    echo '<table><thead><tr><th>Case_ID</th><th>Entered_at_Date</th><th>By_User</th>';
     foreach ($attributes as $record) {
         if (isset($record['attribute'])) {
             $id = $record['attribute'];
