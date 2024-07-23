@@ -413,6 +413,57 @@ function get_hashing_algo_for_user_by_email(?string $email): ?array
     return [];
 }
 
+
+/**
+ * Poor-man's identifier of a visitor's user agent.
+ * 
+ * @return string: a hash that identifies the user agent.
+ */
+function db_make_browser_signature() {
+    $xs = [];
+    foreach ($_SERVER as $k => $v) {
+        $k2 = strtolower($k);
+        if (strpos($k2, 'http_', 0) === 0) {
+            $xs[] = $k2.':'.$v;
+        }
+    }
+    $id = implode(';', $xs);
+    $id_hash = db_hash($id);
+    return $id_hash;
+}
+
+
+/**
+ * Stores that a login was attempted using the passed-in
+ * credentials. This can be used later to determine whether
+ * the system is being abused.
+ * 
+ * @param $email_hash  should be the hash of the user-
+ *                     supplied email address.
+ * @param $key_hash    should be the hash of the user-
+ *                     supplied authentication key.
+ * @param $secret_hash should be the hash of the user-
+ *                     supplied authentication secret.
+ * 
+ * @return Nothing.
+ */
+function db_store_login_attempt(
+    string $email_hash,
+    string $key_hash,
+    string $secret_hash
+) {
+    db_exec(
+        'call sp_log_login_attempt_for_unknown_user(?, ?, ?, ?)',
+        'ssss',
+        [
+            $email_hash,
+            $key_hash,
+            $secret_hash,
+            db_make_browser_signature()
+        ]
+    );
+}
+
 /**
  * Whether or not the provided credentials match a known user. We hash the 
  * provided information using the same hashing algorithm as used by the 
@@ -446,20 +497,25 @@ function db_is_user_known(
     ) {
         return -1;
     }
-    $h = get_hashing_algo_for_user_by_email($email);
-    if (empty($h) || (count($h) < 2)) { 
-        return -2;
-    }
-    [
-        'hashing_algo' => $hashing_algo, 
-        'hashing_version' => $hashing_version
-    ] = $h;
-    if (empty($hashing_algo) || empty($hashing_version)) {
-        return -3;
-    }
+    $key_hash = db_hash($key);
+    $secret_hash = db_hash($secret);
     $email_hash = db_hash($email);
-    $key_hash = hash($hashing_algo, $key);
-    $secret_hash = hash($hashing_algo, $secret);
+    db_store_login_attempt(
+        $email_hash,
+        $key_hash,
+        $secret_hash
+    );
+    $h = get_hashing_algo_for_user_by_email($email);
+    if (!empty($h) && (1 < count($h))) { 
+        [
+            'hashing_algo' => $hashing_algo, 
+            'hashing_version' => $hashing_version
+        ] = $h;
+        if (!empty($hashing_algo) && !empty($hashing_version)) {
+            $key_hash = hash($hashing_algo, $key);
+            $secret_hash = hash($hashing_algo, $secret);
+        }
+    }
     $result = query(
         'call sp_is_user_known(?, ?, ?)', 
         'sss', 
