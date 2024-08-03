@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.803.1439
+ * @version 2.24.508.2054
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -93,27 +93,6 @@ if (!empty($form_choice)) {
         's',
         [$form_choice]
     );
-    $attributes = query(
-        'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
-             from `form_attributes` as `fa` 
-             inner join `attributes` as `a` 
-             on `a`.`id` = `fa`.`attribute` 
-             where `fa`.`form` = ? 
-             order by `fa`.`display_sequence`', 
-        's', 
-        [$form_choice]
-    );
-    $missing_attributes = query(
-        'select `id` from `attributes` 
-            where not exists (
-                select 1 from `form_attributes` as `fa`
-                where `fa`.`attribute` = `attributes`.`id`
-                and `fa`.`form` = ?
-            )
-            order by `id` asc',
-        's',
-        [$form_choice]
-    );
 }
 
 $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
@@ -126,7 +105,7 @@ $form_id_for_show = htmlspecialchars($form_choice, ENT_QUOTES);
 <meta name=author value="OmegaJunior Consultancy, LLC" />
 <meta name=viewport content="width=device-width, initial-scale=1.0" />
 <link rel=stylesheet href="../../c/main.css"/>
-<link rel=stylesheet href="../../c/manage-form.css?v=2.24.803.1439"/>
+<link rel=stylesheet href="../../c/manage-form.css?2.24.527.1609"/>
 <script type="text/javascript">/* <![CDATA[ */
 
 function hide_changed(input_id) {
@@ -414,55 +393,6 @@ function store(input, attrib_id) {
     }
     return false;
 }
-function delete_attrib_row(attrib_id) {
-    "use strict";
-    const x = document.getElementById('attribute_row_' + attrib_id);
-    if (!!x) {
-        x.parentNode.removeChild(x);
-    }
-}
-function remove(input, attrib_id) {
-    "use strict";
-    const evt = window.event;
-    if (evt && evt.preventDefault) {
-        evt.preventDefault();
-    }
-    if (input && attrib_id) {
-        show_changed(attrib_id);
-        const property = input.id;
-        if (!!property) {
-            const fd = new FormData();
-            fd.append('form_id', '<?php echo $form_id_for_show; ?>');
-            fd.append('attribute', attrib_id);
-            fd.append('nonce', '<?php echo $form_nonce; ?>');
-            fetch(
-                './remove_form_attribute.php',
-                {
-                    method: "POST",
-                    body: fd,
-                    cache: "no-store",
-                    mode: "same-origin",
-                    credentials: "include"
-                }
-            ).then((response) => {
-                if (response.ok) {
-                    response.json().then(data => {
-                        if (data.success) {
-                            delete_attrib_row(attrib_id);
-                        } else {
-                            show_fail(attrib_id, data);
-                        }
-                    }).catch(alert);
-                } else {
-                    response.json().then(data => 
-                        show_fail(attrib_id, data)
-                    );
-                }
-            }).catch(alert);
-        }
-    }
-    return false;
-}
 
 /* ]]> */</script>
 </head>
@@ -633,15 +563,13 @@ if (!$is_form_known) {
     </fieldset></form>
 </section>
 <section>
-<h3>Form Fields</h3>
-<p>Note: fields are shared among forms. Therefore, this section lets 
-you choose which fields to show, and in which order. Only the Display 
-Sequence and the checkbox to hide the field on entry (so it won't be 
-shown until later), are set for each form separately.</p>
-<form>
-  <fieldset><legend>These fields are assigned currently:</legend>
-  <table>
-  <thead>
+<h3>Change Form Fields</h3>
+<p>Note: fields are shared among forms. Changing one will 
+change it on all forms. The exception is Display Sequence: that is 
+applied to each form separately.</p>
+<fieldset><legend>These fields are assigned currently.</legend>
+<table>
+<thead>
     <tr>
         <th>&nbsp;&nbsp;</th>
         <th>Display Sequence</th>
@@ -652,12 +580,37 @@ shown until later), are set for each form separately.</p>
         <th>Default Value</th>
         <th>Write Once</th>
         <th>Hide on Entry</th>
-        <th></th>
     </tr>
-  </thead>
-  <tbody>
+</thead>
+<tbody>
             ";
-    foreach ($attributes as $x) {
+    $xs = query(
+        'select `a`.*, `fa`.`display_sequence`, `fa`.`hide_on_entry` 
+                from `form_attributes` as `fa` 
+                inner join `attributes` as `a` 
+                on `a`.`id` = `fa`.`attribute` 
+                where `fa`.`form` = ? 
+                order by `fa`.`display_sequence`', 
+        's', 
+        [$form_choice]
+    );
+    $dt_options = '';
+    $dts = [
+        'date',
+        'email',
+        'enum',
+        'image',
+        'integer',
+        'location',
+        'longtext', 
+        'percent',
+        'shorttext', 
+        'time'
+    ];
+    foreach ($dts as $dt) {
+        $dt_options .= "<option>{$dt}</option>";
+    }
+    foreach ($xs as $x) {
         $id = $x['id'];
         $display_seq   = $x['display_sequence'];
         $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
@@ -675,8 +628,13 @@ shown until later), are set for each form separately.</p>
             ? 'checked=checked' 
             : ''
         );
+        $enum_list = '';
+        $enum_mgr_hidden = 'hidden';
+        if ($x['data_type'] == 'enum') {
+            $enum_mgr_hidden = '';
+        }
         echo "
-        <tr id='attribute_row_{$attrib_id}'>
+        <tr>
             <td>
                 <span hidden class=changed 
                 id=changed_{$attrib_id} 
@@ -688,7 +646,7 @@ shown until later), are set for each form separately.</p>
                 id=succeeded_{$attrib_id} 
                 title='Stored successfully'>&radic;</span>
             </td>
-            <th><input type=number class='display_sequence'
+            <th><input type=number
                 name=new_display_seq_{$attrib_id}
                 id=new_display_seq_{$attrib_id}
                 onchange='store(this, \"{$attrib_id}\");'
@@ -698,14 +656,62 @@ shown until later), are set for each form separately.</p>
                 id=old_display_seq_{$attrib_id}
                 value=\"{$display_seq}\"
             /></th>
-            <td><a href='../form-fields/?id={$attrib_id}'
-                title='Change this field'
-                >{$attrib_id}</a></td>
-            <td>{$data_type}</td>
-            <td>{$min}</td>
-            <td>{$max}</td>
-            <td>{$default}</td>
-            <td>{$is_write_once}</td>
+            <td>{$attrib_id}</td>
+            <td><select 
+                name=new_data_type_{$attrib_id}
+                id=new_data_type_{$attrib_id}
+                onchange='store(this, \"{$attrib_id}\");'>
+                <optgroup label='Current choice:'>
+                    <option selected=selected>{$data_type}</option>
+                </optgroup>
+                <optgroup label='Other choices:'>
+                    {$dt_options}
+                </optgroup>
+            </select><input type=hidden 
+                name=old_data_type_{$attrib_id}
+                id=old_data_type_{$attrib_id}
+                value=\"{$data_type}\"
+            /></td>
+            <td><input type=number 
+                name=new_min_{$attrib_id} 
+                id=new_min_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")'
+                value='{$min}'
+            /><input type=hidden 
+                name=old_min_{$attrib_id}
+                id=old_min_{$attrib_id}
+                value=\"{$min}\"
+            /></td>
+            <td><input type=number 
+                name=new_max_{$attrib_id} 
+                id=new_max_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")' 
+                value='{$max}'
+            /><input type=hidden 
+                name=old_max_{$attrib_id}
+                id=old_max_{$attrib_id}
+                value=\"{$max}\"
+            /></td>
+            <td><input type=text 
+                name=new_default_{$attrib_id} 
+                id=new_default_{$attrib_id} 
+                onchange='store(this, \"{$attrib_id}\")' 
+                value='{$default}' {$enum_list} 
+            /><input type=hidden 
+                name=old_default_{$attrib_id}
+                id=old_default_{$attrib_id}
+                value=\"{$default}\"
+            /></td>
+            <td><input type=checkbox 
+                name=new_is_write_once_{$attrib_id} 
+                id=new_is_write_once_{$attrib_id} 
+                {$is_write_once} 
+                onchange='store(this, \"{$attrib_id}\")'
+            /><input type=hidden 
+                name=old_is_write_once_{$attrib_id} 
+                id=old_is_write_once_{$attrib_id} 
+                {$is_write_once} 
+            /></td>
             <td><input type=checkbox 
                 name=new_hide_on_entry_{$attrib_id} 
                 id=new_hide_on_entry_{$attrib_id} 
@@ -716,39 +722,11 @@ shown until later), are set for each form separately.</p>
                 id=old_hide_on_entry_{$attrib_id} 
                 {$hide_on_entry} 
             /></td>
-            <td><label 
-                title='Remove this attribute from this form'
-              ><button type=button 
-                onclick='remove(this, \"{$attrib_id}\")'
-                id=remove_attribute_{$attrib_id}
-                name=remove_attribute_{$attrib_id}
-                class=remove_attribute
-              >X</button></label></td>
         </tr>
     ";
     }
 }
 ?>
     </tbody></table></fieldset>
-  </form>
-  <form >
-    <fieldset><legend>Add a Form Field</legend>
-      <p>Add them first. Set their display sequence later.</p>
-      <p><label for='fields_choice'>Choose which:</label></p>
-      <p><select id='fields_choice' name='fields_choice' 
-          multiple='multiple' size=10
-         >
-<?php
-    foreach ($missing_attributes as $x) {
-        $id = $x['id'];
-        $attrib_id = htmlspecialchars($id, ENT_QUOTES);
-        echo "<option>{$attrib_id}</option>\r\n\t";
-    }
-?>
-         </select></p>
-      <p><label title='Add Fields'><input type=submit id=add_field 
-          name=add_field value='Add Fields'/></label></p>
-     </fieldset>
-  </form>
 </body>
 </html>
