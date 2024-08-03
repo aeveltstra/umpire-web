@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.803.1439
+ * @version 2.24.803.1634
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -431,6 +431,14 @@ function remove(input, attrib_id) {
         show_changed(attrib_id);
         const property = input.id;
         if (!!property) {
+            const is_confirmed = confirm(
+                'Remove attribute ' + attrib_id 
+                + ' from this form?'
+            );
+            if (!is_confirmed) {
+                hide_changed(attrib_id);
+                return false;
+            }
             const fd = new FormData();
             fd.append('form_id', '<?php echo $form_id_for_show; ?>');
             fd.append('attribute', attrib_id);
@@ -456,6 +464,49 @@ function remove(input, attrib_id) {
                 } else {
                     response.json().then(data => 
                         show_fail(attrib_id, data)
+                    );
+                }
+            }).catch(alert);
+        }
+    }
+    return false;
+}
+function add_attributes(input) {
+    "use strict";
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    if (input) {
+        const chooser = document.getElementById('fields_choice');
+        if (!!chooser && !!chooser.selectedOptions) {
+            const fd = new FormData();
+            fd.append('form_id', '<?php echo $form_id_for_show; ?>');
+            for (let i = 0; i < chooser.selectedOptions.length; i += 1) {
+                fd.append('attributes', chooser.selectedOptions[i].value);
+            }
+            fd.append('nonce', '<?php echo $form_nonce; ?>');
+            fetch(
+                './add_form_attribute.php',
+                {
+                    method: "POST",
+                    body: fd,
+                    cache: "no-store",
+                    mode: "same-origin",
+                    credentials: "include"
+                }
+            ).then((response) => {
+                if (response.ok) {
+                    response.json().then(data => {
+                        if (data.success) {
+                            window.location.reload(); 
+                        } else {
+                            alert(data);
+                        }
+                    }).catch(alert);
+                } else {
+                    response.json().then(data => 
+                        alert(data)
                     );
                 }
             }).catch(alert);
@@ -640,6 +691,9 @@ Sequence and the checkbox to hide the field on entry (so it won't be
 shown until later), are set for each form separately.</p>
 <form>
   <fieldset><legend>These fields are assigned currently:</legend>
+  <p>Removing a field does not remove the information already stored 
+     in case entries. It only stops the field from getting displayed.
+  </p>
   <table>
   <thead>
     <tr>
@@ -727,11 +781,10 @@ shown until later), are set for each form separately.</p>
         </tr>
     ";
     }
-}
 ?>
     </tbody></table></fieldset>
   </form>
-  <form >
+  <form>
     <fieldset><legend>Add a Form Field</legend>
       <p>Add them first. Set their display sequence later.</p>
       <p><label for='fields_choice'>Choose which:</label></p>
@@ -746,9 +799,14 @@ shown until later), are set for each form separately.</p>
     }
 ?>
          </select></p>
-      <p><label title='Add Fields'><input type=submit id=add_field 
-          name=add_field value='Add Fields'/></label></p>
+      <p><label title='Add Fields'><input type=submit 
+          id=add_field name=add_field value='Add Fields' 
+          onclick='add_attributes(this)'
+          /></label></p>
      </fieldset>
   </form>
+<?php 
+}
+?>
 </body>
 </html>
