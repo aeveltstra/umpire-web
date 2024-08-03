@@ -166,6 +166,12 @@ $page_title = $form_caption.' - Form Entries - Umpire';
     <meta name=description content="Overview of stored records"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel=stylesheet href="../../../c/main.css"/>
+    <style type="text/css">/* <![CDATA[ */
+        body{max-width:none}
+        table{border-left:thin solid silver;border-top:thin solid silver}
+        th{margin:1pt;padding:4pt;border-right:thin solid grey;border-bottom:thin solid grey;text-align:left}
+        td{margin:1pt;padding:4pt;border-right:thin solid silver;border-bottom:thin solid silver}
+    /* ]]> */</style>
 </head>
 <body>
     <h1><?php echo $page_title; ?></h1>
@@ -173,7 +179,7 @@ $page_title = $form_caption.' - Form Entries - Umpire';
 <?php
 
 if ((0 < count($entries)) && (true === $must_render_entries)) {
-    echo '<table><thead><tr><th>Case_ID</th><th>Entered_at_Date</th><th>By_User</th>';
+    echo '<table><thead><tr><th>Case_ID</th>';
     foreach ($attributes as $record) {
         if (isset($record['attribute'])) {
             $id = $record['attribute'];
@@ -184,33 +190,28 @@ if ((0 < count($entries)) && (true === $must_render_entries)) {
     }
 
     echo '</tr></thead>';
+    $xs = [];
     $last_entry_id = '';
     while ($entry = array_shift($entries)) {
         $current_entry_id = $entry['entry_id'];
-        if ($current_entry_id !== $last_entry_id) {
-            echo "<thead><th>{$current_entry_id}</th></thead><tbody>";
-        }
-
-        echo "<tr>
-        <th></th>
-        <td>{$entry['at']}</td>
-        <td>{$entry['user']}</td>";
-        foreach ($attributes as $attrib) {
-            $a = $attrib['attribute'];
-            if (isset($entry[$a])) {
-                echo '<td>'.$entry[$a].'</td>';
+        if ($last_entry_id !== $current_entry_id) {
+            $xs[$current_entry_id] = [];
+            $last_entry_id = $current_entry_id;
+        }        
+        $xs[$current_entry_id][$entry['attribute']] = $entry['value'];
+    }
+    foreach ($xs as $k => $x) {
+        echo '<tr><th>'.$k.'</th>';
+        foreach ($attributes as $field) {
+            $field_name = $field['attribute'];
+            if (isset($x[$field_name])) {
+                 echo '<td>'.$x[$field_name].'</td>';
             } else {
                 echo '<td></td>';
             }
         }
-
         echo "</tr>\r\n";
-        if ($current_entry_id !== $last_entry_id) {
-            echo "</tbody>";
-            $last_entry_id = $current_entry_id;
-        }
     }
-
     echo "</table>\r\n";
 } else {
     echo "<p>No entries available for this form.</p>";
