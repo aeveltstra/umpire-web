@@ -752,7 +752,7 @@ shown until later), are set for each form separately.</p>
                 id=old_display_seq_{$attrib_id}
                 value=\"{$display_seq}\"
             /></th>
-            <td><a href='../form-fields/?id={$attrib_id}'
+            <td><a href='../fields/?id={$attrib_id}'
                 title='Change this field'
                 >{$attrib_id}</a></td>
             <td>{$data_type}</td>
