@@ -2,7 +2,7 @@
 /**
  * Shows which forms exist. Allows to view form entries.
  * @author A.E.Veltstra
- * @version 2.24.0202.0940
+ * @version 2.24.826.2136
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -25,7 +25,9 @@ $forms_and_entries = query("
      on `form_caption_translations`.`form` = `forms`.`id` 
      and `form_caption_translations`.`language` = 'en'
 ");
-$count_found = count($forms_and_entries);
+$count_found = is_null($forms_and_entries)
+    ? 0
+    : count($forms_and_entries);
 $we_have_any = (0 < $count_found);
 if (!$we_have_any) {
     header('Location: ./no-forms-exist-yet/');
@@ -67,7 +69,7 @@ db_log_user_event('viewed_existing_forms');
     <h2>These forms exist:</h2>
     <ul>
     <?php 
-    if ($allow_viewing_entries) {
+    if ($allow_viewing_entries && (!is_null($forms_and_entries))) {
         foreach($forms_and_entries as list(
             'id' => $form_id,
             'caption' => $caption,
@@ -83,7 +85,7 @@ db_log_user_event('viewed_existing_forms');
                     <a href='${view_entries_link}'>View entries for this form</a> 
                     or <a href='${enter_new_case_link}'>submit a new entry</a>.</li>";
         }
-    } else {
+    } else if (!is_null($forms_and_entries)) {
         foreach($forms_and_entries as list(
             'id' => $form_id,
             'caption' => $caption,

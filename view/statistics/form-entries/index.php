@@ -8,7 +8,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.310.2021
+ * @version  2.24.826.1612
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -69,6 +69,7 @@ $ask_for_entries_for_form = query(
     's',
     [$prefixed_form_id]
 );
+$stats = [];
 if (isset($ask_for_entries_for_form[0])) {
     $stat_labels = [
         "amount_of_entries",
@@ -76,7 +77,6 @@ if (isset($ask_for_entries_for_form[0])) {
         "amount_of_attributes_stored_for_all_entries",
         "estimated_amount_of_versioned_attributes_per_entry"
     ];
-    $stats = [];
     foreach ($stat_labels as $label) {
         $stat = ["label"=>$label, "value"=>0];
         if (isset($ask_for_entries_for_form[0][$label])) {

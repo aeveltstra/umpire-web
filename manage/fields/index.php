@@ -490,32 +490,9 @@ if (!$is_field_known) {
 <h3>Change Attributes</h3>
 <p>Note: display sequence and hide-on-entry are particular to entry forms,
 not to the fields.</p>
-<details><summary>Attributes Explained</summary>
-<ol>
-<li>The identity cannot be changed.</li>
-<li>The data type is required. It determines how a field gets shown.</li>
-<li>The minimum value is optional. For texts, this determines the least amount of characters a user has to enter. For numbers, this determines the smallest number allowed to be entered.</li>
-<li>The maximum value is optional. For texts, this determines the highest amount of characters a user may enter. For numbers, this determines the highest number allowed to be entered.</li>
-<li>Default Value is optional. This sets a value that will be assigned automatically, if the user chooses to enter nothing.</li>
-<li>Mark the Write-Once checkbox to determine that the field's value can be entered, but not changed.</li>
-</ol>
-</details>
 <form>
-<fieldset>
-<table>
-<thead>
-    <tr>
-        <th>&nbsp;&nbsp;</th>
-        <th>Identity</th>
-        <th>Data Type</th>
-        <th>Minimum</th>
-        <th>Maximum</th>
-        <th>Default Value</th>
-        <th>Write-Once</th>
-    </tr>
-</thead>
-<tbody>
-            ";
+<fieldset>";
+
     $xs = query(
         'select `a`.*
             from `attributes` as `a` 
@@ -523,22 +500,6 @@ not to the fields.</p>
         's', 
         [$field_choice]
     );
-    $dt_options = '';
-    $dts = [
-        'date',
-        'email',
-        'enum',
-        'image',
-        'integer',
-        'location',
-        'longtext', 
-        'percent',
-        'shorttext', 
-        'time'
-    ];
-    foreach ($dts as $dt) {
-        $dt_options .= "<option>{$dt}</option>";
-    }
     foreach ($xs as $x) {
         $id = $x['id'];
         $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
@@ -556,6 +517,47 @@ not to the fields.</p>
         if ($x['data_type'] == 'enum') {
             $enum_mgr_hidden = '';
         }
+
+<p><label for=field_identity>Field Code</label></p>
+<p class=hint>The identity cannot be changed.</p>
+<p><input id=field_identity name=field_identity type=text size=24
+    placeholder="field_identity"</p>
+<hr>
+<p><label for=data_type>Data Type</label></p>
+<p class=hint>The data type is required. It determines how a field gets shown.</p>
+<p><select id=data_type name=data_type>
+       <option value=date>Date</option>
+       <option value=email>E-mail Address</option>
+       <option value=enum>Enumeration</option>
+       <option value=image>Image</option>
+       <option value=integer>Whole Number</option>
+       <option value=location>Location</option>
+       <option value=longtext>Long Text (up to 16 pages of text)</option>
+       <option value=percent>Percentage</option>
+       <option value=shorttext>Short Text (up to 255 letters)</option>
+       <option value=time>Time</option>
+</select></p>
+<hr>
+<p><label for=miniumum>Minimum</label></p>
+<p class=hint>The minimum value is optional. For texts, this determines the least amount of characters a user has to enter. For numbers, this determines the smallest number allowed to be entered.</p>
+<p><input id=minimum name=minimum type=number size=0
+    placeholder="0"></p>
+<hr>
+<p><label for=maximum>Maximum</label></p>
+<p class=hint>The maximum value is optional. For texts, this determines the highest amount of characters a user has to enter. For numbers, this determines the highest number allowed to be entered.</p>
+<p><input id=maximum name=maximum type=number size=0
+    placeholder="256"></p>
+<hr>
+<p><label for=default>Default Value</label></p>
+<p class=hint>Default Value is optional. This sets a value that will be assigned automatically, if the user chooses to enter nothing.</p>
+<p><input id=default name=default type=text size=60
+    placeholder="Default Value"></p>
+<hr>
+<p><label for=writeonce>Write-Once</label></p>
+<p class=hint>Mark the Write-Once checkbox to determine that the field's value can be entered, but not changed.</p>
+<p><input id=writeonce name=writeonce type=checkbox></p>
+<hr>
+
         echo "
         <tr>
             <td>

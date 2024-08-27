@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.429.1043
+ * @version  2.24.826.1955
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/session_utils.php';
@@ -43,4 +43,3 @@ header('Location: ./sent/');
 die();
 
 ?>
-

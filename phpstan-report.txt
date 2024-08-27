@@ -1,0 +1,35 @@
+ ------ ------------------------------------------------ 
+  Line   reset-secrets/check/valid-email/send/index.php  
+ ------ ------------------------------------------------ 
+  34     Variable $app_url might not be defined.         
+  39     Variable $support_email might not be defined.   
+  40     Variable $support_email might not be defined.   
+ ------ ------------------------------------------------ 
+
+ ------ ----------------------------------------------------- 
+  Line   reset-secrets/check/valid-email/slow-down/index.php  
+ ------ ----------------------------------------------------- 
+  30     Variable $support_email might not be defined.        
+ ------ ----------------------------------------------------- 
+
+ ------ ----------------------------------------- 
+  Line   sign-in/authenticate/success/index.php   
+ ------ ----------------------------------------- 
+  28     Variable $app_url might not be defined.  
+  29     Variable $app_url might not be defined.  
+  30     Variable $app_url might not be defined.  
+  31     Variable $app_url might not be defined.  
+  32     Variable $app_url might not be defined.  
+ ------ ----------------------------------------- 
+
+ ------ ----------------------------------------------- 
+  Line   sign-up/check/valid-email/send/index.php       
+ ------ ----------------------------------------------- 
+  47     Variable $admin_email might not be defined.    
+  61     Variable $app_url might not be defined.        
+  64     Variable $app_url might not be defined.        
+  67     Variable $support_email might not be defined.  
+ ------ ----------------------------------------------- 
+
+ [ERROR] Found 13 errors                                                
+

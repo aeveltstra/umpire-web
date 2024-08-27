@@ -21,7 +21,7 @@ ini_set('display_startup_errors', '1');
 
 $expected_query_param = 'form';
 $given_form_id        = '';
-if (true === isset($_GET[$expected_query_param])) {
+if (isset($_GET[$expected_query_param])) {
     $given_form_id = $_GET[$expected_query_param];
 }
 
@@ -39,12 +39,14 @@ $ask_whether_form_exists = query(
     's',
     [$prefixed_form_id]
 );
-$does_form_exist         = (
+
+$does_form_exist = (
     isset($ask_whether_form_exists[0])
     && isset($ask_whether_form_exists[0]['it_exists'])
     && $ask_whether_form_exists[0]['it_exists'] == 1
 );
-if (false === $does_form_exist) {
+
+if ($does_form_exist) {
     header('Location: ../forms/');
     die();
 }
@@ -55,9 +57,9 @@ $ask_for_form_caption = query(
     's',
     [$prefixed_form_id]
 );
-if (true === (isset($ask_for_form_caption[0])
+if (isset($ask_for_form_caption[0])
     && isset($ask_for_form_caption[0]['caption'])
-    && $ask_for_form_caption[0]['caption'] !== ''    )
+    && $ask_for_form_caption[0]['caption'] !== ''
 ) {
     $form_caption = $ask_for_form_caption[0]['caption'];
 } else {
@@ -84,7 +86,7 @@ session_remember('last_case_form_id', $prefixed_form_id);
 function show_enums(string $lang)
 {
     $xs = db_read_enumerations($lang);
-    if (false === is_array($xs)) {
+    if (!is_array($xs)) {
         return;
     }
 
@@ -249,8 +251,9 @@ function show_form_entry_fields(string $form_id, string $lang)
                             %7$s>
                     </p><hr>',
     ];
-    $fields    = db_read_form_entry_fields($form_id, $lang);
-    if (false === is_array($fields)) {
+
+    $fields = db_read_form_entry_fields($form_id);
+    if (!is_array($fields)) {
         return;
     }
 

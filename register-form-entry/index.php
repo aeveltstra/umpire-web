@@ -23,7 +23,7 @@ ini_set('display_startup_errors', '1');
  * The process requires to be invoked using HTTP POST.
  */
 
-if (false === isset($_SERVER['REQUEST_METHOD'])) {
+if (!isset($_SERVER['REQUEST_METHOD'])) {
     http_response_code(400);
     die();
 }
@@ -36,19 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $is_form_acceptable = true;
 $form_nonce         = null;
 $form_id            = null;
-if (false === isset($_POST['nonce'])) {
+if (!isset($_POST['nonce'])) {
     $form_nonce = $_POST['nonce'];
 } else {
     $is_form_acceptable = false;
 }
 
-if (false === isset($_POST['form_id'])) {
+if (!isset($_POST['form_id'])) {
     $form_id = $_POST['form_id'];
 } else {
     $is_form_acceptable = false;
 }
 
-if (false === $is_form_acceptable) {
+if (!$is_form_acceptable) {
     header('Location: ./error-wrong-form/');
     die();
 }
@@ -59,7 +59,7 @@ if (false === $is_form_acceptable) {
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/umpire/session_utils.php';
-if (false === session_is_nonce_valid('form_'.$form_id)) {
+if (!session_is_nonce_valid('form_'.$form_id)) {
     header('Location: ./error-wrong-form/');
     die();
 } else {
@@ -87,8 +87,8 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/umpire/db_utils.php';
  * halt.
  */
 
-$expected_fields = db_read_form_entry_fields($form_id, 'en');
-if (false === is_array($expected_fields)) {
+$expected_fields = db_read_form_entry_fields($form_id);
+if (!is_array($expected_fields)) {
     header('500');
     die();
 }

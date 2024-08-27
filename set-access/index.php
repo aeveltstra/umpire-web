@@ -48,8 +48,15 @@ if (false === $valid_email) {
     die();
 }
 
-[$key, $secret] = db_reset_auth_key_for_user_if_valid($email, $reset_key);
-
+$key = null;
+$secret = null;
+$done = db_reset_auth_key_for_user_if_valid($email, $reset_key);
+if (is_null($done)) {
+    header('Location: ./failed/');
+    die();
+} else {
+    [$key, $secret] = $done;
+}
 if (empty($key) || empty($secret)) {
     header('Location: ./failed/');
     die();

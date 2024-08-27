@@ -7,7 +7,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.526.2003
+ * @version  2.24.826.1900
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -20,8 +20,7 @@ ini_set('display_startup_errors', '1');
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/umpire/db_utils.php';
 
-$forms_and_entries = query(
-    "
+$forms_and_entries = query("
     select `forms`.`id`, `caption`,
      (
         select count(*) from `entries` 
@@ -31,36 +30,33 @@ $forms_and_entries = query(
      left join `form_caption_translations`
      on `form_caption_translations`.`form` = `forms`.`id` 
      and `form_caption_translations`.`language` = 'en'
-    "
-);
-$count_forms_found = count($forms_and_entries);
+    ");
+$count_forms_found = is_null($forms_and_entries)
+    ? 0
+    : count($forms_and_entries);
 $we_have_any_forms = (0 < $count_forms_found);
 
 $count_known_users = 0;
-$known_users_counter = scalar(
-    "
+$known_users_counter = scalar("
     select count(1) as `count_known_users` 
      from `users` 
      where `users`.`seq` in (
         select `user` from `user_role_users`
      )
-    "
-);
+    ");
 $we_have_any_known_users = isset($known_users_counter[0]);
 if ($we_have_any_known_users) {
     $count_known_users = $known_users_counter[0];
 }
 
 $count_anonymous_users = 0;
-$anonymous_users_counter = scalar(
-    "
+$anonymous_users_counter = scalar("
     select count(1) as `count_anonymous_users` 
      from `users` 
      where `users`.`seq` not in (
         select `user` from `user_role_users`
      )
-    "
-);
+    ");
 $we_have_any_anonymous_users = isset($anonymous_users_counter[0]);
 if ($we_have_any_anonymous_users) {
     $count_anonymous_users = $anonymous_users_counter[0];
@@ -90,7 +86,7 @@ db_log_user_event('viewed_statistics');
     <h2>Business Intelligence Insights for Data Analysis</h2>
     
     <?php 
-    if ($we_have_any_forms) {
+    if ($we_have_any_forms && (!(is_null($forms_and_entries)))) {
         echo "<h3>Forms</h3>\r\n\t";
         echo '<p>The system holds ';
         echo $count_forms_found;

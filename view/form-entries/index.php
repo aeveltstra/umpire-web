@@ -8,7 +8,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for Omega Junior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.714.1444
+ * @version  2.24.826.1610
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -125,6 +125,7 @@ $entry_ids = query(
 
 
 $must_render_entries = true;
+$attributes = [];
 if (null === $entry_ids
     || 0 === count($entry_ids)
     || false === isset($entry_ids[0]['entry_id'])
@@ -178,7 +179,11 @@ $page_title = $form_caption.' - Form Entries - Umpire';
     <h2>Overview of stored records</h2>
 <?php
 
-if ((0 < count($entries)) && (true === $must_render_entries)) {
+if ((!is_null($entries)) 
+    && (!is_null($attributes))
+    && (0 < count($entries)) 
+    && (true === $must_render_entries)
+) {
     echo '<table><thead><tr><th>Case_ID</th>';
     foreach ($attributes as $record) {
         if (isset($record['attribute'])) {

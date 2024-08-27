@@ -9,7 +9,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.708.2055
+ * @version  2.24.826.1953
  */
 declare(strict_types=1);
  
@@ -31,7 +31,7 @@ mysqli_report(MYSQLI_REPORT_ALL);
  *             to return a single value. Otherwise, expect errors and 
  *             crashes.
  *
- * @return The only value that the SQL statement can return.
+ * @return bool The only value that the SQL statement can return.
  */
 function scalar(?string $sql)
 {
@@ -71,10 +71,10 @@ function scalar(?string $sql)
  *               to supply for the ?-parameters specified in $sql. If 
  *               none supplied, omit.
  *
- * @return Either null, or a list of tuples (associative array). Each 
- *         tuple is a row of the query result, with the keys of its key-
- *         value pairs named after the field names specified in the SQL 
- *         statement.
+ * @return array Either null, or a list of tuples (associative array).
+ *               Each tuple is a row of the query result, with the keys
+ *               of its key-value pairs named after the field names
+ *               specified in the SQL statement.
  */
 function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
 {
@@ -119,9 +119,10 @@ function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
  *                a wrong amount of parameters is given, the procedure 
  *                will fail.
  *
- * @return Either an empty list, or a list of tuples (associative array).
- * Each tuple is a row of the query result, with the keys of its key-
- * value pairs named after the field names specified in the SQL statement.
+ * @return array  Either an empty list, or a list of tuples (associative
+ *                array). Each tuple is a row of the query result, with
+ *                the keys of its key-value pairs named after the field
+ *                names specified in the SQL statement.
  */
 function db_exec(?string $dml, ?string $types = null, ?array $params = null): array
 {
@@ -166,7 +167,7 @@ function db_exec(?string $dml, ?string $types = null, ?array $params = null): ar
  * @param $case_id identifies the profile / case to subscribe to.
  * @param $email   the email address to notify of case changes.
  *
- * @return True if subscribing succeeded.
+ * @return bool True if subscribing succeeded, False if not.
  */
 function db_subscribe(int $case_id, string $email): bool
 {
@@ -218,10 +219,10 @@ function db_subscribe(int $case_id, string $email): bool
  *                       determines which translation to retrieve. For 
  *                       instance: 'en'.
  *
- * @return a list of tuples, each of which has the following fields:
+ * @return array a list of tuples, each of which has the following:
  * - attribute_id: identifies the attribute to enumerate,
- * - enum_value: an enumerated value for the attribute, which gets stored
- *               in the database.
+ * - enum_value: an enumerated value for the attribute, which gets
+ *               stored in the database.
  * - caption: the text to display to the user.
  * The list is ordered by attribute_id and caption, ascending.
  * 
@@ -327,9 +328,9 @@ function db_read_form_entry_fields(string $form_id): array
  * Sha512 is SHA-2 with 512 bit strength. The hash function encodes it in
  * hexadecimal, lower-cased.
  * 
- * @param $candidate should be the data to hash.
+ * @param string $candidate should be the data to hash.
  * 
- * @return the calculated hash of the passed-in data.
+ * @return string the calculated hash of the passed-in data.
  */
 function db_hash(string $candidate): string
 {
@@ -346,11 +347,12 @@ function db_hash(string $candidate): string
  * whether they still are known. They could have been deleted, for instance,
  * in the meantime between authenticating and taking some other action.)
  * 
- * @param $email_hash the hash of the email address to check for 
+ * @param string $email_hash the hash of the email address to check for 
  *                    existence. Use the db_hash function in this module
  *                    to hash the email address.
  * 
- * @return True if the user is recognized by the passed-in email hash.
+ * @return bool True if the user is recognized by the passed-in 
+ *              email hash. False if not.
  */
 function db_is_email_hash_known(?string $email_hash): bool
 {
@@ -369,9 +371,10 @@ function db_is_email_hash_known(?string $email_hash): bool
 /**
  * Whether an email address is known for an existing user of the system.
  * 
- * @param $email the email address to check for existence.
+ * @param string $email the email address to check for existence.
  * 
- * @return True if the user is recognized by the passed-in email address.
+ * @return bool True if the user is recognized by the passed-in
+ *              email address. False if not.
  */
 function db_is_email_known(?string $email): bool
 {
