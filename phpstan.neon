@@ -3,6 +3,7 @@ parameters:
     level: 8
     paths:
         - forms
+        - manage
         - register-form-entry
         - reset-secrets
         - set-access

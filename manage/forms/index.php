@@ -524,8 +524,8 @@ if (!$is_form_known) {
     echo '<h2>Choose which form to edit:</h2><ul>';
     $rows = query(
         'select `form`, `caption` 
-                from `form_caption_translations` 
-                where `language` = \'en\''
+            from `form_caption_translations` 
+            where `language` = \'en\''
     );
     foreach ($rows as $row) {
         $id_for_show = htmlspecialchars(
@@ -619,7 +619,7 @@ if (!$is_form_known) {
                 id=added_caption
                 name=added_caption
                 size=60
-                maxsize=256
+                maxlength=255
                 value='' 
                 placeholder='New caption for chosen language'
             /></td>

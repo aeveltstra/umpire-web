@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.803.1800
+ * @version 2.24.902.1145
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -40,6 +40,9 @@ if (isset($_GET['id'])) {
 $is_field_known = false;
 $field_translation = '';
 $languages_missing_from_field_translations = [];
+$enumerations = [];
+$enumerations_for_show = '';
+$languages_missing_from_enums_for_show = '';
 if (!empty($field_choice)) {
     $get_field_exists = query(
         'select `id` 
@@ -56,7 +59,7 @@ if (!empty($field_choice)) {
             `hint` 
             from `attribute_translations` 
             where `attribute_id` = ?
-            order by 3',
+            order by `language_code` asc',
         's',
         [$field_choice]
     );
@@ -79,10 +82,59 @@ if (!empty($field_choice)) {
                 where `language_code` = `code`
                 and `attribute_id` = ?
             )
-            order by 1',
+            order by `code` asc',
         's',
         [$field_choice]
     );
+    $enumerations = query(
+        'select `enum_value`, `caption`, `language_code`
+         from `enums`
+         where `attribute_id` = ? 
+         order by `language_code`, `caption`',
+        's',
+        [$field_choice]
+    );
+    if ($enumerations) {
+        foreach($enumerations as $enum) {
+	    $enum_val_for_show = htmlspecialchars(
+	        $enum['enum_value'], ENT_QUOTES
+	    );
+	    $enum_caption_for_show = htmlspecialchars(
+	        $enum['caption'], ENT_QUOTES
+	    );
+            $language_for_show = htmlspecialchars(
+                $enum['language_code'], ENT_QUOTES
+            );
+            $enumerations_for_show .= "<tr>
+                <td></td>
+                <td>{$enum_val_for_show}</td>
+                <td>{$language_for_show}</td>
+                <td>{$enum_caption_for_show}</td>
+                <td></td>
+            </tr>\n";
+        }
+    }
+    $languages_missing_from_enum_translations = query(
+        'select `code` from `language_codes`
+            where not exists ( 
+                select 1 from `enums` 
+                where `language_code` = `code`
+                and `attribute_id` = ?
+            )
+            order by `code` asc',
+        's',
+        [$field_choice]
+    );
+    if (!$languages_missing_from_enum_translations) {
+        foreach($languages_missing_from_enum_translations as $m) {
+            $m2 = htmlspecialchars(
+                $m['code'],
+                ENT_QUOTES
+            );
+            $languages_missing_from_enums_for_show .= "
+    <option value='{$m2}'>{$m2}</option>";
+        }
+    }
 }
 
 $field_id_for_show = htmlspecialchars($field_choice, ENT_QUOTES);
@@ -253,14 +305,15 @@ function store_field_translation(input) {
                 if ('lang' == x) {
                   x = get_picked_added_language();
                 }
+                const a = xs[1];
                 const fd = new FormData();
                 fd.append('field_id', '<?php echo addslashes($field_id_for_show); ?>');
                 fd.append('language', x);
                 if ('new' == xs[0]) {
-                    fd.append('new_translation', input.value);
-                    fd.append('old_translation', get_old_value(id));
+                    fd.append('new_' + a, input.value);
+                    fd.append('old_' + a, get_old_value(id));
                 } else if ('add' == xs[0]) {
-                    fd.append('new_translation', get_added_translation());
+                    fd.append('new_' + a, get_added_translation());
                 }
                 fd.append('nonce', '<?php echo addslashes($field_nonce); ?>');
                 fetch(
@@ -293,6 +346,7 @@ function store_field_translation(input) {
     }
     return false;
 }
+
 function store(input, attrib_id) {
     "use strict";
     const evt = window.event;
@@ -340,6 +394,86 @@ function store(input, attrib_id) {
     return false;
 }
 
+function remove_translation_row(row_id) {
+    "use strict";
+    //row_id is expected to be the element id of 
+    //the button that got pressed. It lives in a label,
+    //which lives in a td, which lives in a tr element.
+    //We remove that tr element.
+    const x = document.getElementById(row_id);
+    if (!!x) {
+        x.parentNode.parentNode.removeChild(x.parentNode);
+    }
+}
+
+function remove(input, language_code) {
+    "use strict";
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    if (input && language_code) {
+        show_changed(input.id);
+        const confirmed = confirm(
+            'Remove translation for language '
+            + language_code
+            + ' from this field?'
+        );
+        if (!is_confirmed) {
+            hide_changed(input.id);
+            return false;
+        }
+        const fd = new FormData();
+        fd.append('field_id', '<?php echo $field_id_for_show; ?>');
+        fd.append('language_code', language_code);
+        fd.append('nonce', '<?php echo $field_nonce; ?>');
+        fetch(
+            './remove_field_translation.php',
+            {
+                method: "POST",
+                body: fd,
+                cache: "no-store",
+                mode: "same-origin",
+                credentials: "include"
+            }
+        ).then((response) => {
+            if (response.ok) {
+                response.json().then(data => {
+                    if (data.success) {
+                        delete_translation_row(input.id);
+                    } else {
+                        show_fail(input.id, data);
+                    }
+                }).catch(alert);
+            } else {
+                response.json().then(data => {
+                    show_fail(attrib_id, data)
+                });
+            }
+        }).catch(alert);
+    }
+}
+
+function show_enum_mgr_if_needed(evt) {
+    "use strict";
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+    const e = document.getElementById("data_type");
+    if (!e || !e.selectedOptions) { return; }
+    const m = document.getElementById("data_type_enum_mgr");
+    if (!m) { return; }
+    if (
+        (e.value != "undefined")
+        && (e.value != null)
+        && (e.value === "enum")
+    ) {
+        m.hidden = false;
+    } else {
+        m.hidden = true;
+    }
+}
+
 /* ]]> */</script>
 </head>
 <body>
@@ -350,7 +484,7 @@ if (!$is_field_known) {
     $rows = query(
         'select `attribute_id`, `translation` 
                 from `attribute_translations` 
-                where `language` = \'en\''
+                where `language_code` = \'en\''
     );
     foreach ($rows as $row) {
         $id_for_show = htmlspecialchars(
@@ -366,10 +500,12 @@ if (!$is_field_known) {
     $field_translation_for_show = htmlspecialchars($field_translation, ENT_QUOTES);
     echo "
     <h2>Field being edited: <q>{$field_translation_for_show}</q>.</h2>
-    <p>Note: changes happen immediately after leaving an attribute.</p>
+    <p>Note: field changes affect all forms to which a field has been added.</p>
     <section>
+      <form>
         <h3>Change Translations and Hints</h3>
-        <field><fieldset><legend>Each language has its own:</legend>
+        <p>Note: changes happen immediately after leaving a field.</p>
+        <fieldset><legend>Each language has its own:</legend>
         <table>
             <thead>
                 <tr>
@@ -387,14 +523,14 @@ if (!$is_field_known) {
         echo "
 <tr>
     <td>
-        <span hidden class=changed 
-        id=changed_new_translation_{$t} 
-        title='Changed'>&hellip;</span>
-        <span hidden class=failed 
-        id=failed_new_translation_{$t} 
+        <span hidden class=changed
+        id=changed_new_translation_{$t}
+        title=Changed>&hellip;</span>
+        <span hidden class=failed
+        id=failed_new_translation_{$t}
         title='Storing failed'>&otimes;</span>
-        <span hidden class=succeeded 
-        id=succeeded_new_translation_{$t} 
+        <span hidden class=succeeded
+        id=succeeded_new_translation_{$t}
         title='Stored successfully'>&radic;</span>
     </td>
     <th>{$t}</th>
@@ -407,13 +543,9 @@ if (!$is_field_known) {
             maxlength=255 
             placeholder='{$c}' 
             value='{$c}' 
-            onchange='store_field_translation(this)' />
-        </label>
-        <input type=hidden 
-            name=old_translation_{$t} 
-            id=old_translation_{$t} 
-            value=\"{$c}\"
+            onchange='store_field_translation(this)'
         />
+        </label>
     </td>
     <td>
         <label for=new_hint_{$t}>
@@ -423,17 +555,32 @@ if (!$is_field_known) {
             size=64 
             maxlength=255 
             placeholder='{$h}' 
-            value='{$h}' 
-            onchange='store_field_hint(this)' />
-        </label>
-        <input type=hidden 
-            name=old_hint_{$t} 
-            id=old_hint_{$t} 
-            value=\"{$h}\"
+            value='{$h}'
+            onchange='store_field_translation(this)'
         />
+        </label>
+    </td>
+    <td>
+        <input type=hidden
+        name=old_translation_{$t}
+        id=old_translation_{$t}
+        value='{$c}'
+        /><input type=hidden
+        name=old_hint_{$t}
+        id=old_hint_{$t}
+        value='{$h}'
+        />
+        <label 
+        title='Remove this translation from this field'
+        ><button type=button
+        id=remove_field_translation_{$t}
+        name=remove_field_translation_{$t}
+        onclick='remove(this, \"{$t}\")'
+        class=remove
+        >X</button> Remove</label>
     </td>
 </tr>
-            ";
+";
     }
     echo "</tbody>";
     if (count($languages_missing_from_field_translations) > 0) {
@@ -444,15 +591,15 @@ if (!$is_field_known) {
         }
         echo "<tfoot>
             <td>
-                <span hidden class=changed 
-                id=changed_add_translation_lang 
-                title='Changed'>&hellip;</span>
-                <span hidden class=failed 
+                <span hidden class=changed
+                id=changed_add_translation_lang
+                title=Changed>&hellip;</span>
+                <span hidden class=failed
                 id=failed_add_translation_lang
-                title='Adding failed'>&otimes;</span>
-                <span hidden class=succeeded 
+                title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded
                 id=succeeded_add_translation_lang
-                title='Added successfully'>&radic;</span>
+                title='Stored successfully'>&radic;</span>
             </td>
             <th><select id=add_translation_lang_pick
                 name=add_translation_lang_pick>
@@ -462,7 +609,7 @@ if (!$is_field_known) {
                 id=added_translation
                 name=added_translation
                 size=24
-                maxsize=255
+                maxlength=255
                 value='' 
                 placeholder='New translation for chosen language'
             /></td>
@@ -470,28 +617,27 @@ if (!$is_field_known) {
                 id=added_hint
                 name=added_hint
                 size=64
-                maxsize=255
+                maxlength=255
                 value='' 
                 placeholder='New hint for chosen language'
             /></td>
             <td><label><input type=submit 
                 id=add_translation_lang
                 name=add_translation_lang
-                onclick='add_field_translation_and_hint(this);'
+                onclick='store_field_translation(this);'
                 value='+'
                 title='Add new translation and hint for chosen language'
-                />&nbsp;Add</label></td>
+                /> Add</label></td>
         </tfoot>
         ";
     }
-    echo "</table></fieldset></field>
+    echo "</table></fieldset></form>
 </section>
 <section>
-<h3>Change Attributes</h3>
-<p>Note: display sequence and hide-on-entry are particular to entry forms,
-not to the fields.</p>
-<form>
-<fieldset>";
+<h3>Change Field Attributes</h3>
+<p>Note: display sequence and hide-on-entry are set on each entry
+    form separately.</p>
+<form>";
 
     $xs = query(
         'select `a`.*
@@ -517,18 +663,25 @@ not to the fields.</p>
         if ($x['data_type'] == 'enum') {
             $enum_mgr_hidden = '';
         }
-
+        echo <<<END
+<fieldset>
 <p><label for=field_identity>Field Code</label></p>
 <p class=hint>The identity cannot be changed.</p>
-<p><input id=field_identity name=field_identity type=text size=24
-    placeholder="field_identity"</p>
-<hr>
+<p>{$id}</p>
+</fieldset>
+<fieldset>
 <p><label for=data_type>Data Type</label></p>
 <p class=hint>The data type is required. It determines how a field gets shown.</p>
-<p><select id=data_type name=data_type>
+<p><select id=data_type name=data_type 
+    onchange=show_enum_mgr_if_needed() 
+    >
+    <optgroup label='Current choice:'>
+        <option selected=selected>{$data_type}</option>
+    </optgroup>
+    <optgroup label='All choices:'>
        <option value=date>Date</option>
        <option value=email>E-mail Address</option>
-       <option value=enum>Enumeration</option>
+       <option value=enum>Enumeration (list of predefined choices)</option>
        <option value=image>Image</option>
        <option value=integer>Whole Number</option>
        <option value=location>Location</option>
@@ -536,102 +689,121 @@ not to the fields.</p>
        <option value=percent>Percentage</option>
        <option value=shorttext>Short Text (up to 255 letters)</option>
        <option value=time>Time</option>
-</select></p>
-<hr>
-<p><label for=miniumum>Minimum</label></p>
-<p class=hint>The minimum value is optional. For texts, this determines the least amount of characters a user has to enter. For numbers, this determines the smallest number allowed to be entered.</p>
-<p><input id=minimum name=minimum type=number size=0
-    placeholder="0"></p>
-<hr>
-<p><label for=maximum>Maximum</label></p>
-<p class=hint>The maximum value is optional. For texts, this determines the highest amount of characters a user has to enter. For numbers, this determines the highest number allowed to be entered.</p>
-<p><input id=maximum name=maximum type=number size=0
-    placeholder="256"></p>
-<hr>
-<p><label for=default>Default Value</label></p>
-<p class=hint>Default Value is optional. This sets a value that will be assigned automatically, if the user chooses to enter nothing.</p>
-<p><input id=default name=default type=text size=60
-    placeholder="Default Value"></p>
-<hr>
-<p><label for=writeonce>Write-Once</label></p>
-<p class=hint>Mark the Write-Once checkbox to determine that the field's value can be entered, but not changed.</p>
-<p><input id=writeonce name=writeonce type=checkbox></p>
-<hr>
-
-        echo "
-        <tr>
+    </optgroup>
+</select> <label title="Open the enumeration manager"><input {$enum_mgr_hidden} type=button 
+    value="Edit Enumeration Values"
+    id=data_type_enum_mgr
+    name=data_type_enum_mgr
+    popovertarget=data_type_enum_values
+/></label>
+</p>
+</fieldset>
+<div {$enum_mgr_hidden} popover=auto id=data_type_enum_values>
+    <fieldset>
+    <legend>Enumeration Values</legend>
+    <p>Choices shown on entry forms for the field. The user is advised to choose from this list.</p>
+    <table>
+        <thead>
+            <th>&nbsp;&nbsp;</th>
+            <th>Code</th>
+            <th>Language</th>
+            <th>Translation</th>
+            <th>&nbsp;</th>
+        </thead>
+        <tbody>
+	    {$enumerations_for_show}
+        </tbody>
+        <tfoot>
             <td>
-                <span hidden class=changed 
-                id=changed_{$attrib_id} 
-                title='Changed'>&hellip;</span>
-                <span hidden class=failed 
-                id=failed_{$attrib_id} 
+                <span hidden class=changed
+                id=changed_new_enum_val
+                title=Changed>&hellip;</span>
+                <span hidden class=failed
+                id=failed_new_enum_val
                 title='Storing failed'>&otimes;</span>
-                <span hidden class=succeeded 
-                id=succeeded_{$attrib_id} 
+                <span hidden class=succeeded
+                id=succeeded_new_enum_val
                 title='Stored successfully'>&radic;</span>
             </td>
-            <td>{$attrib_id}</td>
-            <td><select 
-                name=new_data_type_{$attrib_id}
-                id=new_data_type_{$attrib_id}
-                onchange='store(this, \"{$attrib_id}\");'>
-                <optgroup label='Current choice:'>
-                    <option selected=selected>{$data_type}</option>
-                </optgroup>
-                <optgroup label='Other choices:'>
-                    {$dt_options}
-                </optgroup>
-            </select><input type=hidden 
-                name=old_data_type_{$attrib_id}
-                id=old_data_type_{$attrib_id}
-                value=\"{$data_type}\"
-            /></td>
-            <td><input type=number 
-                name=new_min_{$attrib_id} 
-                id=new_min_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\")'
-                value='{$min}'
-            /><input type=hidden 
-                name=old_min_{$attrib_id}
-                id=old_min_{$attrib_id}
-                value=\"{$min}\"
-            /></td>
-            <td><input type=number 
-                name=new_max_{$attrib_id} 
-                id=new_max_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\")' 
-                value='{$max}'
-            /><input type=hidden 
-                name=old_max_{$attrib_id}
-                id=old_max_{$attrib_id}
-                value=\"{$max}\"
-            /></td>
-            <td><input type=text 
-                name=new_default_{$attrib_id} 
-                id=new_default_{$attrib_id} 
-                onchange='store(this, \"{$attrib_id}\")' 
-                value='{$default}' {$enum_list} 
-            /><input type=hidden 
-                name=old_default_{$attrib_id}
-                id=old_default_{$attrib_id}
-                value=\"{$default}\"
-            /></td>
-            <td><input type=checkbox 
-                name=new_is_write_once_{$attrib_id} 
-                id=new_is_write_once_{$attrib_id} 
-                {$is_write_once} 
-                onchange='store(this, \"{$attrib_id}\")'
-            /><input type=hidden 
-                name=old_is_write_once_{$attrib_id} 
-                id=old_is_write_once_{$attrib_id} 
-                {$is_write_once} 
-            /></td>
-        </tr>
-    ";
+            <td><label title="Code to store. Won't be shown on entry forms.">
+                <input type=text 
+                    id=new_enum_val
+                    name=new_enum_val
+                    minlength=4
+                    maxlength=24
+                    size=12
+                /></label>
+            </td>
+            <td><label title="Language of the caption">
+                <select  
+                    id=new_enum_lang
+                    name=new_enum_lang
+                    size=1
+                >
+                {$languages_missing_from_enums_for_show}
+                </select></label>
+            </td>
+            <td><label title="Language-specific translation, shown on entry forms.">
+                <input type=text 
+                    id=new_enum_caption
+                    name=new_enum_caption
+                    minlength=4
+                    maxlength=256
+                    size=48
+                /></label>
+            </td>
+            <td><label title="Create a new value">
+                <input type=submit
+                    id=add_new_enum
+                    name=add_new_enum
+                    value="+"
+                /> Add</label>
+            </td>
+        </tfoot>
+    </table>
+    </fieldset>
+</div>
+<fieldset>
+<p><label for=miniumum>Minimum</label></p>
+<p class=hint>The minimum value is required. For texts, this
+    determines the least amount of characters a user has to enter.
+    For numbers, this determines the smallest number allowed to be
+    entered. The default value is 0 (zero).</p>
+<p><input id=minimum name=minimum type=number size=6 value="{$min}"
+    placeholder="0" minlength=1 maxlength=18></p>
+</fieldset>
+<fieldset>
+<p><label for=maximum>Maximum</label></p>
+<p class=hint>The maximum value is optional. For texts, this
+    determines the highest amount of characters a user has to
+    enter. For numbers, this determines the highest number allowed
+    to be entered. The default value depends on data type. If you 
+    don't specify a maximum, one will be enforced by the data store,
+    depending on data type.
+</p>
+<p><input id=maximum name=maximum type=number size=6 value="{$max}"
+    placeholder="256" minlength=0 maxlength=18></p>
+</fieldset>
+<fieldset>
+<p><label for=default>Default Value</label></p>
+<p class=hint>Default Value is optional. This sets a value that
+    will be assigned automatically, if the user chooses to enter
+    nothing.</p>
+<p><input id=default name=default type=text size=60 size=24
+    value="{$default}" placeholder="Default Value"></p>
+</fieldset>
+<fieldset>
+<p><label for=writeonce>Write-Once</label></p>
+<p class=hint>Mark the Write-Once checkbox to determine that the
+   field's value can be entered, but not changed.</p>
+<p><input id=writeonce name=writeonce type=checkbox 
+    {$is_write_once}></p>
+</fieldset>
+END;
+	} /* end for-each field attrib */
     }
-    echo '</tbody></table></fieldset>';
-}
+
 ?>
+    </form>
 </body>
 </html>
