@@ -39,6 +39,7 @@ if (isset($_GET['id'])) {
 }
 $is_field_known = false;
 $field_translation = '';
+$field_translations = [];
 $languages_missing_from_field_translations = [];
 $enumerations = [];
 $enumerations_for_show = '';
@@ -51,28 +52,34 @@ if (!empty($field_choice)) {
         's',
         [$field_choice]
     );
-    $is_field_known = (count($get_field_exists) > 0);
-    $field_translations = query(
-        'select `attribute_id`, 
-            `translation`, 
-            `language_code`, 
-            `hint` 
-            from `attribute_translations` 
-            where `attribute_id` = ?
-            order by `language_code` asc',
-        's',
-        [$field_choice]
-    );
-    $amount = count($field_translations);
-    $field_has_translations = ($amount > 0);
-    if ($field_has_translations) {
-        for ($i = 0; $i < $amount; $i+=1) {
-            if ('en' === $field_translations[$i]['language_code']) {
-                $field_translation = $field_translations[$i]['translation'];
+    $is_field_known = false;
+    if (!is_null($get_field_exists)) {
+        $is_field_known = (count($get_field_exists) > 0);
+        $field_translations = query(
+            'select `attribute_id`, 
+                `translation`, 
+                `language_code`, 
+                `hint` 
+                from `attribute_translations` 
+                where `attribute_id` = ?
+                order by `language_code` asc',
+            's',
+            [$field_choice]
+        );
+    }
+    $amount = 0;
+    if (!is_null($field_translations)) {
+        $amount = count($field_translations);
+        $field_has_translations = ($amount > 0);
+        if ($field_has_translations) {
+            for ($i = 0; $i < $amount; $i+=1) {
+                if ('en' === $field_translations[$i]['language_code']) {
+                   $field_translation = $field_translations[$i]['translation'];
+                }
             }
-        }
-        if (empty($field_translation)) {
-            $field_translation = $field_translations[0]['translation'];
+            if (empty($field_translation)) {
+                $field_translation = $field_translations[0]['translation'];
+            }
         }
     }
     $languages_missing_from_field_translations = query(
@@ -87,14 +94,14 @@ if (!empty($field_choice)) {
         [$field_choice]
     );
     $enumerations = query(
-        'select `enum_value`, `caption`, `language_code`
-         from `enums`
-         where `attribute_id` = ? 
-         order by `language_code`, `caption`',
+        'select `enum_value`, `language_code`, `caption`
+         from `enums` where `attribute_id` = ? 
+         order by 1, 2, 3',
         's',
         [$field_choice]
     );
     if ($enumerations) {
+        $i = 0;
         foreach($enumerations as $enum) {
 	    $enum_val_for_show = htmlspecialchars(
 	        $enum['enum_value'], ENT_QUOTES
@@ -106,12 +113,40 @@ if (!empty($field_choice)) {
                 $enum['language_code'], ENT_QUOTES
             );
             $enumerations_for_show .= "<tr>
-                <td></td>
-                <td>{$enum_val_for_show}</td>
+                <td>
+			<span hidden class=changed
+			id=changed_enum_{$i}
+			title=Changed>&hellip;</span>
+			<span hidden class=failed
+			id=failed_changed_enum_{$i}
+			title='Storing failed'>&otimes;</span>
+			<span hidden class=succeeded
+			id=succeeded_changed_enum_{$i}
+			title='Stored successfully'>&radic;</span>
+                </td>
+		<td>{$enum_val_for_show}</td>
                 <td>{$language_for_show}</td>
-                <td>{$enum_caption_for_show}</td>
-                <td></td>
+                <td><label 
+                    title='What gets shown for this value and language'>
+                    <input type=text size=48 maxlength=256
+                      minlength=1 id=enum_caption_for_show_{$i}
+                      name=enum_caption_for_show_{$i}
+                      value='{$enum_caption_for_show}'
+                     /></label>
+                </td>
+                <td>
+			<label 
+			title='Remove this value from this enumeration'
+			><button type=button
+			title='Remove this value from this enumeration'
+			id=remove_enum_value_{$i}
+			name=remove_enum_value_{$i}
+			onclick='remove_enum_value(this, \"{$i}\")'
+			class=remove
+			>X</button> Remove</label>
+                </td>
             </tr>\n";
+            $i += 1;
         }
     }
     $languages_missing_from_enum_translations = query(
@@ -125,7 +160,7 @@ if (!empty($field_choice)) {
         's',
         [$field_choice]
     );
-    if (!$languages_missing_from_enum_translations) {
+    if (!is_null($languages_missing_from_enum_translations)) {
         foreach($languages_missing_from_enum_translations as $m) {
             $m2 = htmlspecialchars(
                 $m['code'],
@@ -483,22 +518,24 @@ if (!$is_field_known) {
     echo '<h2>Choose which field to edit:</h2><ul>';
     $rows = query(
         'select `attribute_id`, `translation` 
-                from `attribute_translations` 
-                where `language_code` = \'en\''
+         from `attribute_translations` 
+         where `language_code` = \'en\''
     );
-    foreach ($rows as $row) {
-        $id_for_show = htmlspecialchars(
-            $row['attribute_id'], ENT_QUOTES
-        );
-        $translation_for_show = htmlspecialchars(
-            $row['translation'], ENT_QUOTES
-        );
-        echo "<li><a href='?id={$id_for_show}'>{$translation_for_show}</a></li>";
+    if (!is_null($rows)) {
+        foreach ($rows as $row) {
+            $id_for_show = htmlspecialchars(
+                $row['attribute_id'], ENT_QUOTES
+            );
+            $translation_for_show = htmlspecialchars(
+                $row['translation'], ENT_QUOTES
+            );
+            echo "<li><a href='?id={$id_for_show}'>{$translation_for_show}</a></li>";
+        }
     }
     echo '</ul>';
 } else {
     $field_translation_for_show = htmlspecialchars($field_translation, ENT_QUOTES);
-    echo "
+    echo <<<END
     <h2>Field being edited: <q>{$field_translation_for_show}</q>.</h2>
     <p>Note: field changes affect all forms to which a field has been added.</p>
     <section>
@@ -515,30 +552,32 @@ if (!$is_field_known) {
                     <th>Hint</th>
                 </tr>
             </thead>
-            <tbody>";
-    foreach ($field_translations as $translation) {
-        $c = htmlspecialchars($translation['translation'], ENT_QUOTES);
-        $t = htmlspecialchars($translation['language_code'], ENT_QUOTES);
-        $h = htmlspecialchars($translation['hint'], ENT_QUOTES);
-        echo "
+            <tbody>
+END;
+    if (!is_null($field_translations)) {
+        foreach ($field_translations as $translation) {
+            $c = htmlspecialchars($translation['translation'], ENT_QUOTES);
+            $t = htmlspecialchars($translation['language_code'], ENT_QUOTES);
+            $h = htmlspecialchars($translation['hint'], ENT_QUOTES);
+            echo <<<END
 <tr>
     <td>
         <span hidden class=changed
-        id=changed_new_translation_{$t}
+        id=changed_translation_{$t}
         title=Changed>&hellip;</span>
         <span hidden class=failed
-        id=failed_new_translation_{$t}
+        id=failed_translation_{$t}
         title='Storing failed'>&otimes;</span>
         <span hidden class=succeeded
-        id=succeeded_new_translation_{$t}
+        id=succeeded_translation_{$t}
         title='Stored successfully'>&radic;</span>
     </td>
     <th>{$t}</th>
     <td>
-        <label for=new_translation_{$t}>
+        <label for=translation_{$t}>
         <input type=text 
-            name=new_translation_{$t} 
-            id=new_translation_{$t} 
+            name=translation_{$t} 
+            id=translation_{$t} 
             size=24 
             maxlength=255 
             placeholder='{$c}' 
@@ -548,10 +587,10 @@ if (!$is_field_known) {
         </label>
     </td>
     <td>
-        <label for=new_hint_{$t}>
+        <label for=translation_hint_{$t}>
         <input type=text 
-            name=new_hint_{$t} 
-            id=new_hint_{$t} 
+            name=translation_hint_{$t} 
+            id=translation_hint_{$t} 
             size=64 
             maxlength=255 
             placeholder='{$h}' 
@@ -573,23 +612,29 @@ if (!$is_field_known) {
         <label 
         title='Remove this translation from this field'
         ><button type=button
+        title='Remove this translation from this field'
         id=remove_field_translation_{$t}
         name=remove_field_translation_{$t}
-        onclick='remove(this, \"{$t}\")'
+        onclick='remove(this, "{$t}")'
         class=remove
         >X</button> Remove</label>
     </td>
 </tr>
-";
+END;
+        }
     }
     echo "</tbody>";
-    if (count($languages_missing_from_field_translations) > 0) {
+    if ((!is_null($languages_missing_from_field_translations))
+        && (count($languages_missing_from_field_translations) > 0)
+    ) {
         $add_language_options = '';
         foreach ($languages_missing_from_field_translations as $x) {
             $add_language_options .= '<option>' . addslashes($x['code'])
             . '</option>' . "\r\n\t";
         }
-        echo "<tfoot>
+        echo <<<END
+        <tfoot>
+            <tr>
             <td>
                 <span hidden class=changed
                 id=changed_add_translation_lang
@@ -628,8 +673,9 @@ if (!$is_field_known) {
                 value='+'
                 title='Add new translation and hint for chosen language'
                 /> Add</label></td>
+            </tr>
         </tfoot>
-        ";
+END;
     }
     echo "</table></fieldset></form>
 </section>
@@ -646,24 +692,25 @@ if (!$is_field_known) {
         's', 
         [$field_choice]
     );
-    foreach ($xs as $x) {
-        $id = $x['id'];
-        $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
-        $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
-        $min           = $x['min'];
-        $max           = $x['max'];
-        $default       = htmlspecialchars($x['default'], ENT_QUOTES);
-        $is_write_once = (
-            (1 == $x['is_write_once']) 
-            ? 'checked=checked' 
-            : ''
-        );
-        $enum_list = '';
-        $enum_mgr_hidden = 'hidden';
-        if ($x['data_type'] == 'enum') {
-            $enum_mgr_hidden = '';
-        }
-        echo <<<END
+    if (!is_null($xs)) {
+        foreach ($xs as $x) {
+            $id = $x['id'];
+            $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
+            $data_type     = htmlspecialchars($x['data_type'], ENT_QUOTES);
+            $min           = $x['min'];
+            $max           = $x['max'];
+            $default       = htmlspecialchars($x['default'], ENT_QUOTES);
+            $is_write_once = (
+                (1 == $x['is_write_once']) 
+                ? 'checked=checked' 
+                : ''
+            );
+            $enum_list = '';
+            $enum_mgr_hidden = 'hidden';
+            if ($x['data_type'] == 'enum') {
+                $enum_mgr_hidden = '';
+            }
+            echo <<<END
 <fieldset>
 <p><label for=field_identity>Field Code</label></p>
 <p class=hint>The identity cannot be changed.</p>
@@ -700,20 +747,23 @@ if (!$is_field_known) {
 </fieldset>
 <div {$enum_mgr_hidden} popover=auto id=data_type_enum_values>
     <fieldset>
-    <legend>Enumeration Values</legend>
+    <legend>Edit Enumeration Values</legend>
     <p>Choices shown on entry forms for the field. The user is advised to choose from this list.</p>
     <table>
         <thead>
+            <tr>
             <th>&nbsp;&nbsp;</th>
             <th>Code</th>
             <th>Language</th>
             <th>Translation</th>
             <th>&nbsp;</th>
+            <tr>
         </thead>
         <tbody>
 	    {$enumerations_for_show}
         </tbody>
         <tfoot>
+            <tr>
             <td>
                 <span hidden class=changed
                 id=changed_new_enum_val
@@ -759,6 +809,7 @@ if (!$is_field_known) {
                     value="+"
                 /> Add</label>
             </td>
+            </tr>
         </tfoot>
     </table>
     </fieldset>
@@ -800,7 +851,8 @@ if (!$is_field_known) {
     {$is_write_once}></p>
 </fieldset>
 END;
-	} /* end for-each field attrib */
+            } /* end for-each field attrib */
+        } /* end if is_null */
     }
 
 ?>
