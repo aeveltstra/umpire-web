@@ -126,8 +126,7 @@ $entry_ids = query(
 
 $must_render_entries = true;
 $attributes = [];
-if (null === $entry_ids
-    || 0 === count($entry_ids)
+if (0 === count($entry_ids)
     || false === isset($entry_ids[0]['entry_id'])
 ) {
     $must_render_entries = false;
@@ -140,8 +139,7 @@ if (null === $entry_ids
         's',
         [$prefixed_form_id],
     );
-    if (null === $attributes
-        || 0 === count($attributes)
+    if (0 === count($attributes)
         || false === isset($attributes[0]['attribute'])
     ) {
         $must_render_entries = false;
@@ -179,9 +177,8 @@ $page_title = $form_caption.' - Form Entries - Umpire';
     <h2>Overview of stored records</h2>
 <?php
 
-if ((!is_null($entries)) 
-    && (!is_null($attributes))
-    && (0 < count($entries)) 
+if (
+    (0 < count($entries)) 
     && (true === $must_render_entries)
 ) {
     echo '<table><thead><tr><th>Case_ID</th>';

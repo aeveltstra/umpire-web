@@ -7,7 +7,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.707.1600
+ * @version  2.24.1001.2041
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ session_forget_nonce($form_id);
 
 $is_post_received = false;
 $accept_emails = null;
-$rejectt_emails = null;
+$reject_emails = null;
 if (isset($_POST['accept_emails'])) {
     $accept_emails = $_POST['accept_emails'];
 }
@@ -88,7 +88,7 @@ if (!empty($xs_a)) {
     $xs_a = array_map(
         function ($x) use (&$current_user) {
             $x = filter_var($x, FILTER_VALIDATE_EMAIL);
-            if (false === $x || empty($x)) { 
+            if (false === $x) { 
                 return null;
             }
             $success = db_accept_access($current_user, $x);
@@ -110,7 +110,7 @@ if (!empty($xs_r)) {
     $xs_r = array_map(
         function ($x) use (&$current_user) {
             $x = filter_var($x, FILTER_VALIDATE_EMAIL);
-            if (false === $x || empty($x)) { 
+            if (false === $x) { 
                 return null; 
             }
             $success = db_reject_access($current_user, $x);

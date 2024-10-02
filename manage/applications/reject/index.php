@@ -2,7 +2,7 @@
 /**
  * Deny access to a user who has requested it.
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.707.1545
+ * @version 2.24.1001.2039
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -35,7 +35,7 @@ $valid_email = filter_var(
     FILTER_VALIDATE_EMAIL
 );
 
-if (false === $reject_email) {
+if (false === $valid_email) {
     header('Location: ./error-missing-required-parameters/');
     die();
 }

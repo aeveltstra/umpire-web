@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.527.1415
+ * @version 2.24.1001.2100
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -92,18 +92,17 @@ if (isset($_POST['property'])) {
  * attribute properties needs to add the attribute ID to 
  * each property, to make them unique. This reverses it.
  * 
- * @param $attributed_prop_name should be the name of the 
- *                              property that is modified by
- *                              the HTML form. 
- * @param $attrib_id            should be the identifier 
- *                              of the attribute that is 
- *                              getting its property 
- *                              modified.
+ * @param string $attributed_prop_name Should be the name of the 
+ *               property that is modified by the HTML form. 
+ * @param string $attrib_id Should be the identifier of the attribute 
+ *               that is getting its property modified.
  * 
- * @return the property name, hopefully.
+ * @return string The property name, hopefully.
  */
-function extract_prop_name($attributed_prop_name, $attrib_id)
-{
+function extract_prop_name(
+    string $attributed_prop_name,
+    string $attrib_id
+):string {
     if (empty($attributed_prop_name)
         || empty($attrib_id)
     ) {
@@ -198,7 +197,7 @@ if (!empty($form_choice)) {
         default:
             $sql = '';
         }
-        if (empty($sql) || empty($dt)) {
+        if (empty($sql)) {
             echo '{
                 "success": false,
                 "errors": [

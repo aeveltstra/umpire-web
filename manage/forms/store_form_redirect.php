@@ -3,7 +3,7 @@
  * Save the web address to which the Umpire application has to redirect
  * the user after successful form submission.
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.323.1541
+ * @version 2.24.1001.2108
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -118,11 +118,10 @@ if (!empty($form_choice)) {
                       "errors": []
                     }';
                 } catch (mysqli_sql_exception $err) {
-                    $e2 = addslashes($err);
                     echo '{
                       "success": false,
                       "errors": [
-                        "{$e2}"
+                        "'.$err.'"
                        ]
                     }';
                 }
@@ -162,11 +161,10 @@ if (!empty($form_choice)) {
                   "errors": []
                 }';
             } catch (mysqli_sql_exception $err) {
-                $e2 = addslashes($err);
                 echo '{
                   "success": false,
                   "errors": [
-                    "{$e2}"
+                    "'.$err.'"
                    ]
                 }';
             }

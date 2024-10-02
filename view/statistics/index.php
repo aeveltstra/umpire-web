@@ -31,9 +31,7 @@ $forms_and_entries = query("
      on `form_caption_translations`.`form` = `forms`.`id` 
      and `form_caption_translations`.`language` = 'en'
     ");
-$count_forms_found = is_null($forms_and_entries)
-    ? 0
-    : count($forms_and_entries);
+$count_forms_found = count($forms_and_entries);
 $we_have_any_forms = (0 < $count_forms_found);
 
 $count_known_users = 0;
@@ -86,7 +84,7 @@ db_log_user_event('viewed_statistics');
     <h2>Business Intelligence Insights for Data Analysis</h2>
     
     <?php 
-    if ($we_have_any_forms && (!(is_null($forms_and_entries)))) {
+    if ($we_have_any_forms) {
         echo "<h3>Forms</h3>\r\n\t";
         echo '<p>The system holds ';
         echo $count_forms_found;

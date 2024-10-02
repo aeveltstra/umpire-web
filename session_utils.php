@@ -7,7 +7,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.526.2203
+ * @version  2.24.1001.1943
  */
 
 declare(strict_types=1);
@@ -17,9 +17,9 @@ session_start();
 /**
  * Hash any value using the same algorithm every time. 
  * 
- * @param $v should be the data to hash
+ * @param string $v Should be the data to hash.
  * 
- * @return the hash of the passed-in data.
+ * @return string The hash of the passed-in data.
  */
 function session_make_hash(string $v): string
 {
@@ -47,9 +47,9 @@ function session_recall_app_name(): string
  * application name, which reduces the chance other of PHP instances on 
  * the same iron server to delete session variables of the same name.
  * 
- * @param $k should name the key to forget.
+ * @param string|null $k Should name the key to forget.
  * 
- * @return True if forgotten successfully.
+ * @return bool True if forgotten successfully, otherwise false.
  */
 function session_forget(?string $k): bool
 {
@@ -66,10 +66,10 @@ function session_forget(?string $k): bool
  * application name, which reduces the chance other of PHP instances on 
  * the same iron server to write session variables of the same name.
  * 
- * @param $k should name the key as which to remember the $v value.
- * @param $v should be the value to remember at the $k key.
+ * @param string $k Should name the key as which to remember the $v value.
+ * @param string|null $v Should be the value to remember at the $k key.
  * 
- * @return True if remembered successfully.
+ * @return bool True if remembered successfully, otherwise false.
  */
 function session_remember(string $k, ?string $v): bool
 {
@@ -86,10 +86,10 @@ function session_remember(string $k, ?string $v): bool
  * name, which reduces the chance of other PHP instances on the same iron 
  * server to read session variables of the same name.
  * 
- * @param $k should name the key that identifies the information to pull 
- *           up from the session memory.
+ * @param string $k Should name the key that identifies the information 
+ *                  to pull up from the session memory.
  * 
- * @return empty string if no key $k was found in the session memory.
+ * @return string Empty string if no key $k was found in the session memory.
  * May also be empty if the data found at key $k is empty. Otherwise,
  * the remembered value. Never null.
  */
@@ -105,11 +105,12 @@ function session_recall(string $k):string
 /**
  * Generates a user token based on their email address.
  * 
- * @param $email should be the user's email address. Note the function
+ * @param string $email Should be the user's email address. The function
  *               will work if this isn't an email address, but we cannot
  *               guarantee that follow-up functions will work as expected.
  * 
- * @return the user token generated based on the passed-in $email address.
+ * @return string The user token generated based on the passed-in $email
+ *                address.
  */
 function session_make_user_token(string $email): string
 {
@@ -117,18 +118,25 @@ function session_make_user_token(string $email): string
 }
 
 /** 
- * Retrieves the user token stored in this session.
- * The token gets assigned to the user when they authenticate successfully, 
- * and also when a form needs a nonce if the user is anonymous.
+ * Retrieves the user token stored in this session. It identifies the user
+ * who currently uses the application. It gets assigned to the user when 
+ * they authenticate successfully, and also when a form needs a nonce if 
+ * the user is anonymous.
+ *
+ * @return string The user token.
  */
 function session_recall_user_token():string
 {
     return session_recall('user_token');
 }
+
 /** 
  * Deletes the user token from this session.
  * The token gets assigned to the user when they authenticate successfully, 
  * and also when a form needs a nonce if the user is anonymous.
+ * 
+ * @return bool True if the user token was forgotten successfully, 
+ *              otherwise false.
  */
 function session_forget_user_token():bool
 {
@@ -142,12 +150,14 @@ function session_forget_user_token():bool
  * Check whether a user authenticated by calling the function 
  * session_did_user_authenticate().
  * 
- * Parameters:
- * - user_token, string, optional: should contain the logged-in user's email
- *   address, hashed using the session_make_user_token() function. If any 
- *   other type of value is provided, checks on user privilege levels will 
- *   fail. Providing an empty value will make the session forget the user
- *   token.
+ * @param string|null $user_token Optional: should contain the logged-in
+ *   user's email address, hashed using the session_make_user_token() 
+ *   function. If any other type of value is provided, checks on user 
+ *   privilege levels will fail. Providing an empty value will make the 
+ *   session forget the user token.
+ *
+ * @return bool True if the user token got remembered successfully, 
+ *              otherwise false.
  */
 function session_remember_user_token(?string $user_token):bool
 {
@@ -162,6 +172,8 @@ function session_remember_user_token(?string $user_token):bool
 /**
  * Determine whether the user authenticated. Set it by calling the
  * function session_remember_user_token(token).
+ * 
+ * @return bool True if the user authenticated. Otherwise false.
  */
 function session_did_user_authenticate():bool
 {
@@ -189,10 +201,10 @@ function session_did_user_authenticate():bool
  * We need this function separate from the storage function, because the 
  * nonce validation function uses it separately.
  *
- * @param $id string, required: custom identifier you use to determine 
+ * @param string $id Required: custom identifier you use to determine 
  *            which nonce to read / inspect.
  * 
- * @return the created nonce.
+ * @return string The created nonce.
  */
 function session_make_nonce(string $id):string
 {
@@ -211,14 +223,15 @@ function session_make_nonce(string $id):string
  * Use the session_make_and_remember_nonce(id) function, as a convenience
  * method. 
  * 
- * @param $id    should be the form identifier. Choose this when generating
- *               the nonce for the form, and use it when checking it or
- *               forgetting it.
- * @param $nonce should be the nonce generated earlier, to store for the
- *               form identified by $id. Use the function 
+ * @param string $id Should be the form identifier. Choose this when 
+ *               generating the nonce for the form, and use it when 
+ *               checking it or forgetting it.
+ * @param string $nonce Should be the nonce generated earlier, to store
+ *               for the form identified by $id. Use the function 
  *               session_make_nonce() to generate the nonce.
  * 
- * @return Boolean true if remembering the nonce for that form succeeded.
+ * @return bool True if remembering the nonce for that form succeeded, 
+ *              otherwise false.
  */
 function session_remember_nonce(string $id, string $nonce):bool
 {
@@ -233,11 +246,12 @@ function session_remember_nonce(string $id, string $nonce):bool
  * complex, as bots will need to go back to the entry form to retrieve a 
  * new nonce. Another is to reduce CSRF attempts.
  * 
- * @param $id should be the form identifier. Choose this when generating
- *            the nonce for the form, and use it when checking it or
- *            forgetting it.
+ * @param string $id Should be the form identifier. Choose this when 
+ *                   generating the nonce for the form, and use it when 
+ *                   checking it or forgetting it.
  * 
- * @return Boolean true if the form nonce was forgotten successfully.
+ * @return bool True if the form nonce was forgotten successfully, 
+ *              otherwise false.
  */
 function session_forget_nonce(string $id):bool
 {
@@ -253,11 +267,11 @@ function session_forget_nonce(string $id):bool
  * complex, as bots will need to go back to the entry form to retrieve a 
  * new nonce. Another is to reduce CSRF attempts.
  * 
- * @param $id should be the form identifier. Choose this when generating
- *            the nonce for the form, and use it when checking it or
- *            forgetting it.
+ * @param string $id Should be the form identifier. Choose this when
+ *                   generating the nonce for the form, and use it when 
+ *                   checking it or forgetting it.
  * 
- * @return the created nonce.
+ * @return string The created nonce.
  */
 function session_make_and_remember_nonce(string $id):string
 {
@@ -271,12 +285,12 @@ function session_make_and_remember_nonce(string $id):string
 /**
  * Retrieve the nonce identified by id, from the session storage.
  * 
- * @param $id should be the form identifier. Choose this when generating
- *            the nonce for the form, and use it when checking it or
- *            forgetting it.
+ * @param string $ id should be the form identifier. Choose this when
+ *                    generating the nonce for the form, and use it when 
+ *                    checking it or forgetting it.
  * 
- * @return the nonce created and remembered earlier. Could be empty if 
- *         no nonce was remembered with the passed-in $id.
+ * @return string The nonce created and remembered earlier. Could be 
+ *                empty if no nonce was remembered with the passed-in $id.
  */
 function session_recall_nonce(string $id):string
 {
@@ -290,11 +304,11 @@ function session_recall_nonce(string $id):string
  * 
  * This has been modeled after wp_verify_nonce().
  * 
- * @param $id should be the form identifier. Choose this when generating
- *            the nonce for the form, and use it when checking it or
- *            forgetting it.
+ * @param string $id Should be the form identifier. Choose this when
+ *                   generating the nonce for the form, and use it when
+ *                   checking it or forgetting it.
  * 
- * @return Boolean true if the nonce is valid.
+ * @return bool True if the nonce is valid, otherwise false.
  */
 function session_is_nonce_valid(string $id):bool
 {

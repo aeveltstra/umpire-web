@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.902.1145
+ * @version 2.24.1001.1929
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -31,7 +31,7 @@ if (empty($held_privileges)) {
     header('Location: ../access-denied/'); 
     die();
 }
-$field_nonce = session_make_and_remember_nonce('manage_entry_form_fields');
+$field_nonce = session_make_and_remember_nonce('manage_entry_form_field');
 
 $field_choice = '';
 if (isset($_GET['id'])) {
@@ -53,7 +53,6 @@ if (!empty($field_choice)) {
         [$field_choice]
     );
     $is_field_known = false;
-    if (!is_null($get_field_exists)) {
         $is_field_known = (count($get_field_exists) > 0);
         $field_translations = query(
             'select `attribute_id`, 
@@ -66,9 +65,7 @@ if (!empty($field_choice)) {
             's',
             [$field_choice]
         );
-    }
     $amount = 0;
-    if (!is_null($field_translations)) {
         $amount = count($field_translations);
         $field_has_translations = ($amount > 0);
         if ($field_has_translations) {
@@ -81,7 +78,6 @@ if (!empty($field_choice)) {
                 $field_translation = $field_translations[0]['translation'];
             }
         }
-    }
     $languages_missing_from_field_translations = query(
         'select `code` from `language_codes`
             where not exists ( 
@@ -160,15 +156,12 @@ if (!empty($field_choice)) {
         's',
         [$field_choice]
     );
-    if (!is_null($languages_missing_from_enum_translations)) {
-        foreach($languages_missing_from_enum_translations as $m) {
-            $m2 = htmlspecialchars(
-                $m['code'],
-                ENT_QUOTES
-            );
-            $languages_missing_from_enums_for_show .= "
-    <option value='{$m2}'>{$m2}</option>";
-        }
+    foreach($languages_missing_from_enum_translations as $m) {
+        $m2 = htmlspecialchars(
+            $m['code'],
+            ENT_QUOTES
+        );
+        $languages_missing_from_enums_for_show .= "<option value='{$m2}'>{$m2}</option>";
     }
 }
 
@@ -277,11 +270,15 @@ function get_old_value(id) {
     if (!old_element || !old_element.value) {
         return null;
     }
-    return old_element.value;
+    if ('checkbox' === old_element.type) {
+        return old_element.checked;
+    } else {
+        return old_element.value;
+    }
 }
 
 /**
- * Attempts to replace the fielder old field value 
+ * Attempts to replace the old field value 
  * with the new one, to enable repeated updates.
  * The function assumes the ID of the elements
  * involved start with 'new_' and 'old_'. If either
@@ -302,7 +299,11 @@ function set_new_as_old_value(id) {
     if (!new_element || !old_element) {
         return false;
     }
-    old_element.value = new_element.value;
+    if ('checkbox' === new_element.type) {
+        old_element.value = (new_element.checked) ? 1 : 0;
+    } else {
+        old_element.value = new_element.value;
+    }
     return true;
 }
 
@@ -340,15 +341,14 @@ function store_field_translation(input) {
                 if ('lang' == x) {
                   x = get_picked_added_language();
                 }
-                const a = xs[1];
                 const fd = new FormData();
                 fd.append('field_id', '<?php echo addslashes($field_id_for_show); ?>');
                 fd.append('language', x);
                 if ('new' == xs[0]) {
-                    fd.append('new_' + a, input.value);
-                    fd.append('old_' + a, get_old_value(id));
+                    fd.append('new_translation', input.value);
+                    fd.append('old_translation', get_old_value(id));
                 } else if ('add' == xs[0]) {
-                    fd.append('new_' + a, get_added_translation());
+                    fd.append('new_translation', get_added_translation());
                 }
                 fd.append('nonce', '<?php echo addslashes($field_nonce); ?>');
                 fetch(
@@ -382,22 +382,82 @@ function store_field_translation(input) {
     return false;
 }
 
-function store(input, attrib_id) {
+function store_field_translation_hint(input) {
     "use strict";
     const evt = window.event;
     if (evt && evt.preventDefault) {
         evt.preventDefault();
     }
-    if (input && attrib_id) {
-        show_changed(attrib_id);
-        const property = input.id;
-        if (!!property) {
+    if (input) {
+        const id = input.id;
+        if (!!id) {
+            show_changed(id);
+            const xs = id.split('_');
+            if (xs.length) {
+                let x = xs[xs.length - 1];
+                if ('lang' == x) {
+                  x = get_picked_added_language();
+                }
+                const fd = new FormData();
+                fd.append('field_id', '<?php echo addslashes($field_id_for_show); ?>');
+                fd.append('language', x);
+                if ('new' == xs[0]) {
+                    fd.append('new_hint', input.value);
+                    fd.append('old_hint', get_old_value(id));
+                } else if ('add' == xs[0]) {
+                    fd.append('new_hint', get_added_translation());
+                }
+                fd.append('nonce', '<?php echo addslashes($field_nonce); ?>');
+                fetch(
+                    './store_field_translation_hint.php?t=' + Date.now(),
+                    {
+                        method: "POST",
+                        body: fd,
+                        cache: "no-store",
+                        mode: "same-origin",
+                        credentials: "include"
+                    }
+                ).then((response) => {
+                    if (response.ok) {
+                        response.json().then(data => {
+                            if (data.success) {
+                                show_success(id);
+                                set_new_as_old_value(id);
+                            } else {
+                                show_fail(id, data);
+                            }
+                        }).catch(alert);
+                    } else {
+                        response.json().then(data =>
+                            show_fail(id, data)
+                        );
+                    }
+                }).catch(alert);
+            }
+        }
+    }
+    return false;
+}
+
+function store(input) {
+    "use strict";
+/*
+    const evt = window.event;
+    if (evt && evt.preventDefault) {
+        evt.preventDefault();
+    }
+*/
+    if (input) {
+        show_changed(input.id);
             const fd = new FormData();
             fd.append('field_id', '<?php echo $field_id_for_show; ?>');
-            fd.append('attribute', attrib_id);
-            fd.append('property', property);
-            fd.append('old_value', get_old_value(property));
-            fd.append('new_value', input.value);
+            fd.append('property', input.id);
+            fd.append('old_value', get_old_value(input.id));
+            if ('checkbox' === input.type) {
+                fd.append('new_value', input.checked);
+            } else {
+                fd.append('new_value', input.value);
+            }
             fd.append('nonce', '<?php echo $field_nonce; ?>');
             fetch(
                 './store_field_attribute.php',
@@ -412,19 +472,18 @@ function store(input, attrib_id) {
                 if (response.ok) {
                     response.json().then(data => {
                         if (data.success) {
-                            set_new_as_old_value(attrib_id);
-                            show_success(attrib_id);
+                            set_new_as_old_value(input.id);
+                            show_success(input.id);
                         } else {
-                            show_fail(attrib_id, data);
+                            show_fail(input.id, data);
                         }
                     }).catch(alert);
                 } else {
                     response.json().then(data => 
-                        show_fail(attrib_id, data)
+                        show_fail(input.id, data)
                     );
                 }
             }).catch(alert);
-        }
     }
     return false;
 }
@@ -475,7 +534,7 @@ function remove(input, language_code) {
             if (response.ok) {
                 response.json().then(data => {
                     if (data.success) {
-                        delete_translation_row(input.id);
+                        remove_translation_row(input.id);
                     } else {
                         show_fail(input.id, data);
                     }
@@ -494,7 +553,7 @@ function show_enum_mgr_if_needed(evt) {
     if (evt && evt.preventDefault) {
         evt.preventDefault();
     }
-    const e = document.getElementById("data_type");
+    const e = document.getElementById("new_data_type");
     if (!e || !e.selectedOptions) { return; }
     const m = document.getElementById("data_type_enum_mgr");
     if (!m) { return; }
@@ -521,16 +580,14 @@ if (!$is_field_known) {
          from `attribute_translations` 
          where `language_code` = \'en\''
     );
-    if (!is_null($rows)) {
-        foreach ($rows as $row) {
-            $id_for_show = htmlspecialchars(
-                $row['attribute_id'], ENT_QUOTES
-            );
-            $translation_for_show = htmlspecialchars(
-                $row['translation'], ENT_QUOTES
-            );
-            echo "<li><a href='?id={$id_for_show}'>{$translation_for_show}</a></li>";
-        }
+    foreach ($rows as $row) {
+        $id_for_show = htmlspecialchars(
+            $row['attribute_id'], ENT_QUOTES
+        );
+        $translation_for_show = htmlspecialchars(
+            $row['translation'], ENT_QUOTES
+        );
+        echo "<li><a href='?id={$id_for_show}'>{$translation_for_show}</a></li>";
     }
     echo '</ul>';
 } else {
@@ -546,38 +603,27 @@ if (!$is_field_known) {
         <table>
             <thead>
                 <tr>
-                    <th>&nbsp;&nbsp;</th>
                     <th>Language</th>
                     <th>Translation</th>
+                    <th>&nbsp;&nbsp;</th>
                     <th>Hint</th>
+                    <th>&nbsp;&nbsp;</th>
                 </tr>
             </thead>
             <tbody>
 END;
-    if (!is_null($field_translations)) {
-        foreach ($field_translations as $translation) {
-            $c = htmlspecialchars($translation['translation'], ENT_QUOTES);
-            $t = htmlspecialchars($translation['language_code'], ENT_QUOTES);
-            $h = htmlspecialchars($translation['hint'], ENT_QUOTES);
-            echo <<<END
+    foreach ($field_translations as $translation) {
+        $c = htmlspecialchars($translation['translation'], ENT_QUOTES);
+        $t = htmlspecialchars($translation['language_code'], ENT_QUOTES);
+        $h = htmlspecialchars($translation['hint'], ENT_QUOTES);
+        echo <<<END
 <tr>
-    <td>
-        <span hidden class=changed
-        id=changed_translation_{$t}
-        title=Changed>&hellip;</span>
-        <span hidden class=failed
-        id=failed_translation_{$t}
-        title='Storing failed'>&otimes;</span>
-        <span hidden class=succeeded
-        id=succeeded_translation_{$t}
-        title='Stored successfully'>&radic;</span>
-    </td>
     <th>{$t}</th>
     <td>
-        <label for=translation_{$t}>
+        <label for=new_translation_{$t}>
         <input type=text 
-            name=translation_{$t} 
-            id=translation_{$t} 
+            name=new_translation_{$t} 
+            id=new_translation_{$t} 
             size=24 
             maxlength=255 
             placeholder='{$c}' 
@@ -587,17 +633,39 @@ END;
         </label>
     </td>
     <td>
-        <label for=translation_hint_{$t}>
+        <span hidden class=changed
+        id=changed_new_translation_{$t}
+        title=Changed>&hellip;</span>
+        <span hidden class=failed
+        id=failed_new_translation_{$t}
+        title='Storing failed'>&otimes;</span>
+        <span hidden class=succeeded
+        id=succeeded_new_translation_{$t}
+        title='Stored successfully'>&radic;</span>
+    </td>
+    <td>
+        <label for=new_translation_hint_{$t}>
         <input type=text 
-            name=translation_hint_{$t} 
-            id=translation_hint_{$t} 
+            name=new_translation_hint_{$t} 
+            id=new_translation_hint_{$t} 
             size=64 
             maxlength=255 
             placeholder='{$h}' 
             value='{$h}'
-            onchange='store_field_translation(this)'
+            onchange='store_field_translation_hint(this)'
         />
         </label>
+    </td>
+    <td>
+        <span hidden class=changed
+        id=changed_new_translation_hint_{$t}
+        title=Changed>&hellip;</span>
+        <span hidden class=failed
+        id=failed_new_translation_hint_{$t}
+        title='Storing failed'>&otimes;</span>
+        <span hidden class=succeeded
+        id=succeeded_new_translation_hint_{$t}
+        title='Stored successfully'>&radic;</span>
     </td>
     <td>
         <input type=hidden
@@ -605,8 +673,8 @@ END;
         id=old_translation_{$t}
         value='{$c}'
         /><input type=hidden
-        name=old_hint_{$t}
-        id=old_hint_{$t}
+        name=old_translation_hint_{$t}
+        id=old_translation_hint_{$t}
         value='{$h}'
         />
         <label 
@@ -621,12 +689,10 @@ END;
     </td>
 </tr>
 END;
-        }
     }
     echo "</tbody>";
-    if ((!is_null($languages_missing_from_field_translations))
-        && (count($languages_missing_from_field_translations) > 0)
-    ) {
+    if (count($languages_missing_from_field_translations) > 0)
+    {
         $add_language_options = '';
         foreach ($languages_missing_from_field_translations as $x) {
             $add_language_options .= '<option>' . addslashes($x['code'])
@@ -635,17 +701,6 @@ END;
         echo <<<END
         <tfoot>
             <tr>
-            <td>
-                <span hidden class=changed
-                id=changed_add_translation_lang
-                title=Changed>&hellip;</span>
-                <span hidden class=failed
-                id=failed_add_translation_lang
-                title='Storing failed'>&otimes;</span>
-                <span hidden class=succeeded
-                id=succeeded_add_translation_lang
-                title='Stored successfully'>&radic;</span>
-            </td>
             <th><select id=add_translation_lang_pick
                 name=add_translation_lang_pick>
                 {$add_language_options}
@@ -658,6 +713,17 @@ END;
                 value='' 
                 placeholder='New translation for chosen language'
             /></td>
+            <td>
+                <span hidden class=changed
+                id=changed_add_translation_lang
+                title=Changed>&hellip;</span>
+                <span hidden class=failed
+                id=failed_add_translation_lang
+                title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded
+                id=succeeded_add_translation_lang
+                title='Stored successfully'>&radic;</span>
+            </td>
             <td><input type=text
                 id=added_hint
                 name=added_hint
@@ -666,6 +732,17 @@ END;
                 value='' 
                 placeholder='New hint for chosen language'
             /></td>
+            <td>
+                <span hidden class=changed
+                id=changed_add_hint_lang
+                title=Changed>&hellip;</span>
+                <span hidden class=failed
+                id=failed_add_hint_lang
+                title='Storing failed'>&otimes;</span>
+                <span hidden class=succeeded
+                id=succeeded_add_hint_lang
+                title='Stored successfully'>&radic;</span>
+            </td>
             <td><label><input type=submit 
                 id=add_translation_lang
                 name=add_translation_lang
@@ -692,7 +769,6 @@ END;
         's', 
         [$field_choice]
     );
-    if (!is_null($xs)) {
         foreach ($xs as $x) {
             $id = $x['id'];
             $attrib_id     = htmlspecialchars($id, ENT_QUOTES);
@@ -700,8 +776,9 @@ END;
             $min           = $x['min'];
             $max           = $x['max'];
             $default       = htmlspecialchars($x['default'], ENT_QUOTES);
+            $iwo_value     = $x['is_write_once'];
             $is_write_once = (
-                (1 == $x['is_write_once']) 
+                (1 == $iwo_value) 
                 ? 'checked=checked' 
                 : ''
             );
@@ -717,10 +794,20 @@ END;
 <p>{$id}</p>
 </fieldset>
 <fieldset>
-<p><label for=data_type>Data Type</label></p>
+<p><label for=new_data_type>Data Type</label>
+  <span hidden class=changed
+  id=changed_new_data_type
+  title=Changed>&hellip;</span>
+  <span hidden class=failed
+  id=failed_new_data_type
+  title='Storing failed'>&otimes;</span>
+  <span hidden class=succeeded
+  id=succeeded_new_data_type
+  title='Stored successfully'>&radic;</span>
+</p>
 <p class=hint>The data type is required. It determines how a field gets shown.</p>
-<p><select id=data_type name=data_type 
-    onchange=show_enum_mgr_if_needed() 
+<p><select id=new_data_type name=new_data_type 
+    onchange="show_enum_mgr_if_needed();store(this);"
     >
     <optgroup label='Current choice:'>
         <option selected=selected>{$data_type}</option>
@@ -743,6 +830,7 @@ END;
     name=data_type_enum_mgr
     popovertarget=data_type_enum_values
 /></label>
+    <input id=old_data_type name=old_data_type value="{$data_type}" type=hidden />
 </p>
 </fieldset>
 <div {$enum_mgr_hidden} popover=auto id=data_type_enum_values>
@@ -815,16 +903,37 @@ END;
     </fieldset>
 </div>
 <fieldset>
-<p><label for=miniumum>Minimum</label></p>
+<p><label for=new_min>Minimum</label>
+  <span hidden class=changed
+  id=changed_new_min
+  title=Changed>&hellip;</span>
+  <span hidden class=failed
+  id=failed_new_min
+  title='Storing failed'>&otimes;</span>
+  <span hidden class=succeeded
+  id=succeeded_new_min
+  title='Stored successfully'>&radic;</span>
+</p>
 <p class=hint>The minimum value is required. For texts, this
     determines the least amount of characters a user has to enter.
     For numbers, this determines the smallest number allowed to be
     entered. The default value is 0 (zero).</p>
-<p><input id=minimum name=minimum type=number size=6 value="{$min}"
-    placeholder="0" minlength=1 maxlength=18></p>
+<p><input id=new_min name=new_min type=number size=6 value="{$min}"
+    placeholder="0" minlength=1 maxlength=18 onchange=store(this)>
+    <input id=old_min name=old_min value="{$min}" type=hidden />
+</p>
 </fieldset>
 <fieldset>
-<p><label for=maximum>Maximum</label></p>
+<p><label for=new_max>Maximum</label>
+  <span hidden class=changed
+  id=changed_new_max
+  title=Changed>&hellip;</span>
+  <span hidden class=failed
+  id=failed_new_max
+  title='Storing failed'>&otimes;</span>
+  <span hidden class=succeeded
+  id=succeeded_new_max
+  title='Stored successfully'>&radic;</span>
 <p class=hint>The maximum value is optional. For texts, this
     determines the highest amount of characters a user has to
     enter. For numbers, this determines the highest number allowed
@@ -832,27 +941,51 @@ END;
     don't specify a maximum, one will be enforced by the data store,
     depending on data type.
 </p>
-<p><input id=maximum name=maximum type=number size=6 value="{$max}"
-    placeholder="256" minlength=0 maxlength=18></p>
+<p><input id=new_max name=new_max type=number size=6 value="{$max}"
+    placeholder="256" minlength=0 maxlength=18 onchange=store(this)>
+    <input id=old_max name=old_max value="{$max}" type=hidden />
+</p>
 </fieldset>
 <fieldset>
-<p><label for=default>Default Value</label></p>
+<p><label for=new_default>Default Value</label>
+  <span hidden class=changed
+  id=changed_new_default
+  title=Changed>&hellip;</span>
+  <span hidden class=failed
+  id=failed_new_default
+  title='Storing failed'>&otimes;</span>
+  <span hidden class=succeeded
+  id=succeeded_new_default
+  title='Stored successfully'>&radic;</span>
 <p class=hint>Default Value is optional. This sets a value that
     will be assigned automatically, if the user chooses to enter
     nothing.</p>
-<p><input id=default name=default type=text size=60 size=24
-    value="{$default}" placeholder="Default Value"></p>
+<p><input id=new_default name=new_default type=text size=60 size=24
+    value="{$default}" placeholder="Default Value" onchange=store(this)>
+    <input id=old_default name=old_default value="{$default}" type=hidden />
+</p>
 </fieldset>
 <fieldset>
-<p><label for=writeonce>Write-Once</label></p>
+<p><label for=new_is_write_once>Write-Once</label>
+  <span hidden class=changed
+  id=changed_new_is_write_once
+  title=Changed>&hellip;</span>
+  <span hidden class=failed
+  id=failed_new_is_write_once
+  title='Storing failed'>&otimes;</span>
+  <span hidden class=succeeded
+  id=succeeded_new_is_write_once
+  title='Stored successfully'>&radic;</span>
 <p class=hint>Mark the Write-Once checkbox to determine that the
    field's value can be entered, but not changed.</p>
-<p><input id=writeonce name=writeonce type=checkbox 
-    {$is_write_once}></p>
+<p><input id=new_is_write_once name=new_is_write_once 
+    type=checkbox {$is_write_once} onclick=store(this) >
+    <input id=old_is_write_once name=old_is_write_once 
+      value="{$iwo_value}" type=hidden />
+</p>
 </fieldset>
 END;
-            } /* end for-each field attrib */
-        } /* end if is_null */
+        } /* end for-each field attrib */
     }
 
 ?>

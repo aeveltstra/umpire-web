@@ -94,7 +94,7 @@ if (empty($form_choice)) {
 if ($errors) {
     echo '{
         "success": false,
-        "errors": '.$errors.' 
+        "errors": '. implode($errors) .' 
     }';
 } else {
     echo '{

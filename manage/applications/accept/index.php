@@ -2,7 +2,7 @@
 /**
  * Approve access to a user who has requested it.
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.707.1545
+ * @version 2.24.1001.1957
  */
 declare(strict_types=1);
 error_reporting(E_ALL);
@@ -75,13 +75,11 @@ if (!$success) {
 <body>
     <h1>Successfully Accepted Application</h1>
     <h2>The application to access Umpire has been accepted successfully.</h2>
-    <?php
-    if (!empty($valid_email)) {
-        echo '<p>E-mail address of the accepted application: ',
-            htmlspecialchars($valid_email),
-            '.</p>';
-    }
-    ?>
+<?php
+echo '<p>E-mail address of the accepted application: ',
+     htmlspecialchars($valid_email),
+     '.</p>';
+?>
     <p>Would you like to manage other <a href="../../">access applications</a>?</p>
 </body>
 </html>

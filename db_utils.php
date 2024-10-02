@@ -9,7 +9,7 @@
  * @category Administrative
  * @package  Umpire
  * @author   A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version  2.24.826.1953
+ * @version  2.24.1001.2023
  */
 declare(strict_types=1);
  
@@ -71,15 +71,15 @@ function scalar(?string $sql)
  *               to supply for the ?-parameters specified in $sql. If 
  *               none supplied, omit.
  *
- * @return array Either null, or a list of tuples (associative array).
+ * @return array Either an empty list, or a list of tuples (associative array).
  *               Each tuple is a row of the query result, with the keys
  *               of its key-value pairs named after the field names
  *               specified in the SQL statement.
  */
-function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
+function query(?string $sql, ?string $types = null, ?array $vals = null): array
 {
     if (empty($sql)) {
-        return null;
+        return [];
     }
     if (empty($types) || empty($vals)) {
         $mysqli = null;
@@ -95,8 +95,12 @@ function query(?string $sql, ?string $types = null, ?array $vals = null): ?array
         if (!($mysqli instanceof mysqli)) {
             return [];
         }
-        $result = $mysqli->query($sql, MYSQLI_STORE_RESULT);
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $r1 = $mysqli->query($sql, MYSQLI_STORE_RESULT);
+        $r2 = $r1->fetch_all(MYSQLI_ASSOC);
+        if (is_null($r2)) {
+            return [];
+        }
+        return $r2;
     }
     return db_exec($sql, $types, $vals);
 }
@@ -640,14 +644,15 @@ function db_may_authenticated_user_reject_access(
  * address. The function will check whether the current user has the 
  * privilege to accept an access application.
  * 
- * @param $current_user_hash should be the hashed email address of the
- *                           user who performs the acceptance. Usually an
- *                           administrator. Use db_hash() to hash it.
- * @param $accept_email      should be the email address to be accepted.
- *                           This will be hashed by db_hash() before it
- *                           gets sent to the DB.
+ * @param string|null $current_user_hash Optional: should be the hashed
+ *                    email address of the user who performs the accept-
+ *                    ance. Usually an administrator. Use db_hash() to 
+ *                    hash it.
+ * @param string|null $accept_email Optional: should be the email address
+ *                    to be accepted. This will be hashed by db_hash()
+ *                    before it gets sent to the DB.
  * 
- * @return True if the acceptance was successful.
+ * @return bool True if the acceptance was successful.
  */
 function db_accept_access(
     ?string $current_user_hash, 
@@ -679,14 +684,14 @@ function db_accept_access(
  * address. The function will check whether the current user has the 
  * privilege to reject an access application.
  * 
- * @param $current_user_hash should be the hashed email address of the
- *                           user who performs the rejection. Usually an
- *                           administrator. Use db_hash() to hash it.
- * @param $reject_email      should be the email address to be rejected.
- *                           This will be hashed by db_hash() before it
- *                           gets sent to the DB.
+ * @param string|null $current_user_hash Should be the hashed email
+ *                    address of the user who performs the rejection.
+ *                    Usually an administrator. Use db_hash() to hash it.
+ * @param string|null $reject_email Should be the email address to be
+ *                    rejected. This will be hashed by db_hash() before
+ *                    it gets sent to the DB.
  * 
- * @return True if the rejection was successful.
+ * @return bool True if the rejection was successful, otherwise false.
  */
 function db_reject_access(
     ?string $current_user_hash,

@@ -5,7 +5,7 @@
  * PHP Version 7.3
  *
  * @author  A.E.Veltstra for OmegaJunior Consultancy <omegajunior@protonmail.com>
- * @version 2.24.803.1634
+ * @version 2.24.1001.2059
  */
 declare(strict_types=1);
 ini_set('display_errors', '1');
@@ -41,8 +41,11 @@ if (isset($_GET['id'])) {
 }
 $is_form_known = false;
 $form_caption = '';
+$form_captions = [];
 $form_redirect = '';
 $languages_missing_from_form_captions = [];
+$attributes = [];
+$missing_attributes = [];
 if (!empty($form_choice)) {
     $get_form_exists = query(
         'select `id`, `url_after_entry` 
