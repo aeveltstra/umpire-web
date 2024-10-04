@@ -95,7 +95,7 @@ if (!empty($field_choice)) {
     if ($is_existing_record_found) {
         $existing_record_has_old_value = isset(
             $get_existing_record[0]['hint']
-        );
+        ) && (0 < strlen($get_existing_record[0]['hint']));
         if ($existing_record_has_old_value) {
             $old_value_from_record = $get_existing_record[0]['hint'];
             $old_values_match = (
