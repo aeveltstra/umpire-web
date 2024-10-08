@@ -26,7 +26,7 @@ if (isset($_GET[$expected_query_param])) {
 }
 
 if ('' === $given_form_id) {
-    header('Location: ../forms/');
+    header('Location: ../?b=1');
     die();
 }
 
@@ -43,11 +43,11 @@ $ask_whether_form_exists = query(
 $does_form_exist = (
     isset($ask_whether_form_exists[0])
     && isset($ask_whether_form_exists[0]['it_exists'])
-    && $ask_whether_form_exists[0]['it_exists'] == 1
+    && ($ask_whether_form_exists[0]['it_exists'] == 1)
 );
 
-if ($does_form_exist) {
-    header('Location: ../forms/');
+if (!$does_form_exist) {
+    header('Location: ../?b=2');
     die();
 }
 
@@ -141,7 +141,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             id="%1$s" 
                             aria-describedby="hint_%1$s"
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'email'     => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=email 
@@ -154,7 +154,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             id="%1$s" 
                             aria-describedby="hint_%1$s"
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'enum'      => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=text 
@@ -167,7 +167,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             placeholder="%2$s" 
                             list="list_%1$s" 
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'image'     => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=file 
@@ -181,7 +181,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             id="%1$s" 
                             aria-describedby="hint_%1$s"
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'integer'   => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=text
@@ -192,7 +192,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             placeholder="%2$s" 
                             pattern="[0-9]*"
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'location'  => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type="text" 
@@ -202,7 +202,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             aria-describedby="hint_%1$s"
                             placeholder="%2$s" 
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'longtext'  => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><textarea cols=60 
@@ -213,7 +213,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             aria-describedby="hint_%1$s"
                             placeholder="%2$s" 
                             %7$s></textarea>
-                    </p><hr>',
+                    </p>',
         'percent'   => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><abbr title="none">0%%</abbr> 
@@ -228,7 +228,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             onchange="this.title = this.value"
                             %7$s
                     > <abbr title="all">100%%</abbr>
-                    </p><hr>',
+                    </p>',
         'shorttext' => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=text 
@@ -240,7 +240,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             id="%1$s" 
                             aria-describedby="hint_%1$s"
                             %7$s>
-                    </p><hr>',
+                    </p>',
         'time'      => '<p><label for="%1$s">%3$s</label></p>
                     <p class=hint id="hint_%1$s">%4$s</p>
                     <p><input type=time 
@@ -249,7 +249,7 @@ function show_form_entry_fields(string $form_id, string $lang)
                             aria-describedby="hint_%1$s"
                             placeholder="" 
                             %7$s>
-                    </p><hr>',
+                    </p>',
     ];
 
     $fields = db_read_form_entry_fields($form_id);
@@ -275,7 +275,7 @@ function show_form_entry_fields(string $form_id, string $lang)
             }
 
             echo sprintf(
-                $t,
+                '<fieldset>'.$t.'</fieldset>',
                 addslashes($id),
                 addslashes($default),
                 addslashes($caption),
